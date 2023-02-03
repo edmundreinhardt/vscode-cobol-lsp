@@ -1,4 +1,6 @@
+import { stringify } from 'querystring';
 import { assert, expect, test } from 'vitest';
+import { l } from 'vitest/dist/index-50755efe';
 import { ESourceFormat, IExternalFeatures } from '../externalfeatures';
 import { fileformatStrategy, hoverApi, ICOBOLSettings, IEditorMarginFiles, intellisenseStyle, outlineFlag } from '../iconfiguration';
 import { ICOBOLSourceScanner, COBOLSourceScanner, ICOBOLSourceScannerEvents, COBOLToken } from '../language/cobolsourcescanner';
@@ -30,72 +32,77 @@ test('JSON', () => {
   assert.deepEqual(JSON.parse(output), input, 'matches original');
 });
 
+test('TextDocumentSourceHandler', () => {
+	const sourceHandler = new MockSourceHandler();
+	const scanner: ICOBOLSourceScanner = new COBOLSourceScanner(0, 
+		sourceHandler, new MockConfigHandler(), undefined, false, 
+		new MockScannerEvents(), new MockExternalFeatures());
+});
+
+// Mocked classes for running scanner
 class MockSourceHandler implements ISourceHandler {
+	source!: string[];
+	commentCount!: number;
+	constructor() {
+		this.source = ["IDENTIFICATION DIVISION.",
+						"PROGRAM-ID. TESTCBL."];
+	}
 	getUriAsString(): string {
-		throw new Error('Method not implemented.');
+		return "testcbl.cbl";
 	}
 	getLineCount(): number {
-		throw new Error('Method not implemented.');
+		return this.source.length;
 	}
 	getCommentCount(): number {
-		throw new Error('Method not implemented.');
+		return this.commentCount;
 	}
 	resetCommentCount(): void {
-		throw new Error('Method not implemented.');
+		this.commentCount = 0;
 	}
 	getLine(lineNumber: number, raw: boolean): string | undefined {
-		throw new Error('Method not implemented.');
+		return this.source[lineNumber];
 	}
 	getLineTabExpanded(lineNumber: number): Promise<string | undefined> {
-		throw new Error('Method not implemented.');
+		return new Promise((resolve, reject) => {return this.getLine(lineNumber, false);});
 	}
 	setUpdatedLine(lineNumber: number, line: string): void {
-		throw new Error('Method not implemented.');
+		this.source[lineNumber] = line;
 	}
 	getUpdatedLine(linenumber: number): string | undefined {
-		throw new Error('Method not implemented.');
+		return this.getLine(linenumber, false);
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	setDumpAreaA(flag: boolean): void {
-		throw new Error('Method not implemented.');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	setDumpAreaBOnwards(flag: boolean): void {
-		throw new Error('Method not implemented.');
 	}
 	getFilename(): string {
-		throw new Error('Method not implemented.');
+		return "testcbl.cbl";
 	}
 	addCommentCallback(commentCallback: ICommentCallback): void {
-		throw new Error('Method not implemented.');
+		// not tracking comment call backs yet
 	}
 	getDocumentVersionId(): bigint {
-		throw new Error('Method not implemented.');
+		return BigInt(0);
 	}
 	getIsSourceInWorkSpace(): boolean {
-		throw new Error('Method not implemented.');
+		return true;
 	}
 	getShortWorkspaceFilename(): string {
-		throw new Error('Method not implemented.');
+		return this.getFilename();
 	}
 	getLanguageId(): string {
-		throw new Error('Method not implemented.');
+		return "cblle";
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	setSourceFormat(format: ESourceFormat): void {
-		throw new Error('Method not implemented.');
 	}
 	getNotedComments(): commentRange[] {
 		throw new Error('Method not implemented.');
 	}
 }
 
-test('TextDocumentSourceHandler', () => {
-	expect(true).eq(true);
-	const source = new MockSourceHandler();
-	const scanner: ICOBOLSourceScanner = new COBOLSourceScanner(0, 
-		source, new MockConfigHandler(), undefined, false, 
-		new MockScannerEvents(), new MockExternalFeatures());
-});
-
-// Mocked classes for running scanner
 class MockConfigHandler implements ICOBOLSettings {
 	enable_tabstop!: boolean;
 	pre_scan_line_limit!: number;
@@ -170,22 +177,24 @@ class MockConfigHandler implements ICOBOLSettings {
 	enable_codelens_copy_replacing!: boolean;
 }
 class MockScannerEvents implements ICOBOLSourceScannerEvents {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	start(qp: ICOBOLSourceScanner): void {
-		throw new Error('Method not implemented.');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	processToken(token: COBOLToken): void {
-		throw new Error('Method not implemented.');
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	finish(): void {
-		throw new Error('Method not implemented.');
 	}
 } 
 class MockExternalFeatures implements IExternalFeatures {
+	loggedMessages: string[] = [];
+	loggedExceptions: string[] = [];
 	logMessage(message: string): void {
-		throw new Error('Method not implemented.');
+		this.loggedMessages.push(message);
 	}
 	logException(message: string, ex: Error): void {
-		throw new Error('Method not implemented.');
+		this.loggedExceptions.push(message);
 	}
 	logTimedMessage(timeTaken: number, message: string, ...parameters: any[]): boolean {
 		throw new Error('Method not implemented.');
@@ -212,7 +221,7 @@ class MockExternalFeatures implements IExternalFeatures {
 		throw new Error('Method not implemented.');
 	}
 	getFileModTimeStamp(filename: string): bigint {
-		throw new Error('Method not implemented.');
+		return BigInt(0);
 	}
 	getCombinedCopyBookSearchPath(): string[] {
 		throw new Error('Method not implemented.');
