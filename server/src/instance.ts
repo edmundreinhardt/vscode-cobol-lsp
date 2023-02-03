@@ -14,3 +14,4 @@ export const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
 export const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+

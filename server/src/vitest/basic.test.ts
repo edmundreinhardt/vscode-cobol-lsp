@@ -1,4 +1,5 @@
 import { assert, expect, test } from 'vitest';
+import { COBOLSourceScanner } from '../language/cobolsourcescanner';
 
 // import * as cobol from '../language/cobolsourcescanner';
 // import { ISourceHandler } from '../language/isourcehandler';
@@ -28,5 +29,6 @@ test('JSON', () => {
 
 test('TextDocumentSourceHandler', () => {
 	expect(true).eq(true);
+	ICOBOLSourceScanner = new COBOLSourceScanner();
 });
 

@@ -20,6 +20,7 @@ import {
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
+import provideDocumentSymbols from './providers/documentSymbol';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -186,6 +187,7 @@ connection.onDidChangeWatchedFiles(_change => {
 	// Monitored files have change in VSCode
 	connection.console.log('We received an file change event');
 });
+connection.onDocumentSymbol(provideDocumentSymbols);
 
 // This handler provides the initial list of the completion items.
 connection.onCompletion(

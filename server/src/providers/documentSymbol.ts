@@ -2,7 +2,7 @@
 import { Range, SymbolInformation, Position, DocumentSymbolParams, DocumentSymbol, SymbolKind, Location } from "vscode-languageserver";
 import { COBOLTokenStyle } from "../language/cobolsourcescanner";
 import { VSCOBOLConfiguration } from "./vsconfiguration";
-import { VSLogger } from "./vslogger";
+import { VSLogger } from "../vslogger";
 import { outlineFlag } from "../iconfiguration";
 import { VSCOBOLSourceScanner } from "./vscobolscanner";
 

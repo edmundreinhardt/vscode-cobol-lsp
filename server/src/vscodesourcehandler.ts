@@ -6,13 +6,13 @@ import { getCOBOLKeywordDictionary } from "./language/keywords/cobolKeywords";
 import { colourCommentHandler } from "./vscolourcomments";
 import { VSCOBOLConfiguration } from "./vsconfiguration";
 import { VSExternalFeatures } from "./vsexternalfeatures";
-import { VSCOBOLFileUtils } from "./vsfileutils";
 
 import * as path from "path";
 import { URI } from 'vscode-uri';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentFilter, Range } from 'vscode-languageserver';
 import { connection } from './instance';
+import * as fileutils from './fileutils';
 
 export class VSCodeSourceHandlerLite implements ISourceHandlerLite {
     document: TextDocument | undefined;
@@ -106,8 +106,8 @@ export class VSCodeSourceHandler implements ISourceHandler, ISourceHandlerLite {
         this.format = ESourceFormat.unknown;
         this.externalFeatures = VSExternalFeatures;
         this.notedCommentRanges = [];
-
-        const workspaceFilename = VSCOBOLFileUtils.getShortWorkspaceFilename(document.uri.scheme, document.fileName);
+        const uri = URI.parse(document.uri);
+        const workspaceFilename = await fileutils.getShortWorkspaceFilename(uri);
         this.shortWorkspaceFilename = workspaceFilename === undefined ? "" : workspaceFilename;
         this.isSourceInWorkSpace = this.shortWorkspaceFilename.length !== 0;
         this.updatedSource = new Map<number, string>();

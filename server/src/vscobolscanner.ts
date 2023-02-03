@@ -1,12 +1,13 @@
 import { VSCodeSourceHandler } from "./vscodesourcehandler";
-import { TextDocument, debug } from "vscode";
-import { COBOLSourceScanner, COBOLToken, COBOLTokenStyle, EmptyCOBOLSourceScannerEventHandler, ICOBOLSourceScanner, ICOBOLSourceScannerEvents, SharedSourceReferences } from "./cobolsourcescanner";
+import { TextDocument} from "vscode-languageserver-textdocument";
+import { COBOLSourceScanner, COBOLToken, COBOLTokenStyle, EmptyCOBOLSourceScannerEventHandler, ICOBOLSourceScanner, ICOBOLSourceScannerEvents, SharedSourceReferences } from "./language/cobolsourcescanner";
 import { InMemoryGlobalCacheHelper, InMemoryGlobalSymbolCache } from "./globalcachehelper";
 
 import { VSLogger } from "./vslogger";
 import { ICOBOLSettings } from "./iconfiguration";
 import { COBOLSymbolTable } from "./cobolglobalcache";
 import { COBOLUtils } from "./cobolutils";
+import { saveGlobalCacheToWorkspace } from './cacheutils';
 import { COBOLWorkspaceSymbolCacheHelper, TypeCategory } from "./cobolworkspacecache";
 
 import { VSExternalFeatures } from "./vsexternalfeatures";
@@ -77,7 +78,7 @@ export class COBOLSymbolTableGlobalEventHelper implements ICOBOLSourceScannerEve
                 break;
             case COBOLTokenStyle.ClassId:
                 COBOLWorkspaceSymbolCacheHelper.addClass(this.st.fileName, token.tokenName, token.startLine, TypeCategory.ClassId);
-                break;
+                break;``;
             case COBOLTokenStyle.MethodId:
                 // GlobalCachesHelper.addMethodSymbol(this.st.fileName, token.tokenName, token.startLine);
                 break;
@@ -118,11 +119,12 @@ export class VSCOBOLSourceScanner {
 
         // in memory document is out of sync with the on-disk document, so reparsing it
         // will give in-consistent results, especially with the debugg
-        if (document.isDirty && debug.activeDebugSession !== undefined) {
-            VSLogger.logMessage("Source code has changed during debugging, in memory scanning suspended");
-            VSLogger.logMessage(` ID=${debug.activeDebugSession.id}, Name=${debug.activeDebugSession.name}, Type=${debug.activeDebugSession.type}`);
-            return undefined;
-        }
+        // if (document.isDirty && debug.activeDebugSession !== undefined) {
+        //     VSLogger.logMessage("Source code has changed during debugging, in memory scanning suspended");
+        //     VSLogger.logMessage(` ID=${debug.activeDebugSession.id}, Name=${debug.activeDebugSession.name}, Type=${debug.activeDebugSession.type}`);
+        //     return undefined;
+        // }
+        // not a problem with server-side TextDocument
 
         /* grab, the file parse it can cache it */
         if (cachedObject === undefined) {
