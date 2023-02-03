@@ -1,0 +1,114 @@
+       PROCESS  OPTIONS.
+      *
+      * TEST COMP-5 WITH VALUE CLAUSE
+      *
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CMP5F001.
+         AUTHOR. PHIL MAWBY.
+         INSTALLATION. TORONTO LABORATORY.
+         DATE-WRITTEN. JUNE 29, 2009.
+         DATE-COMPILED.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+         SOURCE-COMPUTER. IBM-SYSTEMI.
+         OBJECT-COMPUTER. IBM-SYSTEMI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  ITRAP-VARS.
+           05  ITRAP100      PIC X(10)      VALUE 'ITRAP100'.
+           05  PGM-ID        PIC X(10)      VALUE 'CMP5F001'.
+           05  PGM-STS       PIC X          VALUE 'M'.
+       77 ERROR-COUNT PIC 9(3) VALUE ZEROES.
+******* BINARY items with 1 to 18 digits (18 is max allowed for binary)
+       01 TEST-VARS.
+      ***** 2 byte *****
+      * Warning msg will be issued saying value is too big, new value is 32767
+          05 A PIC 9 USAGE COMP-5    VALUE 65535.
+          05 B PIC 9(2) USAGE COMP-5 VALUE 32767.
+          05 C PIC 9(3) USAGE COMP-5.
+          05 D PIC 9(4) USAGE COMP-5.
+      ***** 4 byte *****
+      * Warning msg will be issued saying value too big, new value is 2147483647
+          05 E PIC 9(5) USAGE COMP-5 VALUE 2147483648.
+          05 F PIC 9(6) USAGE COMP-5 VALUE 2147483647.
+          05 G PIC 9(7) USAGE COMP-5.
+          05 H PIC 9(8) USAGE COMP-5.
+          05 I PIC 9(9) USAGE COMP-5.
+      ***** 8 byte *****
+      * Warning msg will be issued saying value too big, new:9223372036854775807
+          05 J PIC 9(10) USAGE COMP-5 VALUE 9223372036854775808.
+          05 K PIC 9(11) USAGE COMP-5 VALUE 9223372036854775807.
+          05 L PIC 9(12) USAGE COMP-5.
+          05 M PIC 9(13) USAGE COMP-5.
+          05 N PIC 9(14) USAGE COMP-5.
+          05 O PIC 9(15) USAGE COMP-5.
+          05 P PIC 9(16) USAGE COMP-5.
+          05 Q PIC 9(17) USAGE COMP-5.
+          05 R PIC 9(18) USAGE COMP-5.
+******* SIGNED BINARY items with 1 to 18 digits
+      ***** 2 byte *****
+      * Warning msg will be issued saying value is too big, new value is -32768
+          05 A1 PIC S9 USAGE COMP-5    VALUE -65535.
+          05 B1 PIC S9(2) USAGE COMP-5 VALUE -32768.
+          05 C1 PIC S9(3) USAGE COMP-5.
+          05 D1 PIC S9(4) USAGE COMP-5.
+      ***** 4 byte *****
+      * Warning msg will be issued saying value too big, new value: -2147483648
+          05 E1 PIC S9(5) USAGE COMP-5 value -2147483649.
+          05 F1 PIC S9(6) USAGE COMP-5 value -2147483648.
+          05 G1 PIC S9(7) USAGE COMP-5.
+          05 H1 PIC S9(8) USAGE COMP-5.
+          05 I1 PIC S9(9) USAGE COMP-5.
+      ***** 8 byte *****
+      * Warning msg will be issued for value too big, new: -9223372036854775808
+          05 J1 PIC S9(10) USAGE COMP-5 value -9223372036854775809.
+          05 K1 PIC S9(11) USAGE COMP-5 value -9223372036854775808.
+          05 L1 PIC S9(12) USAGE COMP-5.
+          05 M1 PIC S9(13) USAGE COMP-5.
+          05 N1 PIC S9(14) USAGE COMP-5.
+          05 O1 PIC S9(15) USAGE COMP-5.
+          05 P1 PIC S9(16) USAGE COMP-5.
+          05 Q1 PIC S9(17) USAGE COMP-5.
+          05 R1 PIC S9(18) USAGE COMP-5.
+       PROCEDURE DIVISION.
+       TEST1-INIT.
+           MOVE 5 TO A.
+           MOVE 2 TO B.
+           MOVE -5 TO D1.
+       TEST-COMPUTE.
+           COMPUTE C = A * B + D1.
+           IF A NOT = 5 OR B NOT = 2 OR D1 NOT = -5 OR C NOT = 5
+            DISPLAY "COMPUTE FAILED FOR THE FOLLOWING:"
+            DISPLAY "A = 5 =" A
+            DISPLAY "B = 2 =" B
+            DISPLAY "D1 = -5 =" D1
+            DISPLAY "Compute: 5 =" C
+            ADD 1 TO ERROR-COUNT.
+       TEST-ADD.
+           ADD A B A B GIVING C.
+           IF C NOT = 14
+            DISPLAY "ADD FAILED FOR THE FOLLOWING:"
+            DISPLAY "Add: 14 =" C
+            ADD 1 TO ERROR-COUNT.
+       TEST-SUBTRACT.
+           SUBTRACT B D1 FROM A GIVING C.
+           IF C NOT = 8
+            DISPLAY "SUBTRACT FAILED FOR THE FOLLOWING:"
+            DISPLAY "Subtract: 8 =" C
+            ADD 1 TO ERROR-COUNT.
+       TEST-DIVIDE.
+           DIVIDE A BY B GIVING C.
+           IF C NOT = 2 THEN
+            DISPLAY "DIVIDE FAILED FOR THE FOLLOWING:"
+            DISPLAY "Divide: 2 =" C
+            ADD 1 TO ERROR-COUNT.
+       FINISHED-NOW.
+           IF ERROR-COUNT = 0 THEN
+            DISPLAY "TESTCASE CMP5F001 PASSED!!!"
+            MOVE "P" TO PGM-STS
+           ELSE
+            DISPLAY "TESTCASE CMP5F001 FAILED"
+            MOVE "F" TO PGM-STS
+           END-IF.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           STOP RUN.

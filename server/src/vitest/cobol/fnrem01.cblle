@@ -1,0 +1,2504 @@
+      *CBL Q,xref,LIB
+001000 Identification Division.
+001400
+001800 PROGRAM-ID.    FNREM01.
+002200
+002600 Author.        Bakulesh C. Hazari.
+003000 Installation.  IBM - Santa Teresa Laboratory.
+003400 DATE-WRITTEN.  September 20, 1990.
+003800 Date-compiled.
+004200 Security.      Property of IBM Corporation.
+004600*LANGUAGE.      COBOL/LE 370 Version 1 Release 1.
+005000
+005400******************************************************************
+005800*** Function:  This testcase is a functional testcase for the  ***
+006200***            REM Intrinsic Function.  REM Intrinsic Function ***
+006600***            returns a remainder value that is argument-1    ***
+007000***            divided by argument-2.  REM is a numeric function.*
+007400***                                                            ***
+007800*** Restrictions:  Functional Testcase                         ***
+008200***                                                            ***
+008600*** Expected Results:                                          ***
+009000***    " FNREM01   STARTED"                                    ***
+009400***    " FNREM01   SUCCESSFUL"                                 ***
+009800***                                                            ***
+010200***    " FNREM01   STARTED"                                    ***
+010600***    ( ANY HELPFUL DEBUGGING MESSAGE)                        ***
+011000***    " FNREM01   FAILED"                                     ***
+011400***                                                            ***
+011800*** Include code:  PLATFORM                                    ***
+012200***                                                            ***
+012600*** Files used:  None.                                         ***
+013000***                                                            ***
+013400*** Matrix:  FNREM    MATRIX                                   ***
+013800***                                                            ***
+014200*** Modified From:                                             ***
+014600***                                                            ***
+015000*** Remarks:  All the tests performed in this testcase have    ***
+015400***           given numbers.  The test-numbers correspond to   ***
+015800***           the line numbers shown in the FNREM matrix.      ***
+015810***           This testcase requires 10M of storage to run.    ***
+016200***                                                            ***
+016600*** Structure:                                                 ***
+017000***                                                            ***
+017400***   ___ PROGRAM FNREM01                                      ***
+017800***  |                                                         ***
+018200***  |___ End Program FNREM01                                  ***
+018600***                                                            ***
+019000*** Change activities:                                         ***
+019400***  Date     Description                      Programmer      ***
+019400***  -------- -------------------------------- --------------- ***
+019401***  06/07/95 Made portable MF/WS              R.A.Cruz        ***
+019800***                                                            ***
+020200******************************************************************
+020600******************************************************************
+021000*** Pseudo-code:                                               ***
+021400***                                                            ***
+021800******************************************************************
+022200
+022600 environment division.
+023000 configuration section.
+023400 source-computer. ibm-370
+023420*                         with debugging mode
+023421                                             .
+023800 object-computer. ibm-370.
+024200
+024600 input-output  section.
+025000 file-control.
+025400
+025800     select   remfile     assign to    PRINTER-REMFILE.
+026200     select     ffile     assign to      ffile.
+026600     select   sorfile     assign to    sorfile.
+027000
+027400 data division.
+027800 file section.
+028200
+028600 FD  remfile
+029000     linage is 55 lines.
+029800 01  remfile-record  usage is comp-2.
+030200
+030600
+031000 FD  ffile
+031400     record contains 3  characters
+032200     data record is fdrec.
+032600
+033000 01  fdrec             pic 999.
+033400 01  fdrec-a           pic a.
+033800
+034200
+034600 SD  sorfile
+035000     data record is sortrecord.
+035400
+035800
+036200 01  sortrecord.
+036600
+037000    05  sdrec             pic 999.
+037400    05  sdrec-a           pic a.
+037800
+038200
+038600******************************************************************
+039000
+039400 working-storage section.
+039800
+040200******************************************************************
+040600
+       01 ITRAP-VARS.
+          05 PGM-ID   PIC X(10)  VALUE "FNREM01".
+          05 PGM-STS  PIC X      VALUE "F".
+
+040700*    COPY PLATFORM.
+       77  SORT-CORE-SIZE  PIC 9(9).
+       77  SORT-FILE-SIZE  PIC 9(9).
+       77  SORT-MODE-SIZE  PIC 9(9).
+       77  SORT-MESSAGE    PIC X(8).
+       77  TALLY           PIC 9(9).
+       88  S370-HEX        VALUE 0.
+       88  MVS-AND-VM      VALUE 0.
+040800
+041000 01  group-1.
+041400     05  qualified-id            pic 99.
+041800
+042200 01  group-2.
+042600     05  qualified-id            pic 99.
+043000
+043400 01  integer-id                  pic 9(4) value is zero.
+043800 01  SUB1                        PIC 9(8) VALUE IS ZERO.
+044200
+044600 01  synchronized-left-id        pic 9(4) synchronized left.
+045000 01  synchronized-right-id       pic 9(4) synchronized right.
+045400
+045800
+046200 01  sign-is-leading-id          pic s9 sign is leading.
+046600 01  sign-is-trailing-id         pic s9 sign is trailing.
+047000
+047400
+047800 01  Test-area-variables     USAGE COMP-2.
+048200
+048600     02  float-id.
+049000     02  arg1.
+049400     02  arg1-abs.
+049800     02  arg2.
+050200     02  exres.
+050600     02  exres-abs.
+051000     02  log-arg1.
+051400     02  log-exres.
+051800     02  cval.
+052200     02  delta.
+052600     02  tol.
+052600     02  tol2.
+052600     02  tol3.
+053000     02  actres.
+048600     02  float-id1.
+048600     02  float-id2.
+048600     02  float-id3.
+053400
+
+       01  Test-1x5-fields.
+
+073000     05  P-9-18-v                pic s9(18)v value 0.
+073000     05  P-v-9-18                pic sV9(18) value 0.
+073000     05  R-V-9-18                pic sV9(18)  value 0.
+
+
+
+
+
+053800 01  odo-1                       pic 9    value is 8  .
+054200
+054600
+055000 01  Variables.
+055400
+055800     05  integer-half-1                pic s9(4)  comp
+056200                                          value 11.
+056600
+057000     05  integer-half-2                pic s9(4) comp
+057400                                          value 11.
+057800
+058200     05  integer-full-1                pic s9(8) comp
+058600                                          value  222.
+059000
+059400     05  integer-full-2                pic s9(8) comp
+059800                                          value  222.
+060200
+060600     05  integer-double-1              pic s9(16) comp
+061000                                          value 44444444.
+061400
+061800     05  integer-double-2              pic s9(16) comp
+062200                                          value 44444444.
+062600
+063000     05  fix-point-Half-1              pic s99V99  comp
+063400                                          value 1.1.
+063800
+064200     05  fix-point-Half-2              pic s99V99  comp
+064600                                          value 1.1.
+065000
+065400     05  fix-point-Full-1              pic s9(6)V99  comp
+065800                                          value 22222.33.
+066200
+066600     05  fix-point-Full-2              pic s9(6)V99  comp
+067000                                          value 22222.33.
+067400
+067800     05  fix-point-Double-1            pic s9(14)V99 comp
+068200                                          value 4444444444.5.
+068600
+069000     05  fix-point-Double-2            pic s9(14)V99 comp
+069400                                          value 4444444444.5.
+069800
+069000     05  fixed-point-test-1            pic s9(3)V9(15) comp
+069400                                          value 0.
+069800
+070200
+070600     05  Comp-1-1                          COMP-1.
+071000     05  Comp-1-2                          COMP-1.
+071400
+071800     05  Comp-2-1                          COMP-2.
+072200     05  Comp-2-2                          COMP-2.
+072600
+073000     05  Comp-3-int-1                  pic 9(16)      COMP-3.
+073400     05  Comp-3-int-2                  pic 9(16)      COMP-3.
+073800     05  Comp-3-fix-1                  pic s9(8)v9(8) COMP-3.
+074200     05  Comp-3-fix-2                  pic s9(8)v9(8) COMP-3.
+074600
+075000     05  Comp-4-int-1                  pic s9(16)     COMP-4.
+075400     05  Comp-4-int-2                  pic s9(16)     COMP-4.
+075800
+076200     05  Ext-Decimal-One               PIC S9(8)V
+076600                                          LEADING SEPARATE.
+077000
+077400     05  Ext-Decimal-Two               PIC S9(4)
+077800                                          LEADING SEPARATE.
+078200
+078600     05  Ext-Decimal-three             PIC S9(8)V9(4)
+079000                                          LEADING SEPARATE.
+079400
+079800     05  Ext-Decimal-four              PIC S99v99
+080200                                          LEADING SEPARATE.
+080600
+081000     05  Ext-float-one                 PIC +9(5)v9(10)E+99.
+081400     05  Ext-float-two                 PIC +9(5)v9(10)E+99.
+081800
+082200 01  id-99                             pic x(99).
+082600 01  id-5                              pic x(5).
+083000
+083400 01  Level-01-Test.
+083800
+084200     25  Level-25-test.
+084600         49  Level-49-id-1             Pic 9(8).
+085000         49  Level-49-id-2             Pic 9(4).
+085400         49  Level-49-id-3             Pic 9(8)v9(4).
+085800         49  Level-49-id-4             Pic 9(4)v9(4).
+086200         49  Level-49-id-5             Pic +9(8)v9(4)E+99.
+086600         49  Level-49-id-6             Pic +9(4)v9(4)E+99.
+087000
+087400
+087800 77    Level-77-id-1                   Pic 9(8).
+088200 77    Level-77-id-2                   Pic 9(4).
+088600 77    Level-77-id-3                   Pic 9(8)v9(4).
+089000 77    Level-77-id-4                   Pic 9(4)v9(4).
+089400 77    Level-77-id-5                   Pic +9(8)v9(4)E+99.
+089800 77    Level-77-id-6                   Pic +9(4)v9(4)E+99.
+090200
+090600
+091000 01  fixed-length-table.
+091400     05  fixed-table-id
+091800                           OCCURS 8 TIMES
+092200                                       PIC X VALUE SPACE.
+092600
+093000 01  variable-length-table.
+093400     05  variable-table-id
+093800                           OCCURS 1 TO 8 TIMES
+094200                                 DEPENDING ON ODO-1
+094600                                       PIC +9V9(15)E+99.
+095000
+095400 01  fixed-length-table-63999.
+095800     05 fixed-table-id-63999
+096200                           occurs 63999
+096600                                       pic +9v9(15)E+99.
+097000
+097400 01  fixed-length-table-64001.
+097800     05 fixed-table-id-64001
+098200                           occurs 64001 times
+098600                                       pic +9v9(15)E+99.
+099000
+099400 01  Dimension-7-table.
+099800     05  LEVEL-1-ID OCCURS 7 TIMES.
+100200         10  LEVEL-2-ID OCCURS 7 TIMES.
+100600             15  LEVEL-3-ID OCCURS 7 TIMES.
+101000                 20  LEVEL-4-ID OCCURS 7 TIMES.
+101400                     25  LEVEL-5-ID OCCURS 7 TIMES.
+101800                         30  LEVEL-6-ID OCCURS 7 TIMES.
+102200                             35  LEVEL-7-ID OCCURS 7 TIMES.
+102600                                 40  Dim-7-id9 pic 9 value 0.
+103000
+103400*
+103800 01 test-status.
+104200     05 test-11121100-status        pic 9  value 0.
+104600     05 test-11121200-status        pic 9  value 0.
+105000     05 test-11122000-status        pic 9  value 0.
+105400     05 test-11208000-status        pic 9  value 0.
+105800     05 test-11211000-status        pic 9  value 0.
+106200     05 test-11216000-status        pic 9  value 0.
+106600     05 test-11217000-status        pic 9  value 0.
+107000
+107400     05 test-11301111-status        pic 9  value 0.
+107800     05 test-11301112-status        pic 9  value 0.
+108200     05 test-11301121-status        pic 9  value 0.
+108600     05 test-11301122-status        pic 9  value 0.
+109000     05 test-11301131-status        pic 9  value 0.
+109400     05 test-11301132-status        pic 9  value 0.
+109800     05 test-11301200-status        pic 9  value 0.
+110200     05 test-11301300-status        pic 9  value 0.
+110600     05 test-11301401-status        pic 9  value 0.
+111000     05 test-11301402-status        pic 9  value 0.
+111400     05 test-11301500-status        pic 9  value 0.
+111800     05 test-11301951-status        pic 9  value 0.
+112200     05 test-11301952-status        pic 9  value 0.
+112600     05 test-11301960-status        pic 9  value 0.
+113000
+113400     05 test-11302310-status        pic 9  value 0.
+113800     05 test-11302320-status        pic 9  value 0.
+114200     05 test-11302330-status        pic 9  value 0.
+114600     05 test-11302610-status        pic 9  value 0.
+115000     05 test-11302620-status        pic 9  value 0.
+115400     05 test-11302630-status        pic 9  value 0.
+115800     05 test-11303000-status        pic 9  value 0.
+116200
+116600     05 test-11304113-status        pic 9  value 0.
+117000     05 test-11304115-status        pic 9  value 0.
+117400     05 test-11304116-status        pic 9  value 0.
+117800     05 test-11304123-status        pic 9  value 0.
+118200     05 test-11304125-status        pic 9  value 0.
+118600     05 test-11304126-status        pic 9  value 0.
+119000     05 test-11304213-status        pic 9  value 0.
+119400     05 test-11304215-status        pic 9  value 0.
+119800     05 test-11304223-status        pic 9  value 0.
+120200     05 test-11304225-status        pic 9  value 0.
+120600
+121000*    05 test-11310000-status        pic 9  value 0.
+121400     05 test-11312000-status        pic 9  value 0.
+121800
+122200     05 test-11313411-status        pic 9  value 0.
+122600     05 test-11313412-status        pic 9  value 0.
+123000     05 test-11313413-status        pic 9  value 0.
+123400     05 test-11313414-status        pic 9  value 0.
+123800
+124200*    05 test-11314100-status        pic 9  value 0.
+124600     05 test-11314300-status        pic 9  value 0.
+125000
+125400     05 test-11410100-status        pic 9  value 0.
+125800     05 test-11410200-status        pic 9  value 0.
+126200     05 test-11410300-status        pic 9  value 0.
+126600     05 test-11410400-status        pic 9  value 0.
+127000     05 test-11410600-status        pic 9  value 0.
+127400     05 test-11410800-status        pic 9  value 0.
+127800     05 test-11410900-status        pic 9  value 0.
+128200     05 test-11411000-status        pic 9  value 0.
+128600     05 test-11411100-status        pic 9  value 0.
+129000     05 test-11411200-status        pic 9  value 0.
+129400     05 test-11411300-status        pic 9  value 0.
+129800     05 test-11411400-status        pic 9  value 0.
+130200     05 test-11411500-status        pic 9  value 0.
+130600     05 test-11411600-status        pic 9  value 0.
+131000     05 test-11411700-status        pic 9  value 0.
+131400     05 test-11411900-status        pic 9  value 0.
+131800
+132200     05 test-11412000-status        pic 9  value 0.
+132600     05 test-11412100-status        pic 9  value 0.
+133000     05 test-11412200-status        pic 9  value 0.
+133400     05 test-11412300-status        pic 9  value 0.
+133800     05 test-11412400-status        pic 9  value 0.
+134200     05 test-11412500-status        pic 9  value 0.
+134600     05 test-11412600-status        pic 9  value 0.
+135000     05 test-11412700-status        pic 9  value 0.
+135400     05 test-11412800-status        pic 9  value 0.
+135800     05 test-11412900-status        pic 9  value 0.
+136200     05 test-11413000-status        pic 9  value 0.
+136600     05 test-11413300-status        pic 9  value 0.
+137000     05 test-11413500-status        pic 9  value 0.
+137400     05 test-11413600-status        pic 9  value 0.
+137800     05 test-11413700-status        pic 9  value 0.
+138200     05 test-11413800-status        pic 9  value 0.
+138600     05 test-11413900-status        pic 9  value 0.
+139000     05 test-11414100-status        pic 9  value 0.
+139400     05 test-11420000-status        pic 9  value 0.
+139800     05 test-11431000-status        pic 9  value 0.
+140200     05 test-11432000-status        pic 9  value 0.
+140600     05 test-11433000-status        pic 9  value 0.
+141000     05 test-1x500000-1-status      pic 9  value 0.
+141400
+141000     05 test-1x500000-2-status      pic 9  value 0.
+141800
+142200 01  ws-el                          pic 9(4)v9(4) value 0.
+142600
+143000 77  nr   pic s9(9) comp value 1.
+143400
+143800*-----------------------------------------------------------------
+144200 linkage section.
+144600*-----------------------------------------------------------------
+145000
+145400 01  link-el                        pic 9(4)v9(4).
+145800
+146200*-----------------------------------------------------------------
+146600 procedure division.
+147000*-----------------------------------------------------------------
+147400
+147800 DECLARATIVES.
+148200
+148600 DEBUGGING-SECTION SECTION.
+149000
+149400     USE FOR DEBUGGING ON ALL PROCEDURES.
+149800
+150200*----------------------------------------------------------------
+150600* DEBUG-SUB-1, DEBUG-SUB-2 and DEBUG-SUB-3 special registers are
+151000* specified as sSpecial Registers.
+151400*----------------------------------------------------------------
+151800 test-11204000.
+152200d    DISPLAY "debugging-section enter " NR " times."
+152600             UPON CONSOLE.
+155400     COMPUTE NR = NR + 1.
+155800 END DECLARATIVES.
+156200
+156600 main-section section.
+157000
+157400     display "FNREM01  started.." UPON CONSOLE
+157800
+158200     display "FNREM01  started..".
+158600
+159000
+031800     MOVE ZERO TO SORT-RETURN, SORT-CORE-SIZE, SORT-FILE-SIZE,
+031900         SORT-MODE-SIZE;
+032000     MOVE "SYSOUT  " TO SORT-MESSAGE;
+032100
+159400     sort sorfile
+159800          ascending key sdrec
+160200          input  procedure Test-11314100-a
+160600          output procedure Test-11314100.
+161000
+032700     IF  SORT-RETURN NOT = ZERO  THEN
+033000         DISPLAY "*** SORT failed with RC= " SORT-RETURN
+033100     END-IF.
+033200
+161400d    display "after sort " UPON CONSOLE
+161800
+162200     perform all-tests.
+162600
+163000     IF test-status = ALL "1" THEN
+               MOVE "P" TO PGM-STS
+163400         display "FNREM01 successful.."
+163800         MOVE 0 TO RETURN-CODE
+164200     ELSE
+164600         display "FNREM01 failed:  see failing messages above."
+               display test-status
+165000         MOVE 16 TO RETURN-CODE
+165400     END-IF.
+165800
+           CALL  "ITRAP100" USING PGM-ID PGM-STS
+166200     stop run.
+166600
+167000 all-tests section.
+      D    display "all test section" UPON CONSOLE.
+167800*----------------------------------------------------------------
+168200* Numeric integer literals spec. as args.
+168600*----------------------------------------------------------------
+169000 test-11121100.
+      D    display "test-11121100" UPON CONSOLE
+169400
+169800     compute float-id = function rem ( -500 45 ).
+170200
+170600     if float-id = -5 then
+171000      add 1 to test-11121100-status
+171400     else display "Test-11121100 failed."
+171800        display "The expected result was -5."
+172200        display "The  actual  result was " float-id
+172600     end-if.
+173000
+173400*----------------------------------------------------------------
+173800* Numeric decimal frac.literals spec. as args.
+174200*----------------------------------------------------------------
+174600 test-11121200.
+      D    display "test-11121200" UPON CONSOLE
+175000
+175400     compute float-id = function rem ( 7849.7127 -37.44 ).
+175800
+176200     if float-id = 24.7527 then
+176600      add 1 to test-11121200-status
+177000     else display "Test-11121200 failed."
+177400        display "The expected result was 24.7527."
+177800        display "The  actual  result was " float-id
+178200     end-if.
+178600
+179000*----------------------------------------------------------------
+179400* Numeric float. IBM literals spec. as args.
+179800*----------------------------------------------------------------
+180200 test-11122000.
+      D    display "test-11122000" UPON CONSOLE
+180600
+181000     compute float-id = function rem
+181400
+181800        ( +1.782202675971E+02  +9.39067134171E+01 ).
+182200
+182600     if float-id = +84.31355418
+183000      then add 1 to test-11122000-status
+183400     else display "Test-11122000 failed."
+183800        display "The expected result was 84.31355418."
+184200        display "The  actual  result was " float-id
+184600     end-if.
+185000
+185400*----------------------------------------------------------------
+185800* LINAGE-COUNTER and LENGTH OF special registers are args.
+186200*----------------------------------------------------------------
+186600 test-11208000.
+      D    display "test-11208000" UPON CONSOLE
+187000
+187400*    open output remfile     .
+187800*    write remfile-record after advancing 35 lines.
+188200*    close remfile.
+188600
+189000     compute float-id = function rem
+189400        ( linage-counter length of float-id ).
+
+190200*    if float-id =  4 then
+190200     if float-id =  0 then
+190600      add 1 to test-11208000-status
+191000     else display "Test-11208000 failed."
+191400        display "The expected result was  4."
+191800        display "The  actual  result was " float-id
+192200     end-if.
+192600
+193000*----------------------------------------------------------------
+193400* RETURN-CODE and SORT-RETURN spec. as args.
+193800*----------------------------------------------------------------
+194200 test-11211000.
+      D    display "test-11211000" UPON CONSOLE
+194600
+195000     compute return-code = 53.
+195400       compute sort-return = 13.
+195800
+196200     compute float-id = function rem
+196600        ( return-code sort-return ).
+197000
+197400     if float-id = 1 then
+197800      add 1 to test-11211000-status
+198200     else display "Test-11211000 failed."
+198600        display "The expected result was 1."
+199000        display "The  actual  result was " float-id
+199400     end-if.
+199800
+200200*----------------------------------------------------------------
+200600* SORT-CORE-SIZE and SORT-FILE-SIZE spec. as args.
+201000*----------------------------------------------------------------
+201400 test-11216000.
+      D    display "test-11216000" UPON CONSOLE
+201800
+202200     compute sort-core-size = 195453.
+202600      compute sort-file-size = 25.
+203000
+203400     compute float-id = function rem
+203800        ( sort-core-size sort-file-size ).
+204200
+204600     if float-id = 3 then
+205000      add 1 to test-11216000-status
+205400     else display "Test-11216000 failed."
+205800        display "The expected result was 3."
+206200        display "The  actual  result was " float-id
+206600     end-if.
+207000
+207400*----------------------------------------------------------------
+207800* SORT-MODE-SIZE and TALLY spec. as args.
+208200*----------------------------------------------------------------
+208600 test-11217000.
+      D    display "test-11217000" UPON CONSOLE
+209000
+209400     compute sort-mode-size = 1119.
+209800      compute tally = 259.
+210200
+210600     compute float-id = function rem
+211000        ( sort-mode-size tally ).
+211400
+211800     if float-id = 83 then
+212200      add 1 to test-11217000-status
+212600     else display "Test-11217000 failed."
+213000        display "The expected result was 83."
+213400        display "The  actual  result was " float-id
+213800     end-if.
+214200
+214600*----------------------------------------------------------------
+215000* USAGE COMP integer half-word identifiers used as args.
+215400*----------------------------------------------------------------
+215800 test-11301111.
+      D    display "test-11301111" UPON CONSOLE
+216200
+216600     compute integer-half-1 = -25.
+217000      compute integer-half-2 = 7.
+217400
+217800     compute float-id = function rem
+218200        ( integer-half-1   integer-half-2 ).
+218600
+219000     if float-id = -4 then
+219400      add 1 to test-11301111-status
+219800     else display "Test-11301111 failed."
+220200        display "The expected result was -4."
+220600        display "The  actual  result was " float-id
+221000     end-if.
+221400
+221800*----------------------------------------------------------------
+222200*  USAGE COMP fix-point-half identifiers used as args.
+222600*----------------------------------------------------------------
+223000 test-11301112.
+      D    display "test-11301112" UPON CONSOLE
+223400
+223800     compute fix-point-half-1 = 13.2.
+224200     compute fix-point-half-2 =  8.8.
+224600
+225000     compute float-id = function rem
+225400        ( fix-point-half-1  fix-point-half-2 ).
+225800
+225810     if float-id >= 4.399999999999990 and
+225811        float-id <= 4.400000000000000 then
+226600      add 1 to test-11301112-status
+227000     else display "Test-11301112 failed."
+227400        display "The expected result was  4.40."
+227800        display "The  actual  result was " float-id
+228200     end-if.
+228600
+229000*----------------------------------------------------------------
+229400* USAGE COMP integer full-word identifiers used as args.
+229800*----------------------------------------------------------------
+230200 test-11301121.
+      D    display "test-11301121" UPON CONSOLE
+230600
+231000     compute integer-full-1 =  25. compute integer-full-2 = -7.
+231400     compute float-id = function rem
+231800        ( integer-full-1 integer-full-2 ).
+232200
+232600     if float-id = 4 then
+233000      add 1 to test-11301121-status
+233400     else display "Test-11301121 failed."
+233800        display "The expected result was 4."
+234200        display "The  actual  result was " float-id
+234600     end-if.
+235000
+235400*----------------------------------------------------------------
+235800* USAGE COMP fix-point-fullword identifiers used as args.
+236200*----------------------------------------------------------------
+236600 test-11301122.
+      D    display "test-11301122" UPON CONSOLE
+237000
+237400     compute fix-point-full-1 = 2413.05.
+237800     compute fix-point-full-2 = 37.61.
+238200     compute float-id = function rem
+238600        ( fix-point-full-1 fix-point-full-2 ).
+239000
+239400     if float-id = 6.01 then
+239800      add 1 to test-11301122-status
+240200     else display "Test-11301122 failed."
+240600        display "The expected result was 6.01."
+241000        display "The  actual  result was " float-id
+241400     end-if.
+241800
+242200*----------------------------------------------------------------
+242600* USAGE COMP integer double-word identifiers used as args.
+243000*----------------------------------------------------------------
+243400 test-11301131.
+      D    display "test-11301131" UPON CONSOLE
+243800
+244200     compute integer-double-1 = 43855326.
+244600     compute integer-double-2 = 3944.
+245000     compute float-id = function rem
+245400        ( integer-double-1  integer-double-2 ).
+245800
+246200     if float-id = 1990 then
+246600      add 1 to test-11301131-status
+247000     else display "Test-11301131 failed."
+247400        display "The expected result was 1990."
+247800        display "The  actual  result was " float-id
+248200     end-if.
+248600
+249000*----------------------------------------------------------------
+249400* USAGE COMP fix-point double-word identifiers used as args.
+249800*----------------------------------------------------------------
+250200 test-11301132.
+      D    display "test-11301132" UPON CONSOLE
+250600
+251000     compute fix-point-double-1 = 84253281.4989 .
+251400     compute fix-point-double-2 = 93.9067134171 .
+251800     compute float-id = function rem
+252200        ( fix-point-double-1  fix-point-double-2 ).
+252600
+252610     if float-id = 4.09
+252620      add 1 to test-11301132-status
+252630     else display "Test-11301132 failed."
+252640        display "The expected result was  4.09."
+252641        display "The fix-point-double-1 =" fix-point-double-1
+252642        display "The fix-point-double-2 =" fix-point-double-2
+254600        display "The  actual  result was " float-id
+255000     end-if.
+255400
+255800*----------------------------------------------------------------
+256200* COMP-1 short floating identifiers used as args.
+256600*----------------------------------------------------------------
+257000 test-11301200.
+      D    display "test-11301200" UPON CONSOLE
+257400
+257800     compute comp-1-1 = 95.7435E+03.
+258200     compute comp-1-2 =  9.3690E+02.
+258600     compute float-id = function rem ( comp-1-1 comp-1-2 ).
+259000
+259400     IF ( S370-hex AND float-id = 179.7099609375 )
+259450     OR ( (NOT S370-hex) AND float-id = 179.69750976562500 )
+259800        add 1 to test-11301200-status
+260200     else display "Test-11301200 failed."
+260600        display "The expected result was 179.7099609375."
+261000        display "The  actual  result was " float-id
+261400     end-if.
+261800
+262200*----------------------------------------------------------------
+262600* COMP-2 long floating identifiers used as args.
+263000*----------------------------------------------------------------
+263400 test-11301300.
+      D    display "test-11301300" UPON CONSOLE
+263800
+264200     compute comp-2-1 = 97.7812E+09.
+264600     compute comp-2-2 = 22.1542E+05.
+265000     compute float-id = function rem ( comp-2-1 comp-2-2 ).
+265400
+265800     if float-id = .142288E+07
+266200      add 1 to test-11301300-status
+266600     else display "Test-11301300 failed."
+267000        display "The expected result was 1422880."
+267400        display "The  actual  result was " float-id
+267800     end-if.
+268200
+268600*----------------------------------------------------------------
+269000* COMP-3 integer identifiers used as args.
+269400*----------------------------------------------------------------
+269800 test-11301401.
+      D    display "test-11301401" UPON CONSOLE
+270200
+270600     compute comp-3-int-1 = 46847714.
+271000     compute comp-3-int-2 = 5623.
+271400     compute float-id = function rem (comp-3-int-1  comp-3-int-2).
+271800
+272200     if float-id = 2501 then
+272600      add 1 to test-11301401-status
+273000     else display "Test-11301401 failed."
+273400        display "The expected result was 2501."
+273800        display "The  actual  result was " float-id
+274200     end-if.
+274600*----------------------------------------------------------------
+275000* COMP-3 non-integer identifiers used as args.
+275400*----------------------------------------------------------------
+275800 test-11301402.
+      D    display "test-11301402" UPON CONSOLE
+276200
+276600     compute comp-3-fix-1 = 7118.93.
+277000     compute comp-3-fix-2 = 36.6549.
+277400     compute float-id = function rem (comp-3-fix-1  comp-3-fix-2).
+277800
+278200     if float-id = 7.8794 then
+278600      add 1 to test-11301402-status
+279000     else display "Test-11301402 failed."
+279400        display "The expected result was 7.8794."
+279800        display "The  actual  result was " float-id
+280200     end-if.
+280600
+281000*----------------------------------------------------------------
+281400* COMP-4 binary identifiers used as args.
+281800*----------------------------------------------------------------
+282200 test-11301500.
+      D    display "test-11301500" UPON CONSOLE
+282600
+283000     compute comp-4-int-1 = -51463443.
+283400     compute comp-4-int-2 = 621.
+283800     compute float-id = function rem (comp-4-int-1  comp-4-int-2).
+284200
+284600     if float-id = -552 then
+285000      add 1 to test-11301500-status
+285400     else display "Test-11301500 failed."
+285800        display "The expected result was -552."
+286200        display "The  actual  result was " float-id
+286600     end-if.
+287000
+287400*----------------------------------------------------------------
+287800* External Decimal integer identifiers used as args.
+288200*----------------------------------------------------------------
+288600 test-11301951.
+      D    display "test-11301951" UPON CONSOLE
+289000
+289400     compute ext-decimal-one = 703168.10.
+289800     compute ext-decimal-two = 59.36.
+290200     compute float-id = function rem
+290600        ( ext-decimal-one    ext-decimal-two ).
+291000
+291400     if float-id = 6
+291800          add 1 to test-11301951-status
+292200     else display "Test-11301951 failed."
+292600        display "The expected result was 6."
+293000        display "The  actual  result was " float-id
+293400     end-if.
+293800
+294200*----------------------------------------------------------------
+294600* External Decimal non-integer identifiers used as args.
+295000*----------------------------------------------------------------
+295400 test-11301952.
+      D    display "test-11301952" UPON CONSOLE
+295800
+296200     compute ext-decimal-three = 9395.7458.
+296600     compute ext-decimal-four  = 8.93.
+297000     compute float-id = function rem
+297400        ( ext-decimal-three  ext-decimal-four ).
+297800
+298200     if float-id = 1.3858 then
+298600      add 1 to test-11301952-status
+299000     else display "Test-11301952 failed."
+299400        display "The expected result was 1.3858."
+299800        display "The  actual  result was " float-id
+300200     end-if.
+300600
+301000*----------------------------------------------------------------
+301400* External Floating Point identifiers used as args.
+301800*----------------------------------------------------------------
+302200 test-11301960.
+302600d    DISPLAY "test-11301960" UPON CONSOLE;
+303000
+303400     compute ext-float-one     = 148760636.
+303800     compute ext-float-two     = 282.
+304200     compute float-id = function rem
+304600        ( ext-float-one      ext-float-two ).
+305000
+305400     if float-id = 278 then
+305800      add 1 to test-11301960-status
+306200     else display "Test-11301960 failed."
+306600        display "The expected result was 278."
+307000        display "The  actual  result was " float-id
+307400     end-if.
+307800
+308200*----------------------------------------------------------------
+308600* Level 49 integer identifiers used as args.
+309000*----------------------------------------------------------------
+309400 test-11302310.
+      D    display "test-11302310" UPON CONSOLE
+309800
+310200     compute level-49-id-1 = 6812223.
+310600     compute level-49-id-2 = 66.
+311000     compute float-id = function rem
+311400        ( level-49-id-1  level-49-id-2 ).
+311800
+312200     if float-id = 33
+312600            add 1 to test-11302310-status
+313000     else display "Test-11302310 failed."
+313400        display "The expected result was  33."
+313800        display "The  actual  result was " float-id
+314200     end-if.
+314600
+315000*----------------------------------------------------------------
+315400* Level 49 fix-point identifiers used as args.
+315800*----------------------------------------------------------------
+316200 test-11302320.
+      D    display "test-11302320" UPON CONSOLE
+316600
+317000     compute level-49-id-3 = 10.27832.
+317400     compute level-49-id-4 = 9.4.
+317800     compute float-id = function rem
+318200        ( level-49-id-3  level-49-id-4 ).
+318600
+319000     if float-id = .8783
+319400      add 1 to test-11302320-status
+319800     else display "Test-11302320 failed."
+320200        display "The expected result was . 8783."
+320600        display "The  actual  result was " float-id
+321000     end-if.
+321400
+321800*----------------------------------------------------------------
+322200* Level 49 floating-point identifiers used as args.
+322600*----------------------------------------------------------------
+323000 test-11302330.
+      D    display "test-11302330" UPON CONSOLE
+323400
+323800     compute level-49-id-5 = -.1228E+02.
+324200     compute level-49-id-6 = -.8050E+01.
+324600     compute float-id = function rem
+325000        ( level-49-id-5  level-49-id-6 ).
+325400     If S370-Hex and MVS-and-VM Then
+             compute exres = -4.23
+           Else
+             compute exres = -4.2299999999999986
+           End-if.
+325800     IF  float-id = exres
+325880     THEN
+326200        add 1 to test-11302330-status
+326600     ELSE display "Test-11302330 failed."
+327000        display "The expected result was " exres
+327400        display "The  actual  result was " float-id
+327800     end-if.
+328200
+328600*----------------------------------------------------------------
+329000* Level 77 integer identifiers used as args.
+329400*----------------------------------------------------------------
+329800 test-11302610.
+      D    display "test-11302610" UPON CONSOLE
+330200
+330600     compute level-77-id-1 = 9706978286.
+331000     compute level-77-id-2 = 80.
+331400     compute float-id = function rem
+331800        ( level-77-id-1  level-77-id-2 ).
+332200
+332600     if float-id = 46 then
+333000      add 1 to test-11302610-status
+333400     else display "Test-11302610 failed."
+333800        display "The expected result was 46."
+334200        display "The  actual  result was " float-id
+334600     end-if.
+335000
+335400*----------------------------------------------------------------
+335800* Level 77 fix-point identifiers used as args.
+336200*----------------------------------------------------------------
+336600 test-11302620.
+      D    display "test-11302620" UPON CONSOLE
+337000
+337400     compute level-77-id-3 = 656623.18.
+337800     compute level-77-id-4 = 33.84.
+338200     compute float-id = function rem
+338600        ( level-77-id-3  level-77-id-4 ).
+339000
+339400     if float-id = 25.66 then
+339800      add 1 to test-11302620-status
+340200     else display "Test-11302620 failed."
+340600        display "The expected result was 25.66."
+341000        display "The  actual  result was " float-id
+341400     end-if.
+341800
+342200*----------------------------------------------------------------
+342600* Level 77 floating-point id's used as args.
+343000*----------------------------------------------------------------
+343400 test-11302630.
+      D    display "test-11302630" UPON CONSOLE
+343800
+344200     compute level-77-id-5 = -.1228E+02.
+344600     compute level-77-id-6 = -.8050E+01.
+345000     compute float-id = function rem
+345400        ( level-77-id-5  level-77-id-6 ).
+345800
+325400     If S370-Hex and MVS-and-VM Then
+             compute exres = -4.23
+           Else
+             compute exres = -4.2299999999999986
+           End-if.
+325800     IF  float-id = exres
+345880     THEN
+346600      add 1 to test-11302630-status
+347000     else display "Test-11302630 failed."
+347400        display "The expected result was " exres
+347800        display "The  actual  result was " float-id
+348200     end-if.
+348600
+349000*----------------------------------------------------------------
+349400* Identifiers, that are qualified names, used as args.
+349800*----------------------------------------------------------------
+350200 test-11303000.
+      D    display "test-11303000" UPON CONSOLE
+350600
+351000     compute qualified-id of group-1 = 39.
+351400     compute qualified-id of group-2 = -11.
+351800     compute float-id = function rem ( qualified-id of group-1
+352200        qualified-id of group-2 ).
+352600
+353000     if float-id = 6 then
+353400      add 1 to test-11303000-status
+353800     else display "Test-11303000 failed."
+354200        display "The expected result was 6."
+354600        display "The  actual  result was " float-id
+355000     end-if.
+355400
+355800*----------------------------------------------------------------
+356200* A fixed length table element is specified as an arg.
+356600*----------------------------------------------------------------
+357000 test-11304113.
+      D    display "test-11304113" UPON CONSOLE
+357400
+357800     compute fixed-table-id-63999 ( 1 )  = -1001.
+358200     compute fixed-table-id-64001 ( 1 )  =   101.
+358600     compute float-id = function rem
+359000        ( fixed-table-id-63999 ( 1 ) fixed-table-id-64001 ( 1 ) ).
+359400
+359800     if float-id = -92 then
+360200      add 1 to test-11304113-status
+360600     else display "Test-11304113 failed."
+361000        display "The expected result was -92."
+361400        display "The  actual  result was " float-id
+361800     end-if.
+362200
+362600*----------------------------------------------------------------
+363000* A fixed length table element is specified as an arg.
+363400*----------------------------------------------------------------
+363800
+364200 test-11304115.
+      D    display "test-11304115" UPON CONSOLE
+364600
+365000     compute fixed-table-id-63999 ( 63998 )  =  -1.08475
+365400     compute fixed-table-id-64001 ( 64000 )  =  -.9125.
+365800     compute float-id = function rem
+366200        (fixed-table-id-63999(63998) fixed-table-id-64001(64000)).
+366600
+367000     if float-id >  -.1722500000000005
+367400            and  <  -.1722499999999995
+367800      add 1 to test-11304115-status
+368200     else display "Test-11304115 failed."
+368600        display "The expected result was -0.17225."
+369000        display "The  actual  result was " float-id
+369400     end-if.
+369800
+370200*----------------------------------------------------------------
+370600* A fixed length table element is specified as an arg.
+371000*----------------------------------------------------------------
+371400
+371800 test-11304116.
+      D    display "test-11304116" UPON CONSOLE
+372200
+372600     compute fixed-table-id-63999 ( 63999 )  = -1.08475.
+373000     compute fixed-table-id-64001 ( 64001 )  =  -.9152.
+373400     compute float-id = function rem
+373800        (fixed-table-id-63999(63999) fixed-table-id-64001(64001)).
+374200
+374600     if float-id >  -.1695500000000005
+375000            and  <  -.1695499999999995
+375400
+375800          add 1 to test-11304116-status
+376200     else display "Test-11304116 failed."
+376600        display "The expected result was  -.16955."
+377000        display "The  actual  result was " float-id
+377400     end-if.
+377800
+378200*----------------------------------------------------------------
+378600* Dataname  is specified as an arg.
+379000*----------------------------------------------------------------
+379400 test-11304123.
+379800d    DISPLAY "test-11304123" UPON CONSOLE;
+380200
+380600     compute sub1                            =  1.
+381000     compute fixed-table-id-63999 (sub1 )  =  1.08475.
+381400     compute fixed-table-id-64001 (sub1 )  = -.9125.
+381800     compute float-id = function rem
+382200        ( fixed-table-id-63999 ( sub1  )
+382600          fixed-table-id-64001 ( sub1  ) ).
+383000
+383400
+383800     if float-id <   .1722500000000005
+384200            and  >   .1722499999999995
+384600
+385000      add 1 to test-11304123-status
+385400     else display "Test-11304123 failed."
+385800        display "The expected result was  .17225"
+386200        display "The  actual  result was " float-id
+386600     end-if.
+387000
+387400*----------------------------------------------------------------
+387800* Dataname  is specified as an arg.
+388200*----------------------------------------------------------------
+388600 test-11304125.
+389000d    DISPLAY "test-11304125" UPON CONSOLE;
+389400
+389800     compute sub1                                =  63998.
+390200     compute fixed-table-id-63999 (sub1 )      =  0.00337622.
+390600     compute fixed-table-id-64001 (sub1  + 2)  =  0.00518520.
+391000     compute float-id = function rem
+391400        ( fixed-table-id-63999 ( sub1  )
+391800          fixed-table-id-64001 ( sub1  + 2 ) ).
+392200
+392600     if float-id = 0.00337622 then
+393000      add 1 to test-11304125-status
+393400     else display "Test-11304125 failed."
+393800        display "The expected result was 0.00337622."
+394200        display "The  actual  result was " float-id
+394600     end-if.
+395000
+395400*----------------------------------------------------------------
+395800* Dataname  is specified as an arg.
+396200*----------------------------------------------------------------
+396600 test-11304126.
+397000d    DISPLAY "test-11304126" UPON CONSOLE;
+397400
+397800     compute sub1                                =  63999.
+398200     compute fixed-table-id-63999 ( sub1  )      =  30846328.
+398600     compute fixed-table-id-64001 ( sub1  + 2 )  =  654.
+399000     compute float-id = function rem
+399400        ( fixed-table-id-63999 ( sub1  )
+399800          fixed-table-id-64001 ( sub1  + 2 ) ).
+400200
+400600     if float-id = 418 then
+401000      add 1 to test-11304126-status
+401400     else display "Test-11304126 failed."
+401800        display "The expected result was 418."
+402200        display "The  actual  result was " float-id
+402600     end-if.
+403000
+403400*----------------------------------------------------------------
+403800* A variable length table element is specified as an arg.
+404200*----------------------------------------------------------------
+404600 test-11304213.
+405000d    DISPLAY "test-11304213" UPON CONSOLE;
+405400
+405800     compute variable-table-id ( 1 )  =   9706978286.
+406200     compute variable-table-id ( 4 )  =   80.
+406600
+407000     compute float-id = function rem
+407400        ( variable-table-id ( 1 ) variable-table-id ( 4 ) ).
+407800
+408200     if float-id = 46
+408600      add 1 to test-11304213-status
+409000     else display "Test-11304213 failed."
+409400        display "The expected result was  46."
+409800        display "The  actual  result was " float-id
+410200     end-if.
+410600
+411000*----------------------------------------------------------------
+411400* A variable length table element is specified as an arg.
+411800*----------------------------------------------------------------
+412200 test-11304215.
+412600d    DISPLAY "test-11304215" UPON CONSOLE;
+413000
+413400     compute variable-table-id ( 7 )  =  -.1228E+02.
+413800     compute variable-table-id ( 8 )  =  -.8050E+01.
+414200     compute float-id = function rem
+414600        ( variable-table-id ( 7 ) variable-table-id ( 8 ) ).
+415000
+325400     If S370-Hex and MVS-and-VM Then
+             compute exres = -4.23
+           Else
+             compute exres = -4.2299999999999986
+           End-if.
+325800     IF  float-id = exres
+345880     THEN
+415800          add 1 to test-11304215-status
+416200     else display "Test-11304215 failed."
+416600        display "The expected result was " exres
+417000        display "The  actual  result was " float-id
+417400     end-if.
+417800
+418200*----------------------------------------------------------------
+418600* A variable length data name is specified as an arg.
+419000*----------------------------------------------------------------
+419400 test-11304223.
+419800d    DISPLAY "test-11304223" UPON CONSOLE;
+420200
+420600     compute sub1                             =  1.
+421000     compute variable-table-id ( sub1  )      =  345548.
+421400     compute variable-table-id ( sub1  + 3 )  =  82011.
+421800     compute float-id = function rem
+422200        ( variable-table-id ( sub1  )
+422600          variable-table-id ( sub1  + 3 ) ).
+423000
+423400     if float-id = 17504 then
+423800      add 1 to test-11304223-status
+424200     else display "Test-11304223 failed."
+424600        display "The expected result was 17504."
+425000        display "The  actual  result was " float-id
+425400     end-if.
+425800
+426200*----------------------------------------------------------------
+426600* A variable length data name is specified as an arg.
+427000*----------------------------------------------------------------
+427400 test-11304225.
+427800d    DISPLAY "test-11304225" UPON CONSOLE;
+428200
+428600     compute sub1                             =  7.
+429000     compute variable-table-id ( sub1  )      =  30846328.
+429400     compute variable-table-id ( sub1  + 1 )  =  654.
+429800     compute float-id = function rem
+430200        ( variable-table-id ( sub1  )
+430600          variable-table-id ( sub1  + 1 ) ).
+431000
+431400     if float-id = 418
+431800          add 1 to test-11304225-status
+432200     else display "Test-11304225 failed."
+432600        display "The expected result was 418."
+433000        display "The  actual  result was " float-id
+433400     end-if.
+433800
+441800* SYNCHRONIZED TEST REMOVED - SYNCHRONIZED IS SYNTAX CHECKED ONLY ***
+442200*----------------------------------------------------------------
+442600* An identifier, with SIGN IS LEADING and SIGN IS TRAILING,
+443000* is specified.
+443400*----------------------------------------------------------------
+443800 test-11312000.
+444200d    DISPLAY "test-11312000" UPON CONSOLE;
+444600
+445000     compute sign-is-leading-id                    =  9431.0693.
+445400     compute sign-is-trailing-id                   =  15.16.
+445800
+446200     compute float-id = function rem
+446600        ( sign-is-leading-id  sign-is-trailing-id ).
+447000
+447400     if float-id = 1
+447800              add 1 to test-11312000-status
+448200     else display "Test-11312000 failed."
+448600        display "The expected result was 1."
+449000        display "The  actual  result was " float-id
+449400     end-if.
+449800
+450200*---------------- TABLE ELEMENTS---------------------------------
+450600* A 7 dimensional table elements are specified as arguments
+451000*----------------------------------------------------------------
+451400 test-11313410-01.
+451800d    DISPLAY "test-11313410-01" UPON CONSOLE;
+452200
+452600     compute dim-7-id9 ( 1 1 1 1 1 1 1 ) =  7.
+453000     compute dim-7-id9 ( 2 2 2 2 2 2 2 ) =  2.
+453400
+453800
+454200     compute float-id = function rem
+454600        ( dim-7-id9 ( 1 1 1 1 1 1 1 )
+455000          dim-7-id9 ( 2 2 2 2 2 2 2 ) ).
+455400
+455800
+456200     if float-id = 1
+456600          add 1 to test-11313411-status
+457000     else display "Test-11313410-01 failed."
+457400        display "The expected result was 1."
+457800        display "The  actual  result was " float-id
+458200     end-if.
+458600
+459000
+459400*----------------------------------------------------------------
+459800* A 7 dimensional table elements are specified as arguments
+460200*----------------------------------------------------------------
+460600 test-11313410-02.
+461000d    DISPLAY "test-11313410-02" UPON CONSOLE;
+461400
+461800     compute dim-7-id9 ( 3 3 3 3 3 3 3 ) =  6.
+462200     compute dim-7-id9 ( 4 4 4 4 4 4 4 ) =  5.
+462600
+463000
+463400     compute float-id = function rem
+463800        ( dim-7-id9 ( 3 3 3 3 3 3 3 )
+464200          dim-7-id9 ( 4 4 4 4 4 4 4 ) ).
+464600
+465000
+465400     if float-id = 1
+465800          add 1 to test-11313412-status
+466200     else display "Test-11313410-02 failed."
+466600        display "The expected result was 1."
+467000        display "The  actual  result was " float-id
+467400     end-if.
+467800
+468200*----------------------------------------------------------------
+468600* A 7 dimensional table elements are specified as arguments
+469000*----------------------------------------------------------------
+469400 test-11313410-03.
+469800d    DISPLAY "test-11313410-03" UPON CONSOLE;
+470200
+470600     compute dim-7-id9 ( 5 5 5 5 5 5 5 ) =  4.
+471000     compute dim-7-id9 ( 6 6 6 6 6 6 6 ) =  3.
+471400
+471800
+472200     compute float-id = function rem
+472600        ( dim-7-id9 ( 5 5 5 5 5 5 5 )
+473000          dim-7-id9 ( 6 6 6 6 6 6 6 ) ).
+473400
+473800
+474200     if float-id = 1
+474600          add 1 to test-11313413-status
+475000     else display "Test-11313410-03 failed."
+475400        display "The expected result was 1."
+475800        display "The  actual  result was " float-id
+476200     end-if.
+476600
+477000*----------------------------------------------------------------
+477400* A 7 dimensional table elements are specified as arguments
+477800*----------------------------------------------------------------
+478200 test-11313410-04.
+478600d    DISPLAY "test-11313410-04" UPON CONSOLE;
+479000
+479400     compute dim-7-id9 ( 1 1 1 1 1 1 1 ) =  7.
+479800     compute dim-7-id9 ( 7 7 7 7 7 7 7 ) =  5.
+480200
+480600
+481000     compute float-id = function rem
+481400        ( dim-7-id9 ( 1 1 1 1 1 1 1 )
+481800          dim-7-id9 ( 7 7 7 7 7 7 7 ) ).
+482200
+482600
+483000     if float-id = 2
+483400          add 1 to test-11313414-status
+483800     else display "Test-11313410-04 failed."
+484200        display "The expected result was 2."
+484600        display "The  actual  result was " float-id
+485000     end-if.
+485400
+485800*----------------------------------------------------------------
+486200* Working-Storage & Linkage elements  are args.
+486600*----------------------------------------------------------------
+487000 test-11314300.
+487400d    DISPLAY "test-11314300" UPON CONSOLE;
+487800
+488200     compute ws-el = 335.
+488600*    compute link-el = 66.
+489000
+489400     compute float-id = function rem ( ws-el  66      ).
+489800
+490200
+490600     if float-id = 5
+491000          add 1 to test-11314300-status
+491400     else display "Test-11314300 failed."
+491800        display "The expected result was 5."
+492200        display "The  actual  result was " float-id
+492600     end-if.
+493000
+493400
+493800
+494200*----------------------------------------------------------------
+494600* Intrinsic Functions, ACOS are args.
+495000*----------------------------------------------------------------
+495400
+495800 test-11410100.
+      D    display "test-11410100" UPON CONSOLE
+496200
+496600
+497000     compute float-id = function rem
+497400      ( function acos ( 0.74999807 )
+497800        function acos ( 0.500000129 ) ).
+498200
+498600d    DISPLAY "float-id=" float-id UPON CONSOLE.
+499000
+499400     compute arg1 =
+499800        function acos ( 0.74999807 ).
+500200
+500600d    DISPLAY "arg1 = " arg1  UPON CONSOLE.
+501000
+501400     compute arg2 =
+501800        function acos ( 0.500000129 ).
+502200
+502600d    DISPLAY "arg2 = " arg2  UPON CONSOLE.
+503000
+503400     If S370-Hex and MVS-and-VM Then
+503500         compute exres =   .72273716569432024
+503600     ELSE
+503700         compute exres =   .72273716569432030
+503800     END-IF
+504200d    DISPLAY "exres= " exres UPON CONSOLE.
+504600
+505000     PERFORM 999-SETLIM.
+505400
+505800     IF  delta <= tol  THEN
+506200
+506600      add 1 to test-11410100-status
+507000     else display "Test-11410100 failed."
+507400
+507800        display "The expected result was " exres
+508200        display "The  actual  result was " float-id
+              display "Argument 1          was " arg1
+              display "Argument 2          was " arg2
+508600     end-if.
+509000
+509400*----------------------------------------------------------------
+509800* Intrinsic Functions, ANNUITY  are args.
+510200*----------------------------------------------------------------
+510600 test-11410200.
+511000d    DISPLAY "test-11410200" UPON CONSOLE;
+511400
+511800     compute float-id = function rem ( function annuity ( 45 2  )
+512200        function annuity ( 1 5 ) ).
+512600
+513000     if float-id >= 6.3417982155110E-01 and
+513100     float-id <= 6.3417982155120E-01 add 1 to test-11410200-status
+513800     else display "Test-11410200 failed."
+514200        display "The expected result was 6.3417982155113E-01."
+514600        display "The  actual  result was " float-id
+515000     end-if.
+515400
+515800*----------------------------------------------------------------
+516200* Intrinsic Functions, ASIN  are args.
+516600*----------------------------------------------------------------
+517000 test-11410300.
+517400d    DISPLAY "test-11410300" UPON CONSOLE;
+517800
+518200     compute arg1     =                function asin ( 0.761245 )
+518600     compute arg2 =                    function asin ( 0.333140 )
+518200     compute float-id = function rem ( function asin ( 0.761245 )
+518600        function asin ( 0.333140 ) ).
+519000*    If S370-Hex and MVS-and-VM Then
+519400*      compute exres = .18596716604204393
+519420*    Else
+519400*      compute exres = .18596716604204389
+      *    End-if
+519400     compute exres =   .18596716604204377
+519440     If float-id = exres
+519480     THEN
+519800      add 1 to test-11410300-status
+520200     else display "Test-11410300 failed."
+520600        display "The expected result was " exres
+521000        display "The  actual  result was " float-id
+              Display "arg1 = " arg1
+              Display "arg2 = " arg2
+521400     end-if.
+521800
+522200*----------------------------------------------------------------
+522600* Intrinsic Functions, ATAN are args.
+523000*and-------------------------------------------------------------
+523400*
+523800 test-11410400.
+524200
+524600d    DISPLAY "test-11410400" UPON CONSOLE;
+525000
+525400     compute float-id = function rem ( function atan ( 0.330841 )
+525800        function atan ( 0.097346 ) ).
+526200d    DISPLAY "float-id=" float-id UPON CONSOLE.
+526600
+527000     compute arg1 =
+527400      function atan ( 0.330841 ).
+527800d    DISPLAY "arg1 = " arg1  UPON CONSOLE.
+528200
+528600     compute arg2 =
+529000        function atan ( 0.097346 ).
+529400d    DISPLAY "arg2 = " arg2  UPON CONSOLE.
+529800
+530200*    If S370-Hex and MVS-and-VM Then
+530600*      compute exres =   .2838504445374417E-1
+      *    Else
+      *      compute exres =   .028385044453744193
+      *    End-If.
+           compute exres =     .028385044453744124
+531000d    DISPLAY "exres= " exres UPON CONSOLE.
+531400
+531800     PERFORM 999-SETLIM.
+532200
+532600     IF  delta <= tol  THEN
+533000
+533400      add 1 to test-11410400-status
+533800     else display "Test-11410400 failed."
+534200
+534600        display "The expected result was " exres
+535000        display "The  actual  result was " float-id
+535400     end-if.
+535800
+536200*----------------------------------------------------------------
+536600* Intrinsic Functions, COS  are args.
+537000*----------------------------------------------------------------
+537400 test-11410600.
+537800
+538200d    DISPLAY "test-11410600" UPON CONSOLE;
+538600
+539000     compute arg1 = function cos(78.9817195556)
+539400     compute arg2 = function cos ( 0.882250503629 ).
+539000     compute float-id = function rem (function cos(78.9817195556)
+539400        function cos ( 0.882250503629 ) ).
+539500     If S370-Hex and MVS-and-VM Then
+539600         COMPUTE exres = -.2685243888484642E+00
+539700     ELSE
+539800         COMPUTE exres = -.2685243888484673E+00
+539900     END-IF
+540200     IF  float-id <= exres
+540220*          * One-minus-1-ULP of Double-precision-Data
+540240     AND float-id >= exres
+540260*          * One-plus-1-ULP of Double-precision-Data
+540280     THEN
+540600      add 1 to test-11410600-status
+541000     else display "Test-11410600 failed."
+541400        display "The expected result was " exres
+541800        display "The  actual  result was " float-id
+              Display "arg1 = " arg1
+              Display "arg2 = " arg2
+542200     end-if.
+542600
+543000*----------------------------------------------------------------
+543400* Intrinsic Functions, DATE-OF-INTEGER are args.
+543800*----------------------------------------------------------------
+544200 test-11410800.
+      D    display "test-11410800" UPON CONSOLE
+544600
+545000     compute float-id = function rem (function date-of-integer
+545400        ( 25 ) function date-of-integer ( 7 ) ).
+545800
+546200     if float-id = 18 then
+546600      add 1 to test-11410800-status
+547000     else display "Test-11410800 failed."
+547400        display "The expected result was 18."
+547800        display "The  actual  result was " float-id
+548200     end-if.
+548600
+549000*----------------------------------------------------------------
+549400* Intrinsic Functions, DAY-OF-INTEGER are args.
+549800*----------------------------------------------------------------
+550200 test-11410900.
+      D    display "test-11410900" UPON CONSOLE
+550600
+551000     compute float-id = function rem (function day-of-integer
+551400        ( 7 ) function day-of-integer ( 25 ) ).
+551800
+552200     if float-id = 1601007 then
+552600      add 1 to test-11410900-status
+553000     else display "Test-11410900 failed."
+553400        display "The expected result was 1601007."
+553800        display "The  actual  result was " float-id
+554200     end-if.
+554600
+555000*----------------------------------------------------------------
+555400* Intrinsic Functions, FACTORIAL  are args.
+555800*----------------------------------------------------------------
+556200 test-11411000.
+      D    display "test-11411000" UPON CONSOLE
+556600
+557000     compute float-id = function rem (function factorial ( 8 )
+557400        function factorial ( 5 ) ).
+557800
+558200     if float-id = zero then
+558600      add 1 to test-11411000-status
+559000     else display "Test-11411000 failed."
+559400        display "The expected result was zero."
+559800        display "The  actual  result was " float-id
+560200     end-if.
+560600
+561000*----------------------------------------------------------------
+561400* Intrinsic Functions, INTEGER  are args.?? IOday
+561800*----------------------------------------------------------------
+562200 test-11411100.
+      D    display "test-11411100" UPON CONSOLE
+562600
+563000     compute float-id = function rem ( function integer ( -85.99 )
+563400        function integer ( 5.997 ) ).
+563800
+564200     if float-id = -1 then
+564600      add 1 to test-11411100-status
+565000     else display "Test-11411100 failed."
+565400        display "The expected result was -1."
+565800        display "The  actual  result was " float-id
+566200     end-if.
+566600
+567000*----------------------------------------------------------------
+567400* Intrinsic Functions, INTEGER-OF-DATE are args.
+567800*----------------------------------------------------------------
+568200 test-11411200.
+      D    display "test-11411200" UPON CONSOLE
+568600
+569000     compute float-id = function rem ( function integer-of-date
+569400        ( 16010131 ) function integer-of-date ( 16010125 ) ).
+569800
+570200     if float-id = 6 then
+570600      add 1 to test-11411200-status
+571000     else display "Test-11411200 failed."
+571400        display "The expected result was 6."
+571800        display "The  actual  result was " float-id
+572200     end-if.
+572600
+573000*----------------------------------------------------------------
+573400* Intrinsic Functions, INTEGER-OF-DAY are args.
+573800*----------------------------------------------------------------
+574200 test-11411300.
+      D    display "test-11411300" UPON CONSOLE
+574600
+575000     compute float-id = function rem ( function integer-of-day
+575400        ( 1601051 ) function integer-of-day ( 1601014 ) ).
+575800
+576200     if float-id = 9 then
+576600      add 1 to test-11411300-status
+577000     else display "Test-11411300 failed."
+577400        display "The expected result was 9."
+577800        display "The  actual  result was " float-id
+578200     end-if.
+578600
+579000*----------------------------------------------------------------
+579400* Intrinsic Functions, INTEGER-PART are args.
+579800*----------------------------------------------------------------
+580200 test-11411400.
+      D    display "test-11411400" UPON CONSOLE
+580600
+581000     compute float-id = function rem ( function integer-part
+581400        ( -85.99 ) function integer-part ( 13.997 ) ).
+581800
+582200     if float-id = -7 then
+582600      add 1 to test-11411400-status
+583000     else display "Test-11411400 failed."
+583400        display "The expected result was -7."
+583800        display "The  actual  result was " float-id
+584200     end-if.
+584600
+585000*----------------------------------------------------------------
+585400* Intrinsic Functions, LENGTH are args.
+585800*----------------------------------------------------------------
+586200 test-11411500.
+      D    display "test-11411500" UPON CONSOLE
+586600
+587000     compute float-id = function rem ( function length ( id-99 )
+587400        function length ( id-5 ) ).
+587800
+588200     if float-id = 4 then
+588600      add 1 to test-11411500-status
+589000     else display "Test-11411500 failed."
+589400        display "The expected result was 4."
+589800        display "The  actual  result was " float-id
+590200     end-if.
+590600
+591000*----------------------------------------------------------------
+591400* Intrinsic Functions, LOG are args.
+591800*----------------------------------------------------------------
+592200 test-11411600.
+592600d    DISPLAY "test-11411600" UPON CONSOLE;
+593000
+593400
+593800
+594200     compute level-49-id-5 = 266.
+594600     compute level-49-id-6 = 148.
+595000
+595400     compute float-id = function rem ( function log
+595800        ( level-49-id-5 ) function log ( level-49-id-6 ) ).
+596200
+596600
+597000     compute arg1 =
+597400      function log  ( level-49-id-5  ).
+597800
+598200     compute arg2 =
+598600      function log  ( level-49-id-6  ).
+599000
+539500     If S370-Hex and MVS-and-VM Then
+599800       compute exres =   .5862840350175839
+           Else
+             compute exres =   .58628403501758442
+600200     End-If
+600600     PERFORM 999-SETLIM.
+601000
+601400     IF  delta <= tol  THEN
+601800
+602200
+602600          add 1 to test-11411600-status
+603000     else display "Test-11411600 failed."
+603400        display "The expected result was " exres
+603800        display "The  actual  result was " float-id
+604200     end-if.
+604600
+605000*----------------------------------------------------------------
+605400* Intrinsic Functions, LOG10 are args.
+605800*----------------------------------------------------------------
+606200 test-11411700.
+      D    display "test-11411700" UPON CONSOLE
+606600
+607000     compute level-49-id-5 = 10.00000E-33.
+607400     compute level-49-id-6 = 10.00000E+12.
+607800
+608200     compute float-id = function rem ( function log10
+608600        ( level-49-id-5 ) function log10 ( level-49-id-6 ) ).
+609000
+609400     if float-id = -6 then
+609800      add 1 to test-11411700-status
+610200     else display "Test-11411700 failed."
+610600        display "The expected result was -6."
+611000        display "The  actual  result was " float-id
+611400     end-if.
+611800
+612200*----------------------------------------------------------------
+612600* Intrinsic Functions, MAX are args.
+613000*----------------------------------------------------------------
+613400 test-11411900.
+      D    display "test-11411900" UPON CONSOLE
+613800
+614200     compute float-id = function rem ( function max
+614600        (8.6E+22 8.2E+08 8.7E+20 3.637 4.87 4.60 4066 7207 3213)
+615000        function min
+615000        (8.6E+22 8.2E+08 8.7E+20 3.637 4.87 4.60 4066 7207 3213)).
+
+615001        compute arg1 =
+615002          function max
+615003        (8.6E+22 8.2E+08 8.7E+20 3.637 4.87 4.60 4066 7207 3213)
+615001        compute arg2 =
+615005          function min
+615400        (8.6E+22 8.2E+08 8.7E+20 3.637 4.87 4.60 4066 7207 3213)
+615800
+616200     if float-id NOT < 0 AND
+              float-id < 3.637
+               add 1 to test-11411900-status
+617000     else display "Test-11411900 failed."
+617400        display "The expected result was 1.5."
+617800        display "The  actual  result was " float-id
+617401        display "The max function was    " arg1
+617402        display "The min function was    " arg2
+618200     end-if.
+618600
+619000*----------------------------------------------------------------
+619400* Intrinsic Functions, MEAN are args.
+619800*----------------------------------------------------------------
+620200 test-11412000.
+      D    display "test-11412000" UPON CONSOLE
+620600
+621000
+621400     compute float-id = function rem (
+621800****    function mean ( 5.4E+74  2.8E+31  0.4E+28  3.1E+44 )
+621800        function mean ( 5.4E+70  2.8E+31  0.4E+28  3.1E+44 )
+622200        function mean ( 8.5E+17  5.5E+43  4.9E+28  9.4E+58 )).
+623000
+623400     compute arg1 =
+623800        function mean ( 5.4E+74  2.8E+31  0.4E+28  3.1E+44 ).
+624200
+624600     compute arg2 =
+625000        function mean ( 8.5E+17  5.5E+43  4.9E+28  9.4E+58 ).
+625400
+625800**** compute exres =   .627710173538668E58.
+625800     compute exres =   .899268383380103E58.
+626200     PERFORM 999-SETLIM.
+626600
+627000
+627400     IF  delta <= tol  THEN
+627800
+628200          add 1 to test-11412000-status
+628600     else display "Test-11412000 failed."
+629000        display "The  value of arg1  was " arg1
+629400        display "The  value of arg2  was " arg2
+629800        display "The expected result was " exres
+630200        display "The  actual  result was " float-id
+630600        display "The   difference    was " delta
+631000        display "The    tolerance    was " tol
+631400     end-if.
+631800
+632200*----------------------------------------------------------------
+632600* Intrinsic Functions, MEDIAN are args.
+633000*----------------------------------------------------------------
+633400 test-11412100.
+      D    display "test-11412100" UPON CONSOLE
+633800
+634200     compute float-id = function rem (
+634600****    function median ( 5.4E+74  2.8E+31  0.4E+28  3.1E+44 )
+634600        function median ( 5.4E+72  2.8E+31  0.4E+28  3.1E+44 )
+635000        function median ( 8.5E+17  5.5E+43  4.9E+28  9.4E+58 )).
+635400
+635800
+636200     compute arg1 =
+636600        function median ( 5.4E+72  2.8E+31  0.4E+28  3.1E+44 ).
+637000
+637400     compute arg2 =
+637800        function median ( 8.5E+17  5.5E+43  4.9E+28  9.4E+58 ).
+539500     If S370-Hex and MVS-and-VM Then
+638600       compute exres =   .175000000000139E44
+           Else
+             compute exres =   .1750000000001388E44
+           End-If
+639000
+639400     PERFORM 999-SETLIM.
+639800
+640200
+640600     IF  delta <= tol  THEN
+641000
+641400          add 1 to test-11412100-status
+641800     else display "Test-11412100 failed."
+642200        display "The expected result was " exres
+642600        display "The  actual  result was " float-id
+643000     end-if.
+643400
+643800*----------------------------------------------------------------
+644200* Intrinsic Functions, in a MIDRANGE are args.
+644600*----------------------------------------------------------------
+645000
+645400 test-11412200.
+      D    display "test-11412200" UPON CONSOLE
+645800
+646200     compute float-id = function rem (
+646600*****   function midrange ( 5.4E+74  2.8E+31  0.4E+28  3.1E+44 )
+646600        function midrange ( 5.4E+72  2.8E+31  0.4E+28  3.1E+44 )
+647000        function midrange ( 8.5E+17  5.5E+43  4.9E+28  9.4E+58 )).
+647400
+647800
+648200     compute arg1 =
+648600        function midrange ( 5.4E+72  2.8E+31  0.4E+28  3.1E+44 ).
+649000
+649400     compute arg2 =
+649800        function midrange ( 8.5E+17  5.5E+43  4.9E+28  9.4E+58 ).
+539500     If S370-Hex and MVS-and-VM Then
+650600       compute exres =   .188313052061600E59
+           Else
+      ****   compute exres =   .3112853378243234E59
+             compute exres =   .1412347890462003E59
+651000     End-If
+651400     PERFORM 999-SETLIM.
+651800
+652200
+652600     IF  delta <= tol  THEN
+653000
+653400          add 1 to test-11412200-status
+653800     else display "Test-11412200 failed."
+654200        display "The  value of arg1  was " arg1
+654600        display "The  value of arg2  was " arg2
+655000        display "The expected result was " exres
+655400        display "The  actual  result was " float-id
+655800        display "The   difference    was " delta
+656200        display "The    tolerance    was " tol
+656600     end-if.
+657000
+657400*----------------------------------------------------------------
+657800* Wide disparity between arg1 & arg2.
+657810* May need to check for right answers, using a range instead of
+657820*    an exact value.
+658200*----------------------------------------------------------------
+658600
+659000 Test-1x500000-1.
+      D    display "test-1x500000-1" UPON CONSOLE
+659400
+659800     compute arg1 = .16E+36.
+660600     compute arg2 = .3E+16.
+661000
+661400     compute float-id = function rem ( arg1 arg2 )
+661800
+662600     COMPUTE exres = .1E+16;
+663400
+663800     IF  float-id NOT < 0 AND
+               float-id     < arg2
+664200          add 1 to test-1x500000-1-status
+664600     ELSE
+665000        display "Test-1x500000-1 failed."
+665400        display "The  value of arg1  was " arg1
+665800        display "The  value of arg2  was " arg2
+666200        display "The expected result was " exres
+666200        display "The lowest  allowed  >= " 0
+666200        display "The highest allowed  <  " arg2
+666600        display "The  actual  result was " float-id
+667800     end-if.
+668200
+657000
+657400*----<<<<--------------------------------------------------------
+657800* Wide disparity between arg1 & arg2.
+658200*----------------------------------------------------------------
+658600
+659000 Test-1x500000-2.
+659400
+      D    DISPLAY "Test-1x500000-2"
+      D    DISPLAY "Test-1x500000-2" UPON CONSOLE
+
+           MOVE 275275275275
+                TO P-9-18-V.
+
+           MOVE .000000000034
+                TO P-v-9-18.
+
+           compute r-v-9-18   =    -.1.
+
+      D    DISPLAY "Test-1x500000-2 Before func ref" UPON CONSOLE
+
+      ******************************************************************
+      *** Program abends if the following compute is executed        ***
+      ***                                                            ***
+      ******************************************************************
+
+           compute r-v-9-18   =
+                   function rem ( p-9-18-v  p-v-9-18 )
+      D    DISPLAY "Test-1x500000-2 After func ref" UPON CONSOLE
+
+661800
+
+           compute exres = .000000000002.
+662600
+
+663400
+663800     IF  r-v-9-18 = exres
+664200          add 1 to test-1x500000-2-status
+664600     ELSE
+665000        display "Test-1x500000-2 failed."
+666200        display "The expected result was " exres
+666600        display "The  actual  result was " r-v-9-18
+              display "The  p-9-18-v       was " p-9-18-v
+              display "The  p-v-9-18       was " p-v-9-18
+              display "The  R-v-9-18       was " r-v-9-18
+667800     end-if.
+668200
+668600*----------------------------------------------------------------
+669000* Intrinsic Functions, MIN are args.
+669400*----------------------------------------------------------------
+669800 test-11412300.
+      D    display "test-11412300" UPON CONSOLE
+670200
+670600     compute float-id = function rem ( function min
+671000        (8.6E+22 8.2E+08 8.7E+20 3.637 4.87 4.60 4066 7207 3213)
+671400        function max
+671800        (8.6E+22 8.2E+08 8.7E+20 3.637 4.87 4.60 4066 7207 3213)).
+672200
+672600     if float-id = 3.637 then
+673000      add 1 to test-11412300-status
+673400     else display "Test-11412300 failed."
+673800        display "The expected result was 3.637."
+674200        display "The  actual  result was " float-id
+674600     end-if.
+675000
+675400*----------------------------------------------------------------
+675800* Intrinsic Functions, MOD are args.
+676200*----------------------------------------------------------------
+676600 test-11412400.
+      D    display "test-11412400" UPON CONSOLE
+677000
+677400     compute float-id = function rem ( function mod ( -69 17 )
+677800        function mod ( -57 13 ) ).
+678200
+678600     if float-id = zero then
+679000      add 1 to test-11412400-status
+679400     else display "Test-11412400 failed."
+679800        display "The expected result was zero."
+680200        display "The  actual  result was " float-id
+680600     end-if.
+681000
+681400*----------------------------------------------------------------
+681800* Intrinsic Functions, NUMVAL are args.
+682200*----------------------------------------------------------------
+682600 test-11412500.
+      D    display "test-11412500" UPON CONSOLE
+683000
+683400     compute float-id = function rem ( function numval
+683800        ( " 367 " )  function numval ( "     89  " )).
+684200
+684600     if float-id = 11 then
+685000      add 1 to test-11412500-status
+685400     else display "Test-11412500 failed."
+685800        display "The expected result was 11."
+686200        display "The  actual  result was " float-id
+686600     end-if.
+687000
+687400*----------------------------------------------------------------
+687800* Intrinsic Functions, NUMVAL-C are args.
+688200*----------------------------------------------------------------
+688600 test-11412600.
+      D    display "test-11412600" UPON CONSOLE
+689000
+689400
+689800     compute float-id = function
+690200      rem ( function numval-c ( " $ 367 " , "$" )
+690600            function numval-c ( " þ 9 " ,  "þ" )).
+691000
+691400     if float-id = 7
+691800      add 1 to test-11412600-status
+692200     else display "Test-11412600 failed."
+692600        display "The expected result was 7."
+693000        display "The  actual  result was " float-id
+693400     end-if.
+693800
+694200*----------------------------------------------------------------
+694600* Intrinsic Functions, ORD are args.
+695000*----------------------------------------------------------------
+695400 test-11412700.
+      D    display "test-11412700" UPON CONSOLE
+695800
+696200     compute float-id = function rem ( function ord ( "9" )
+696600        function ord ( " " )).
+           If function ord( " ") = 65 Then
+             compute exres = 55
+           Else
+             compute exres = 25
+           End-if
+697400     if float-id = exres then
+697800      add 1 to test-11412700-status
+698200     else display "Test-11412700 failed."
+698600        display "The expected result was " exres
+699000        display "The  actual  result was " float-id
+699400     end-if.
+699800
+700200*----------------------------------------------------------------
+700600* Intrinsic Functions, ORD-MAX  are args.
+701000*----------------------------------------------------------------
+701400 test-11412800.
+701800d    DISPLAY "test-11412800" UPON CONSOLE;
+702200
+702600     compute float-id = function rem (
+703000        function ord-max ( "1" "2" "3" "4" "5" "6" "7" "8" "9" )
+703400        function ord-min ( "5" "4" "3" "2" "1" "6" "7" "8" "9" )).
+703800
+704200     if float-id = 4
+704600          add 1 to test-11412800-status
+705000     else display "Test-11412800 failed."
+705400        display "The expected result was 4."
+705800        display "The  actual  result was " float-id
+706200     end-if.
+706600
+707000*----------------------------------------------------------------
+707400* Intrinsic Functions, ORD-MIN  are args.
+707800*----------------------------------------------------------------
+708200 test-11412900.
+      D    display "test-11412900" UPON CONSOLE
+708600
+709000     compute float-id = function rem (
+709400        function ord-min ( "9" "8" "7" "6" "5" "4" "3" "2" "1" )
+709800        function ord-max ( "1" "2" "3" "4" "5" "9" "7" "8" "6" )).
+710200
+710600     if float-id = 3 then
+711000      add 1 to test-11412900-status
+711400     else display "Test-11412900 failed."
+711800        display "The expected result was 3."
+712200        display "The  actual  result was " float-id
+712600     end-if.
+713000
+713400*----------------------------------------------------------------
+713800* Intrinsic Functions, PRESENT-VALUE are args.
+714200*----------------------------------------------------------------
+714600
+715000 test-11413000.
+      D    display "test-11413000" UPON CONSOLE
+715400
+715800     compute float-id = function rem (
+716200        function present-value ( 1.056 21000 35000 39000 )
+716600        function present-value ( 1.056 11000 25000 29000 )).
+717000
+717400
+717800     compute arg1 =
+718200        function present-value ( 1.056 21000 35000 39000 ).
+718600
+719000     compute arg2 =
+719400        function present-value ( 1.056 11000 25000 29000 ).
+719800     If S370-Hex and MVS-and-VM Then
+720200       compute exres =    8380.097832095297
+           Else
+             compute exres =    8380.0978320952945
+           End-If
+720600
+721000     PERFORM 999-SETLIM.
+721400
+721800
+722200     IF  delta <= tol  THEN
+722600
+723000         add 1 to test-11413000-status
+723400     else display "Test-11413000 failed."
+723800
+724200        display "The expected result was " exres
+724600        display "The  actual  result was " float-id
+724600        display "The value of Arg 1  was " arg1
+724600        display "The value of Arg 2  was " arg2
+725000     end-if.
+725400
+725800
+726200*----------------------------------------------------------------
+726600* Intrinsic Functions, REM  are args.
+727000*----------------------------------------------------------------
+727400 test-11413300.
+      D    display "test-11413300" UPON CONSOLE
+727800
+728200     compute float-id1 = function rem
+728600      ( function rem ( 9.4189E+27  7.93E+15  )
+729000        function rem ( 2.8556E+27  6.11E+15 )).
+
+           compute float-id2 =
+728600            function rem ( 9.4189E+27  7.93E+15  )
+           compute float-id3 =
+729000            function rem ( 2.8556E+27  6.11E+15 )
+
+           compute arg1  =     9.4189E+27 .
+           compute arg2  =     7.93E+15    .
+           compute float-id =   float-id2  .
+           If S370-Hex AND MVS-and-VM Then
+             compute exres =    .290E+16
+           Else
+             compute exres =    5580000000000000
+           End-If
+           PERFORM 999-SETLIM.
+
+           if  delta > tol
+              display "test-11413300 failed in first argument"
+              display "The expected result was " exres
+              display "The  actual  result was " float-id
+              display "First value was         " arg1
+              display "Second value was        " arg2
+              display " difference was         " delta
+              display " Tolerance was          " tol
+           else
+              compute arg1  =     2.8556E+27
+              compute arg2  =     6.11E+15
+              compute float-id =   float-id3
+              compute exres =    .5002E+15
+
+              PERFORM 999-SETLIM
+
+              if  delta > tol
+                  display "test-11413300 failed in second argument"
+                  display "The expected result was " exres
+                  display "The  actual  result was " float-id
+                  display "First value was         " arg1
+                  display "Second value was        " arg2
+                  display " difference was         " delta
+                  display " Tolerance was          " tol
+              else
+                  compute arg1  =     float-id2
+                  compute arg2  =     float-id3
+                  compute float-id =   float-id1
+                  compute exres =     .7696E+14
+
+                  PERFORM 999-SETLIM
+
+                  compute tol2 =  .7700E+14 + tol
+                  compute exres = .7700E+14
+
+                  PERFORM 999-SETLIM
+
+                  compute tol3 = .5046E+14 - tol
+
+                  IF  float-id < tol2 AND
+                      float-id > tol3
+                      add 1 to test-11413300-status
+                  ELSE
+                      display "test-11413300 failed "
+                      display "The expected result was .76 E14"
+                      display "The  actual  result was " float-id
+                      display "First value was         " arg1
+                      display "Second value was        " arg2
+                      compute delta = float-id - .76E+14
+                      if delta < 0
+                         compute delta = delta * -1
+                      end-if
+                      display " difference was         " delta
+                      display " Maximum value allowed =" tol3
+                      display " Minimum value allowed =" tol2
+                 end-if
+              end-if
+731800     end-if.
+732200
+732600*----------------------------------------------------------------
+733000* Intrinsic Functions, SIN  are args.
+733400*----------------------------------------------------------------
+733800 test-11413500.
+      D    display "test-11413500" UPON CONSOLE
+734200
+734600     compute float-id = function rem (
+735000        function sin ( 0.5235   ) function sin ( 0.25268  )).
+735400
+735800
+736200     compute arg1 =
+736600        function sin ( 0.5235   ).
+737000
+737400     compute arg2 =
+737800        function sin ( 0.25268  ).
+738200     If S370-Hex and MVS-and-VM Then
+738600       compute exres = .24991470242384708
+           Else
+             compute exres = .24991470242384703
+           End-If
+739400
+739800     PERFORM 999-SETLIM.
+740200
+740600     IF  delta <= tol  THEN
+741000
+741400         add 1 to test-11413500-status
+741800     else display "Test-11413500 failed."
+742200
+742600        display "The expected result was " exres
+743000        display "The  actual  result was " float-id
+743400     end-if.
+743800
+744200*----------------------------------------------------------------
+744600* Intrinsic Functions, SQRT are args.
+745000*----------------------------------------------------------------
+745400 test-11413600.
+      D    display "test-11413600" UPON CONSOLE
+745800
+746200     compute float-id = function rem (
+746600         function sqrt ( 74714414.0625 )
+747000         function sqrt ( 8301601.5625)).
+747400
+747800
+748200     compute arg1 =
+748600         function sqrt ( 74714414.0625 ).
+749000
+749400     compute arg2 =
+749800         function sqrt ( 8301601.5625 ).
+750200
+750600     compute exres =
+751000                   0.
+751400
+751800
+752200     PERFORM 999-SETLIM.
+752600
+753000
+753400     IF  delta <= tol  THEN
+753800
+754200          add 1 to test-11413600-status
+754600     else display "Test-11413600 failed."
+755000
+755400        display "The expected result was " exres
+755800        display "The  actual  result was " float-id
+756200     end-if.
+756600
+757000*----------------------------------------------------------------
+757400* Intrinsic Functions, STANDARD-DEVIATION  are args.
+757800*----------------------------------------------------------------
+758200 test-11413700.
+      D    display "test-11413700" UPON CONSOLE
+758600
+759000     compute float-id = function rem ( function standard-deviation
+759400        ( 0 400 )  function standard-deviation ( 0 38 )).
+759800
+760200     if float-id = 10
+760600      add 1 to test-11413700-status
+761000     else display "Test-11413700 failed."
+761400        display "The expected result was 10."
+761800        display "The  actual  result was " float-id
+762200     end-if.
+762600
+763000*----------------------------------------------------------------
+763400* Intrinsic Functions, SUM  are args.
+763800*----------------------------------------------------------------
+764200 test-11413800.
+      D    display "test-11413800" UPON CONSOLE
+764600
+765000     compute float-id = function rem ( function sum
+765400     ( 25 45.77 2.999E+01 ) function sum ( 11 3.48 0.099E+01 )).
+765800
+766200
+766600     compute arg1 =
+767000                  function sum  ( 25 45.77 2.999E+01 ).
+767400
+767800     compute arg2 =
+768200                  function sum ( 11 3.48 0.099E+01 ).
+768300
+768400     If S370-Hex and MVS-and-VM Then
+769500         compute exres = 7.94
+769600     ELSE
+769700*        compute exres = 7.939999999999984
+769700         compute exres = 7.939999999999997
+769800     END-IF
+770200
+770600     PERFORM 999-SETLIM.
+771000
+771400     IF  delta <= tol  THEN
+771800
+772200          add 1 to test-11413800-status
+772600     else display "Test-11413800 failed."
+773000        display "The  value of arg1  was " arg1
+773400        display "The  value of arg2  was " arg2
+773800        display "The expected result was " exres
+774200        display "The  actual  result was " float-id
+774600        display "The   difference    was " delta
+775000        display "The    tolerance    was " tol
+775400     end-if.
+775800
+776200*----------------------------------------------------------------
+776600* Intrinsic Functions, TAN  are args.
+777000*----------------------------------------------------------------
+777400 test-11413900.
+      D    display "test-11413900" UPON CONSOLE
+777800
+778200     compute float-id = function rem
+778600      ( function tan ( 0.955779 )
+779000        function tan ( 0.119838 )).
+779400
+779800
+780200     compute arg1 = function tan ( 0.955779 ).
+781400     compute arg2 = function tan ( 0.119838 ).
+782200
+           If S370-Hex and MVS-and-VM Then
+             compute exres = .09103678030167056
+           Else
+      *      compute exres = .091036780301670769
+             compute exres = .091036780301670950
+           End-If
+783400
+783800
+784200     PERFORM 999-SETLIM.
+784600
+785000     IF  delta <= tol  THEN
+785400
+785800           add 1 to test-11413900-status
+786200     else display "Test-11413900 failed."
+786600        display "The expected result was " exres
+786600        display "Value arg1 was          " arg1
+786600        display "Value arg2 was          " arg2
+787000        display "The  actual  result was " float-id
+787000        display "Difference was          " Delta
+787000        display "Tolerance  was          " Tol
+787400     end-if.
+787800
+788200*----------------------------------------------------------------
+788600* Intrinsic Functions, VARIANCE  are args.
+789000*----------------------------------------------------------------
+789400 test-11414100.
+      D    display "test-11414100" UPON CONSOLE
+789800
+790200     compute float-id = function rem ( function variance
+790600        ( 0 400 )  function variance ( 0 11 )).
+791000
+791400     if float-id =  9.5
+791800          add 1 to test-11414100-status
+792200     else display "Test-11414100 failed."
+792600        display "The expected result was  9.5"
+793000        display "The  actual  result was " float-id
+793400     end-if.
+793800
+794200*----------------------------------------------------------------
+794600* Various arithmetic operator are used in the construction of an
+795000* arg.
+795400*<<<-------------------------------------------------------------
+795800 test-11420000.
+      D    display "test-11420000" UPON CONSOLE
+796200
+796600     compute float-id = function rem (
+797000        ( 25 + 45.99 - ( 67 * 34 ) + ( 33 / 11 ) - ( 34 ** 6 ) )
+797400        ( 10 + 23.52 - ( 98 * 22 ) + ( 43 / 19 ) - ( 22 ** 3 ) )).
+797800
+798200
+798600
+799000     compute exres =
+799400                    -5218.650.
+799800
+800200
+800600
+801000
+801400     if float-id  = exres
+802200         add 1 to test-11420000-status
+802600     else display "Test-11420000 failed."
+803000        display "The expected result was " exres
+803400        display "The  actual  result was " float-id
+803800     end-if.
+804200
+804600*----------------------------------------------------------------
+805000* An arg is constructed, using INTEGER INTRINSIC FUNCTION
+805400* arithmetic operator INTEGER INTRINSIC FUNCTION.
+805800*----------------------------------------------------------------
+806200 test-11431000.
+806600d    DISPLAY "test-11431000" UPON CONSOLE;
+807000
+807400     compute float-id = function rem (
+807800        ( function length ( id-99 ) ** function factorial ( 3 ) )
+808200        ( function length ( id-5  ) ** function factorial ( 3 ))).
+808600
+809000     if float-id = 8776
+809400      add 1 to test-11431000-status
+809800     else display "Test-11431000 failed."
+810200        display "The expected result was 8776."
+810600        display "The  actual  result was " float-id
+811000     end-if.
+811400
+811800*----------------------------------------------------------------
+812200* An arg is constructed, using NUMERIC INTRINSIC FUNCTION
+812600* arithmetic operator NUMERIC INTRINSIC FUNCTION.
+813000*>>>-------------------------------------------------------------
+813400 test-11432000.
+      D    display "test-11432000" UPON CONSOLE
+813800
+814200     compute float-id = function rem (
+814600        ( function mean ( 0.123E+55   0.234E+54   1.234E+55 ) )
+815000        ( function sum  ( 0.123E+47   0.234E+44   1.234E+45 ) )).
+815400
+815800
+816200     compute arg1 =
+816600          function mean ( 0.123E+55   0.234E+54   1.234E+55 ).
+817000
+817400     compute arg2 =
+817800          function sum  ( 0.123E+47   0.234E+44   1.234E+45 ).
+           If S370-Hex and MVS-and-VM Then
+818600       compute exres = .1056253387879288E+47
+           else
+             compute exres = .1056253265463269E+47
+      *            had been 94
+           End-If
+819400
+819800
+820200     PERFORM 999-SETLIM.
+820600
+821000     IF  delta <= tol  THEN
+821400
+821800          add 1 to test-11432000-status
+822200     else display "Test-11432000 failed."
+822600        display "The  value of arg1  was " arg1
+823000        display "The  value of arg2  was " arg2
+823400        display "The expected result was " exres
+823800        display "The  actual  result was " float-id
+824200        display "The   difference    was " delta
+824600        display "The    tolerance    was " tol
+825000     end-if.
+825400
+825800*----------------------------------------------------------------
+826200* An arg is constructed, using NUMERIC INTRINSIC FUNCTION
+826600* arithmetic operator INTEGER INTRINSIC FUNCTION.
+827000*----------------------------------------------------------------
+827400 test-11433000.
+      D    display "test-11433000" UPON CONSOLE
+827800
+828200     compute float-id = function rem (
+828600          function mean ( 0.123E+29   0.234E+29   1.234E+29 )
+829000          function factorial ( 27 ) ).
+829400
+           If S370-Hex and MVS-and-VM Then
+             compute exres = .9477855531659924E+28
+           else
+             compute exres = .9477855531659927E+28
+      *          had been 75
+           End-If
+829800     if float-id = exres
+830200      add 1 to test-11433000-status
+830600     else display "Test-11433000 failed."
+831000        display "The expected result was " exres
+831400        display "The  actual  result was " float-id
+              compute float-id =
+828600          function mean ( 0.123E+29   0.234E+29   1.234E+29 )
+831400        display "First argument result   " float-id
+              compute float-id =
+829000          function factorial ( 27 )
+831400        display "Second argument result  " float-id
+831800     end-if.
+832200
+832600 dummy-paragraph section.
+833000
+833400*****************************************************************
+833800* DUMMY-PARAGRAPH-1 specification accommodates DECLARATIVES.
+834200*****************************************************************
+834600 dummy-procedure.
+835000
+835400d    DISPLAY "dummy-procedure section" UPON CONSOLE;
+835800     add 1 to integer-id.
+836200
+836600*****************************************************************
+837000 TEST-11314100-a SECTION.
+837400*****************************************************************
+837800
+838200d    DISPLAY "test-11314100 Release Sort" UPON CONSOLE;
+838600     compute sdrec = 335.
+839000
+839400     release sortrecord.
+839800
+840200
+840600*****************************************************************
+841000 TEST-11314100 SECTION.
+841400*****************************************************************
+841800
+842200d    DISPLAY "test-11314100" UPON CONSOLE;
+842600
+299500     RETURN Sorfile
+299600       AT END
+299700         DISPLAY "*** No records sorted ***"
+843800         move 1 to tally
+300000     END-RETURN.
+
+844200*    open output ffile.
+844600*    compute fdrec = 66.
+845000
+      D    display "test-11414100 second display" UPON CONSOLE
+845400
+845800*    compute float-id =
+846200*     function rem  ( sdrec  fdrec ).
+846600
+847000*    if float-id = 5
+847400*     add 1 to test-11314100-status
+847800*    else display "Test-11314100 failed."
+848200*       display "The expected result was 5."
+848600*       display "The  actual  result was " float-id
+849000*    end-if.
+849400*    close ffile.
+      D    display "test-11414100 third  display" UPON CONSOLE
+849800
+301400     RETURN Sorfile
+301500       AT END
+301600         CONTINUE
+301700       NOT AT END
+301800         DISPLAY "*** Too many records sorted ***"
+302100     END-RETURN.
+302200
+850200
+850600
+851000*****************************************************************
+851400 999-setlim SECTION.
+851800*****************************************************************
+852200
+852600d    DISPLAY "    arg1  = " arg1   UPON CONSOLE.
+853000     COMPUTE arg1-abs =
+853400                arg1.
+853800
+854200     IF arg1-abs < 0 COMPUTE arg1-abs =
+854600                           - arg1-abs.
+855000
+855400
+855800d    DISPLAY "arg1-abs  = " arg1-abs   UPON CONSOLE.
+856200
+856600d    DISPLAY "    arg2  = " arg2   UPON CONSOLE.
+857000
+857400d    DISPLAY "    exres = " exres  UPON CONSOLE.
+857800
+858200     COMPUTE exres-abs =
+858600                   exres.
+859000
+859400     IF exres-abs < 0 COMPUTE exres-abs =
+859800                            - exres-abs.
+860200
+860600
+861000d    DISPLAY "exres-abs = " exres-abs  UPON CONSOLE.
+861400d    DISPLAY "   actres = " float-id UPON CONSOLE.
+861800
+862200     IF  arg1 = 0  THEN
+862600         COMPUTE tol = 0
+863000     ELSE
+863400         IF  exres = 0  THEN
+863800             COMPUTE tol = ( arg2 / +1.0E+15 ) / 2
+864200         ELSE
+864600             COMPUTE log-arg1 = FUNCTION LOG10( arg1-abs )
+865000d            DISPLAY " log-arg1 = "  log-arg1  UPON CONSOLE
+865400             COMPUTE log-exres = FUNCTION LOG10( exres-abs )
+865800d            DISPLAY "log-exres = " log-exres  UPON CONSOLE
+866200             COMPUTE cval =
+866600              FUNCTION MAX ( 0,  16 - ( log-arg1 - log-exres ) )
+867000d            DISPLAY "     cval = " cval       UPON CONSOLE
+867400             COMPUTE tol = exres-abs * 10 ** ( - cval ) / 2
+867800         END-IF
+868200     END-IF.
+868600d    DISPLAY "      tol = " tol   UPON CONSOLE.
+869000
+869400     COMPUTE delta = exres - float-id.
+869800d    DISPLAY "    delta = " delta UPON CONSOLE.
+870200
+870600     IF  delta < 0  THEN  COMPUTE delta = - delta
+871000d    DISPLAY "<0  delta = " delta UPON CONSOLE.
+871400
+871800     IF  exres-abs > FUNCTION MAX(arg2, 0 - arg2)  THEN
+872200         DISPLAY "**** GOTCHA ****" UPON CONSOLE
+872600     END-IF.
+873000
+873400 9-x.
+873800     exit.
+874200*****************************************************************
+874600
+885400
+885800 end program FNREM01.

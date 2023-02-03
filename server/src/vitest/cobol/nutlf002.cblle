@@ -1,0 +1,327 @@
+       IDENTIFICATION DIVISION.
+      *************************************************************************
+      *  4/14/04                    Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: NUTLF002     Library: NC0C540      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   Null-terminated literal: Environment Div Test Null-terminated       *
+      *   literal can be used in Environment Division, where literal can      *
+      *   be used.                                                            *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: RUNATEST       Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *   Environment Division                                                *
+      *    SPECIAL-NAMES Paragraph                                            *
+      *   - ALPHABET IS literal [THROUGH literal]                             *
+      *   - CLASS IS literal [THROUGH literal]                                *
+      *   - CURRENCY SIGN IS literal [PIC SYMB lit]                           *
+      *   - FORMAT IS literal                                                 *
+      *   - LOCALE literal [IN LIBRARY literal]                               *
+      *   Data Division                                                       *
+      *   - VALUE literal                                                     *
+      *   - L-88 VALUE literal [THROUGH literal]                              *
+      *   - CONSTANT AS literal                                               *
+      *   Procedure Division                                                  *
+      *   - Conditional Expressions                                           *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *   ITRAP will be updated.                                              *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      *                                                                       *
+      *************************************************************************
+       PROGRAM-ID. NUTLF002.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           ALPHABET MYSEQ IS Z"XYZJKABC"
+           ALPHABET MYSEQ1 IS Z"Z" THROUGH Z"A"
+           CLASS MYCLS IS Z"A" THROUGH Z"C" Z" "
+           CURRENCY SIGN IS Z"Q"
+           CURRENCY SIGN IS Z"RMB"  PICTURE SYMBOL Z"Y"
+           FORMAT OF DATE IS Z"<@Y/%m/%d>"
+           LOCALE Z"FR_CA" IN LIBRARY Z"NC0C540" IS MYLOCL.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT SF1 ASSIGN TO Z"MYSORT".
+
+       DATA DIVISION.
+       FILE SECTION.
+       SD SF1.
+       01 SORT-REC.
+          05 SKEY1  PIC X(5).
+          05 SEP1   PIC X.
+          02 NAME1  PIC X(20).
+
+       WORKING-STORAGE SECTION.
+       01 MON1       PIC Q9(5).9(2).
+       01 MON2       PIC Y9(5).9(2).
+       01 MON3       PIC $9(5).9(2) SIZE IS 20  LOCALE IS MYLOCL.
+
+       01 DATE1      FORMAT DATE.
+       01 DATE2      FORMAT DATE IS Z"(%m/%d/%Y)".
+
+       01 CONST1     CONSTANT AS Z"ABCDEFGH".
+       01 CONST2     CONSTANT AS Z"BBBB".
+       01 VAL1       PIC X(10) VALUE CONST1.
+          88 COND1             VALUE Z"ABCDEFGH".
+          88 COND2             VALUE Z"AAAA" THROUGH CONST2.
+
+       01 STR1        PIC X(10).
+       01 STR2        PIC X(20).
+       01 POS1        PIC 9(4) VALUE 0.
+       01 LEN1        PIC 9(4) VALUE 0.
+
+       01 ERR-COUNT   PIC 9(3)  VALUE 0.
+       01 TST-COUNT   PIC 9(3)  VALUE 0.
+
+       01  ITRAP-VARS.
+         05  PGM-ID              PIC X(10) VALUE "NUTLF002".
+         05  ITRAP100            PIC X(10) VALUE "ITRAP100".
+         05  PGM-STS             PIC X     VALUE "F".
+
+       PROCEDURE DIVISION.
+       TEST-INIT.
+           DISPLAY Z"Testcase NUTLF002 running...".
+
+      *** MOVE literal
+       TEST-001.
+           ADD 1 TO TST-COUNT.
+           MOVE Z"Hello" TO STR1.
+           INSPECT STR1 TALLYING POS1 FOR CHARACTERS BEFORE X"00".
+           IF POS1 NOT = 5
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY "    STR1        is: <" STR1 ">"
+              DISPLAY "    pos of ZERO is: " POS1
+              ADD 1 TO ERR-COUNT.
+
+      *** ALPHABET IS literal
+       TEST-002.
+      *    DISPLAY "SORT using Collating sequence".
+           ADD 1 TO TST-COUNT.
+           SORT SF1  ON ASCENDING SKEY1 COLLATING SEQUENCE MYSEQ
+                INPUT PROCEDURE IN1
+                OUTPUT PROCEDURE OUT1.
+
+      *** ALPHABET IS literal
+       TEST-003.
+           ADD 1 TO TST-COUNT.
+           SORT SF1  ON ASCENDING SKEY1 COLLATING SEQUENCE MYSEQ1
+                INPUT PROCEDURE IN1
+                OUTPUT PROCEDURE OUT2.
+
+      *** LENGTH intrinsic function
+       TEST-004.
+           ADD 1 TO TST-COUNT.
+           COMPUTE LEN1 = FUNCTION LENGTH(Z"Hello").
+           IF LEN1 NOT = 5
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY "LENGTH OF Null-LIT '" Z"Hello" "' is: " LEN1
+              ADD 1 TO ERR-COUNT.
+
+           COMPUTE LEN1 = FUNCTION LENGTH(X"31323300").
+           IF LEN1 NOT = 4
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY "LENGTH OF Hex-LIT '" X"D1D2D300" "' is: " LEN1
+              ADD 1 TO ERR-COUNT.
+
+      *** CLASS IS literal
+       TEST-005.
+           ADD 1 TO TST-COUNT.
+           MOVE "ABFF" TO STR1.
+           IF STR1 IS MYCLS
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "STR1 'ABFF' is My CLASS."
+                ADD 1 TO ERR-COUNT.
+
+           MOVE "ABC" TO STR1.
+           IF STR1 IS NOT MYCLS
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "STR1 'ABC' is NOT My CLASS."
+                ADD 1 TO ERR-COUNT.
+
+           MOVE Z"ABC" TO STR1.
+           IF STR1 IS NOT MYCLS
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "STR1 Z'ABC' is NOT My CLASS."
+                ADD 1 TO ERR-COUNT.
+
+      *** CURRENCY SIGN IS literal
+       TEST-006.
+           ADD 1 TO TST-COUNT.
+           MOVE 1234.50 TO MON1 MON2.
+           IF MON1 NOT = "Q01234.50"
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "CURRENCY Z'Q' :<" MON1 ">"
+                ADD 1 TO ERR-COUNT.
+
+           IF MON2 NOT = X"D9D4C200F0F1F2F3F44BF5F0"
+      *                   "RMB 01234.50"
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "CURRENCY Z'RMB' Z'Y' :<" MON2 ">"
+                ADD 1 TO ERR-COUNT.
+
+      *** FORMAT IS literal
+       TEST-007.
+           ADD 1 TO TST-COUNT.
+           MOVE FUNCTION CONVERT-DATE-TIME( Z"12-25-03" DATE
+                                            Z"%m-%d-%y")
+                         TO DATE1.
+           IF DATE1 NOT = Z"<2003/12/25>"
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "DATE1 :<" DATE1 ">"
+                ADD 1 TO ERR-COUNT.
+
+           MOVE FUNCTION CONVERT-DATE-TIME( Z"12-25-03" DATE
+                                            Z"%m-%d-%y")
+                         TO DATE2.
+           IF DATE2 NOT = Z"(12/25/2003)"
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "DATE2 :<" DATE2 ">"
+                ADD 1 TO ERR-COUNT.
+
+      *** LOCALE IS literal
+       TEST-008.
+           ADD 1 TO TST-COUNT.
+           MOVE 1234.50 TO MON3.
+           IF MON3 NOT = "         01 234,50 $"
+                DISPLAY "TEST-" TST-COUNT " failed."
+                DISPLAY "MON3 :<" MON3 ">"
+                ADD 1 TO ERR-COUNT.
+
+      *** VALUE literal
+       TEST-009.
+           ADD 1 TO TST-COUNT.
+           MOVE 0 TO POS1.
+           INSPECT VAL1 TALLYING POS1 FOR CHARACTERS BEFORE X"00".
+           IF POS1 NOT = 8
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY "    VAL1        is: <" VAL1 ">"
+              DISPLAY "    pos of ZERO is: " POS1
+              ADD 1 TO ERR-COUNT.
+
+      *** LEVL-88 literal
+       TEST-009.
+           ADD 1 TO TST-COUNT.
+           IF NOT COND1
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY "    VAL1        is: <" VAL1 ">"
+              DISPLAY "    COND1 is: false"
+              ADD 1 TO ERR-COUNT.
+
+           IF NOT COND2
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY "    VAL1        is: <" VAL1 ">"
+              DISPLAY "    COND2 is: false"
+              ADD 1 TO ERR-COUNT.
+
+           MOVE z"CCCC" TO VAL1.
+           IF COND2
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY "    VAL1        is: <" VAL1 ">"
+              DISPLAY "    COND3 is: true"
+              ADD 1 TO ERR-COUNT.
+
+       END-OF-TEST.
+           IF ERR-COUNT = 0
+              DISPLAY "         *--------------------------------*"
+              DISPLAY "         * TESTCASE " PGM-ID " SUCCESSFUL *"
+              DISPLAY "         *--------------------------------*"
+              MOVE "P" TO PGM-STS
+           ELSE
+              DISPLAY "         *----------------------------*"
+              DISPLAY "         * TESTCASE " PGM-ID " FAILED *"
+              DISPLAY "         *----------------------------*"
+              MOVE "F" TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+
+           STOP RUN.
+
+       IN1.
+           MOVE "AAAAA" TO SKEY1.
+           MOVE ":" TO SEP1.
+           MOVE "NNL-AAAAA-" TO NAME1.
+           RELEASE SORT-REC.
+
+           MOVE "ZZZZZ" TO SKEY1.
+           MOVE ":" TO SEP1.
+           MOVE "NNL-ZZZZZ-" TO NAME1.
+           RELEASE SORT-REC.
+
+           MOVE Z"AAAA" TO SKEY1.
+           MOVE ":" TO SEP1.
+           MOVE "NNL-AAAA -" TO NAME1.
+           RELEASE SORT-REC.
+
+           MOVE Z"BBBBB" TO SKEY1.
+           MOVE ":" TO SEP1.
+           MOVE "NNL-BBBBB-" TO NAME1.
+           RELEASE SORT-REC.
+
+       OUT1.
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = "ZZZZZ"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = "AAAAA"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = Z"AAAA"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = "BBBBB"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+
+       OUT2.
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = "ZZZZZ"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = "BBBBB"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = "AAAAA"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+
+           RETURN SF1 AT END DISPLAY "END!!!" END-RETURN.
+           IF SKEY1 NOT = z"AAAA"
+              DISPLAY "TEST-" TST-COUNT " failed."
+              DISPLAY SORT-REC
+              ADD 1 TO ERR-COUNT.
+

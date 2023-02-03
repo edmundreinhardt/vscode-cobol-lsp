@@ -1,0 +1,245 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PSTF001.
+       AUTHOR.         Bin Li.
+       INSTALLATION.   IBM Toronto Lab.
+       DATE-COMPILED.
+      *************************************************************************
+      *  6/17/03                    Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: PSTF001      Library: NC0C530      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   PSDS functional testcase - group data item is treated as            *
+      *   alphanumeric type, it can be used in PSDS clause.                   *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: RUNATEST       Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *   Grammar                                                             *
+      *   - with IS                                                           *
+      *   - without START POSITION                                            *
+      *   - single PSDS clause                                                *
+      *   PSDS variable data-name-1                                           *
+      *   - group data-name-1 identifier                                      *
+      *   - WORKING-STORAGE variable                                          *
+      *   Errors in Input-Output operation                                    *
+      *   - declarative procedure                                             *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *   ITRAP file will be updated with SUCC.                               *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      *                                                                       *
+      *************************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+         SOURCE-COMPUTER. IBM-AS400.
+         OBJECT-COMPUTER. IBM-AS400.
+      * single PSDS clause without START POSITION.
+         SPECIAL-NAMES. PROGRAM STATUS IS PGMSTS.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT FILE1 ASSIGN TO DISK-NOFILE
+           ORGANIZATION IS SEQUENTIAL.
+       DATA DIVISION.
+       FILE SECTION.
+       FD FILE1.
+       01 FILE1-REC PIC X(39).
+
+       WORKING-STORAGE SECTION.
+       01 PGMSTS.
+          05 PGM-NAME  PIC X(10).
+          05 PGM-LIB   PIC X(10).
+          05 MOD-NAME  PIC X(10).
+          05 STMT-NUM  PIC X(10).
+          05 OPT-LVL   PIC X(6).
+          05 MSG-ID    PIC X(7).
+          05 JOB-NAME  PIC X(10).
+          05 JOB-NUM   PIC X(6).
+          05 JOB-TYPE  PIC X.
+          05 USR-PROF  PIC X(10).
+          05 ERR-DATE  PIC X(14).
+       01 STR-ITEM   PIC X(2).
+       01 NUM-ITEM   REDEFINES STR-ITEM PIC 9(2).
+
+      * Expected result.
+       01 PGMSTS0.
+          05 PGM-NAME0 PIC X(10).
+          05 PGM-LIB0  PIC X(10) VALUE "QTEMP".
+          05 MOD-NAME0 PIC X(10).
+          05 STMT-NUM0 PIC X(10).
+          05 OPT-LVL0  PIC X(6).
+          05 MSG-ID0   PIC X(7).
+          05 JOB-NAME0 PIC X(10).
+          05 JOB-NUM0  PIC X(6).
+          05 JOB-TYPE0 PIC X.
+          05 USR-PROF0 PIC X(10).
+          05 ERR-DATE0 FORMAT TIMESTAMP.
+          05 ERR-DATE9 FORMAT TIMESTAMP.
+       01 DATE-BUF   PIC X(21).
+       01 DATE-BUF-F.
+          05 YEAR0   PIC X(4).
+          05 FILLER  PIC X VALUE "-".
+          05 MONTH0  PIC XX.
+          05 FILLER  PIC X VALUE "-".
+          05 DAY0    PIC XX.
+          05 FILLER  PIC X VALUE "-".
+          05 HOUR0   PIC XX.
+          05 FILLER  PIC X VALUE ".".
+          05 MIN0    PIC XX.
+          05 FILLER  PIC X VALUE ".".
+          05 SEC0    PIC XX.
+          05 FILLER  PIC X VALUE ".".
+          05 MSEC0   PIC X(6) VALUE "000000".
+       01 TIME-DIFF  PIC 9(5).
+       01 ERR-COUNT  PIC 9(4) VALUE 0.
+       01 ITRAP-VARS.
+           05  ITRAP100         PIC X(10)      VALUE "ITRAP100".
+           05  PGM-ID           PIC X(10)      VALUE "PSTF001".
+           05  PGM-STS          PIC X          VALUE "F".
+
+       LINKAGE SECTION.
+       01 JOBNAME   PIC X(10).
+       01 JOBNUM    PIC X(10).
+       01 JOBTYPE   PIC X(1).
+       01 USERID    PIC X(10).
+       01 OPLVL     PIC X(6).
+
+       PROCEDURE DIVISION USING JOBNAME, JOBNUM, JOBTYPE, USERID, OPLVL.
+       DECLARATIVES.
+       ERR-HANDLER SECTION.
+           USE AFTER STANDARD ERROR PROCEDURE INPUT.
+       ERR-INPUT.
+           DISPLAY "In Declarative:".
+      *    DISPLAY "=<" PGMSTS ">".
+       END DECLARATIVES.
+       MAIN-SECT SECTION.
+       TEST-INIT.
+           MOVE PGM-ID  TO PGM-NAME0, MOD-NAME0.
+           MOVE JOBNAME TO JOB-NAME0.
+           MOVE JOBNUM  TO JOB-NUM0.
+           IF JOBTYPE = "0"
+              MOVE "B"  TO JOB-TYPE0
+           ELSE
+              MOVE "I"  TO JOB-TYPE0.
+           MOVE USERID  TO USR-PROF0.
+           MOVE OPLVL   TO OPT-LVL0.
+           MOVE FUNCTION CURRENT-DATE TO DATE-BUF.
+           PERFORM PREP-CONV.
+           MOVE FUNCTION CONVERT-DATE-TIME(DATE-BUF-F TIMESTAMP)
+                         TO ERR-DATE0.
+       TEST-001.
+           MOVE "92"      TO STMT-NUM0.
+           MOVE "CPF4101" TO MSG-ID0.
+      *    DISPLAY "<" PGMSTS ">".
+      * stmt 92, error occurs.
+           OPEN INPUT FILE1.
+           PERFORM VRFY-PSTS.
+       TEST-002.
+           MOVE "98"      TO STMT-NUM0.
+           MOVE "MCH1202" TO MSG-ID0.
+           MOVE SPACES TO PGMSTS.
+           MOVE SPACES TO STR-ITEM.
+      * stmt 98, error occurs.
+           ADD 1 TO NUM-ITEM.
+      *    DISPLAY "<" PGMSTS ">".
+           PERFORM VRFY-PSTS.
+       TEST-END.
+           IF ERR-COUNT = 0
+              DISPLAY "         *--------------------------------*"
+              DISPLAY "         * TESTCASE " PGM-ID " SUCCESSFUL *"
+              DISPLAY "         *--------------------------------*"
+              MOVE "P" TO PGM-STS
+           ELSE
+              DISPLAY "         *----------------------------*"
+              DISPLAY "         * TESTCASE " PGM-ID " FAILED *"
+              DISPLAY "         *----------------------------*"
+              MOVE "F" TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           STOP RUN.
+       VRFY-PSTS.
+           IF PGM-NAME NOT = PGM-NAME0 THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Program Name is:" PGM-NAME0
+              DISPLAY "         Program Name is:" PGM-NAME
+           END-IF.
+           IF PGM-LIB  NOT = PGM-LIB0  THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Library Name is:" PGM-LIB0
+              DISPLAY "         Library Name is:" PGM-LIB
+           END-IF.
+           IF MOD-NAME NOT = MOD-NAME0 THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Module Name is:" MOD-NAME0
+              DISPLAY "         Module Name is:" MOD-NAME
+           END-IF.
+           IF STMT-NUM NOT = STMT-NUM0 THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Statement Number is:" STMT-NUM0
+              DISPLAY "         Statement Number is:" STMT-NUM
+           END-IF.
+           IF OPT-LVL  NOT = OPT-LVL0  THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Optimization Level is:" OPT-LVL0
+              DISPLAY "         Optimization Level is:" OPT-LVL
+           END-IF.
+           IF MSG-ID   NOT = MSG-ID0   THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Message ID is:" MSG-ID0
+              DISPLAY "         Message ID is:" MSG-ID
+           END-IF.
+           IF JOB-NAME NOT = JOB-NAME0 THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Job Name is:" JOB-NAME0
+              DISPLAY "         Job Name is:" JOB-NAME
+           END-IF.
+           IF JOB-NUM  NOT = JOB-NUM0  THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Job Number is:" JOB-NUM0
+              DISPLAY "         Job Number is:" JOB-NUM
+           END-IF.
+           IF JOB-TYPE NOT = JOB-TYPE0 THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Job Type is:" JOB-TYPE0
+              DISPLAY "         Job Type is:" JOB-TYPE
+           END-IF.
+           IF USR-PROF NOT = USR-PROF0 THEN
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED User Profile is:" USR-PROF0
+              DISPLAY "         User Profile is:" USR-PROF
+           END-IF.
+           MOVE ERR-DATE TO DATE-BUF.
+           PERFORM PREP-CONV.
+           MOVE FUNCTION CONVERT-DATE-TIME(DATE-BUF-F TIMESTAMP)
+                         TO ERR-DATE9.
+           COMPUTE TIME-DIFF = FUNCTION FIND-DURATION(ERR-DATE9
+                                                      ERR-DATE0
+                                                      SECONDS).
+           IF TIME-DIFF > 8
+      *    IF FUNCTION FIND-DURATION(ERR-DATE9 ERR-DATE0 SECONDS) > 3
+              ADD 1 TO ERR-COUNT
+              DISPLAY "EXPECTED Error Date is:" ERR-DATE0
+              DISPLAY "         Error Date is:" ERR-DATE
+           END-IF.
+       PREP-CONV.
+           MOVE DATE-BUF(1:4) TO YEAR0.
+           MOVE DATE-BUF(5:2) TO MONTH0.
+           MOVE DATE-BUF(7:2) TO DAY0.
+           MOVE DATE-BUF(9:2) TO HOUR0.
+           MOVE DATE-BUF(11:2) TO MIN0.
+           MOVE DATE-BUF(13:2) TO SEC0.

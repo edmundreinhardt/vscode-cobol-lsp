@@ -1,0 +1,76 @@
+       PROCESS NOSTDTRUNC.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. LVAF002.
+       AUTHOR. Bin Li.
+       INSTALLATION.   IBM Toronto Lab.
+      *************************************************************************
+      * 12/02/02                    Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: LVAF002      Library: NC0C530      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   Large Value testcase - Large Value can be used in Local-Storage     *
+      *   SECTION.                                                            *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: RUNATEST       Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *   B) Local-Storage SECTION                                            *
+      *    - Usage COMP-5                                                     *
+      *    - Usage COMP-5                                                     *
+      *    - Usage others                                                     *
+      *    - PIC with 'S'                                                     *
+      *    - PIC with 'V'                                                     *
+      *    - PIC with 'P"                                                     *
+      *   G) COMPUTE and MOVE                                                 *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *   ITRAP file should be updated with SUCC for this testcase.           *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      *                                                                       *
+      *************************************************************************
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 ERR-COUNT   PIC  9(4)  COMP-5 VALUE 1.
+       01 ITRAP-VARS.
+           05  ITRAP100         PIC X(10)      VALUE "ITRAP100".
+           05  PGM-ID           PIC X(10)      VALUE "LVAF002".
+           05  PGM-STS          PIC X          VALUE "F".
+
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           DISPLAY "****  Start of Testcase " PGM-ID "  ****".
+
+           CALL "LVAF002A" USING ERR-COUNT.
+           CALL "LVAF002A" USING ERR-COUNT.
+
+       END-OF-TEST.
+           IF ERR-COUNT = 1
+              DISPLAY "         *--------------------------------*"
+              DISPLAY "         * TESTCASE " PGM-ID " SUCCESSFUL *"
+              DISPLAY "         *--------------------------------*"
+              MOVE "P" TO PGM-STS
+           ELSE
+              DISPLAY "         *----------------------------*"
+              DISPLAY "         * TESTCASE " PGM-ID " FAILED *"
+              DISPLAY "         *----------------------------*"
+              MOVE "F" TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+
+           EXIT PROGRAM.

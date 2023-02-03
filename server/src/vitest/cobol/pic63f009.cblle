@@ -1,0 +1,219 @@
+       process nostdtrunc extend63.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.     PIC63F009.
+       AUTHOR.         Phil Mawby.
+       INSTALLATION.   IBM Toronto Lab.
+       DATE-WRITTEN.   May 27, 2003.
+       DATE-COMPILED.  Will be replaced by compile date.
+
+      *************************************************************************
+      * PIC63F009
+      * Test mathematic computations with combinations of packed,
+      * display, COMP-5, internal and external floating point.
+      * Note, internal fp is tested extensively in other places
+      * so it is not done here.
+      * Test that a 19 digit PIC 9(63) item can be moved into a
+      * COMP-5. Have 2 versions of this testcase, one with
+      * STDTRUNC and one with NOSTDTRUNC.
+      *************************************************************************
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+
+       01  ITRAP-VARS.
+           05  ITRAP100         PIC X(10)      VALUE "ITRAP100".
+           05  PGM-ID           PIC X(10)      VALUE "PIC63F009".
+           05  PGM-STS          PIC X          VALUE "M".
+
+       01  ERROR-COUNTER       PIC 9(3) VALUE 0.
+       01  VARIATION-NO        PIC 9(3) VALUE 0.
+
+
+       77  SUCC-FLAG           PIC X.
+           88   VAR-PASS       VALUE "P".
+           88   VAR-FAIL       VALUE "F".
+
+       77  pass-flag           PIC X.
+           88   p-Good         VALUE "P".
+           88   p-Bad          VALUE "F".
+
+       01  p1 pic s9(19).
+       01  p2 pic s9(19).
+       01  p3 pic s9(19).
+       01  pr pic s9(19).
+       01  q1 pic s9(63).
+       01  q2 pic s9(63) comp-3.
+       01  q3 pic 9(63).
+       01  qr pic s9(63).
+       01  b1 pic s9(18) COMP-5.
+       01  b2 pic s9(18) COMP-5.
+       01  br pic s9(18) COMP-5.
+       01  fp pic +9.9(15)E+99.
+       01  fp1 pic +9.9(15)E+99.
+       01  fpr pic +9.9(15)E+99.
+       01  fc1 comp-1.
+       01  fc2 comp-2.
+
+       PROCEDURE DIVISION.
+
+       MAIN-LINE SECTION.
+       MAIN-PROGRAM-LOGIC.
+
+           DISPLAY "****  Start of Testcase " PGM-ID "  ****".
+           DISPLAY " ".
+           PERFORM VARIATION-001 THRU VARIATION-999.
+           DISPLAY " ".
+           IF ERROR-COUNTER = 0
+             DISPLAY "         *--------------------------------*"
+             DISPLAY "         * TESTCASE " PGM-ID " SUCCESSFUL *"
+             DISPLAY "         *--------------------------------*"
+             MOVE "P" TO PGM-STS
+           ELSE
+             DISPLAY "         *----------------------------*"
+             DISPLAY "         * TESTCASE " PGM-ID " FAILED *"
+             DISPLAY "         *----------------------------*"
+             MOVE "F" TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           DISPLAY " ".
+           DISPLAY "****   End of Testcase " PGM-ID "   ****".
+           DISPLAY " ".
+           STOP RUN.
+
+       START-VARIATION-NNN.
+           ADD 1 TO VARIATION-NO.
+           DISPLAY "=====> START OF TEST VARIATION-" VARIATION-NO.
+           SET VAR-PASS TO TRUE.
+
+
+       END-VARIATION-NNN.
+           IF VAR-PASS
+              DISPLAY "=====> VARIATION ", VARIATION-NO, " PASSES"
+           ELSE
+              ADD 1 TO ERROR-COUNTER
+              DISPLAY "=====> VARIATION ", VARIATION-NO, " FAILS".
+
+      * test nostdtrunc
+      * move - 2**63-1 to a p9(63), and then move the P9(63)
+      * to a COMP-5.  move it back to a p9(63) and compare with
+      * the original p9(63).  Then subtract from the COMP-5 to
+      * give a COMP-5 within the range of p9(18) to insure arithmetic
+      * can happen on this large valued COMP-5.
+       VARIATION-001.
+           PERFORM START-VARIATION-NNN.
+           move 9223372036854775807 to p1.
+           move p1 to b1.
+           move b1 to p2.
+           if p2 not = p1
+               display "expect " p1 " got " p2
+               set var-fail to true.
+           move 9000000000000000000 to p2.
+           move 223372036854775807 to br.
+           subtract p2 from b1 giving b2.
+           if b2 not = br
+               display "expect " br " got " b2
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+      * call a stdtrunc program to test
+       VARIATION-002.
+           PERFORM START-VARIATION-NNN.
+           call "PIC63F009A" using pass-flag.
+           if p-bad
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+      * multiply with bin
+       VARIATION-003.
+           PERFORM START-VARIATION-NNN.
+           move 999999999999999999 to b1.
+           move 11111111111111111111 to q1.
+           move 11111111111111111099888888888888888889 to qr.
+           multiply b1 by q1.
+           if q1 not = qr
+               display " expect " qr
+               display "    got " q1
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+      * divide with bin
+       VARIATION-004.
+           PERFORM START-VARIATION-NNN.
+           move 999999999999999999 to b1.
+           move 111111111111111099 to qr.
+           move 111111111111111099888888888888888889 to q1.
+           divide q1 by   b1 giving q2.
+           if q2 not = qr
+               display " expect " qr
+               display "    got " q2
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+      * add with p9(63) giving bin expect size error
+       VARIATION-005.
+           PERFORM START-VARIATION-NNN.
+           move 11111111111111111111111111111111
+      -         1111111111111111111111111111111 to q1 q2.
+           move 222222222222222222 to br.
+           set p-bad to true.
+           add q1 q2 giving b1
+              on size error
+                 set p-good to true.
+           if p-bad
+               display " on size error not traversed "
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+      * add with p9(63) giving bin
+       VARIATION-006.
+           PERFORM START-VARIATION-NNN.
+           move 111111111111111111 to q1 q2.
+           move 222222222222222222 to br.
+           set p-bad to true.
+           add q1 q2 giving b1.
+           if b1 not = br
+                 display "expect " br " got " b1
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+      * add with p9(63) giving fp
+       VARIATION-007.
+           PERFORM START-VARIATION-NNN.
+           move 11111111111111111111111111111111
+      -         1111111111111111111111111111111 to q1 q2.
+           move 2.222222222222223E+62 to fpr.
+           add q1 q2 giving fp.
+           if fp not = fpr
+                 display "expect " fpr " got " fp
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+      * compute
+       VARIATION-008.
+           PERFORM START-VARIATION-NNN.
+           move 111111111111111111 to b1.
+           move 123456789012345678 to q2.
+           move 987654123456789123 to b2.
+           move 1000000000000000000000000000
+      -         13717421001371740998628455541839135 to qr.
+           compute q3 = b1 * q2 + 10000000000000000000000000000000
+      -                            0000000000000000000000000000000
+              - b2.
+           if q3 not = qr
+                 display "expect " qr
+                 display "   got " q3
+               set var-fail to true.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-999.
+            EXIT.

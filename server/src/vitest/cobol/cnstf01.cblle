@@ -1,0 +1,300 @@
+       PROCESS EXTEND31.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.     CNSTF01.
+       AUTHOR.         SAN SU.
+       INSTALLATION.   IBM TORONTO LAB.
+       DATE-WRITTEN.   OCTOBER 2002.
+       DATE-COMPILED.
+      *************************************************************************
+      * 10/07/02                    Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: CNSTF01      Library: NC0C510      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   Constant data type on Arithmetic statements.                        *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: RUNATEST       Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *        Minimum (CONSTANT keyword only)                                *
+      *        AS NNN (NNN is CHAR/NUM literal)                               *
+      *      -  ADD                                                           *
+      *      -  COMPUTE                                                       *
+      *      -  DIVIDE                                                        *
+      *      -  INSPECT                                                       *
+      *      -  MULTIPLY                                                      *
+      *      -  SUBTRACT                                                      *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      *                                                                       *
+      *************************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER. IBM-ISERIES.
+       OBJECT-COMPUTER. IBM-ISERIES.
+       SPECIAL-NAMES.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 CNST1  CONSTANT 1.999999999999999999999999999999.
+       01 CNST2  CONSTANT -1.999999999999999999999999999999.
+       01 CNST3  CONSTANT 2.
+       01 CNST4  CONSTANT -2.
+       01 CNST5  CONSTANT 1.797693134862315E+307.
+       01 CNST6  CONSTANT -2.225073858507201E-307.
+       01 CNST7  CONSTANT +2.225073858507201E-307.
+       01 CNST8  CONSTANT 0.0.
+       01 CNST10 CONSTANT 100.
+       01 CNST13  CONSTANT "A".
+       01 CNST14  CONSTANT "0".
+       01 CNST15  CONSTANT " ".
+       01 CNST16  CONSTANT """".
+       01 CNST17  CONSTANT "#".
+
+       01 NUM1  PIC S9V9(30).
+       01 NUM1A PIC S9V9(30).
+       01 NUM2  PIC S9V9(30).
+       01 NUM2A PIC S9V9(30).
+       01 NUM3  COMP-2.
+       01 STR1  PIC X(CNST10).
+       01 STR1A PIC X(100).
+       01 TABLE1.
+          05 TABLEN1  PIC 9(5) VALUE 50.
+          05 FLD1.
+             10 ELEM1 PIC X(5) OCCURS 1 TO CNST10 DEPENDING ON
+                               TABLEN1.
+
+       01 pass-count  pic 9(9) value 0.
+       01 fail-count  pic 9(9) value 0.
+       01 tot-ct      pic 9(9) value 0.
+       01 ITRAP-VARS.
+          05 PGM-ID   PIC X(10)  VALUE "CNSTF01".
+          05 PGM-STS  PIC X      VALUE "F".
+
+       PROCEDURE DIVISION.
+       MAINLINE SECTION.
+       MAIN-PARA.
+      * Run tests
+           PERFORM TEST001 THRU TEST999
+
+      * Check results
+           COMPUTE tot-ct = (pass-count + fail-count)
+           IF  (fail-count = 0)  THEN
+                   DISPLAY pgm-id " SUCCESS "
+                   MOVE "P" TO PGM-STS
+           ELSE
+                   DISPLAY pgm-id " FAILURE "
+           END-IF
+           CALL  "ITRAP100" USING PGM-ID PGM-STS
+           DISPLAY "TOTAL TESTS "  tot-ct
+           DISPLAY "PASSED " pass-count
+           DISPLAY "FAILED " fail-count
+           STOP RUN.
+
+       TEST001.
+           ADD 0.000000000000000000000000000001 TO NUM1
+           ADD 0 TO NUM3
+           add
+               1.999999999999999999999999999999
+               -1.999999999999999999999999999999
+               2 -2
+               -2.225073858507201E-307
+               +2.225073858507201E-307
+                NUM1 1.0 NUM3 TO NUM2A.
+           ADD CNST1 CNST2 CNST3 CNST4 CNST6 CNST7
+               NUM1 1.0 NUM3 TO NUM2.
+           IF NUM2 = NUM2A then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST001 FAILED: "
+              DISPLAY "Expected: 1.000000000000000000000000000001 "
+              DISPLAY "Actual: " NUM2
+           end-if.
+
+       TEST002.
+           ADD 0.000000000000000000000000000001 TO NUM1
+           ADD 0 TO NUM3
+           add
+               1.999999999999999999999999999999
+               -1.999999999999999999999999999999
+               2 -2
+               -2.225073858507201E-307
+                NUM1 1.0 NUM3 TO +2.225073858507201E-307
+                giving num2a.
+           ADD CNST1 CNST2 CNST3 CNST4 CNST6
+               NUM1 1.0 NUM3 TO CNST7 GIVING NUM2
+           IF NUM2 = NUM2A then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST002 FAILED: "
+              DISPLAY "Expected: 1.000000000000000000000000000001 "
+              DISPLAY "Actual: " NUM2
+           end-if.
+
+       TEST003.
+           compute num1 = (-1 * cnst1) - cnst2 + cnst3 + cnst4 + cnst6
+                          + cnst7
+           IF NUM1 = 0 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST003 FAILED: "
+              DISPLAY "Expected: 0"
+              DISPLAY "Actual: " NUM1
+           end-if.
+
+       TEST004.
+           COMPUTE NUM1 = CNST1.
+           DIVIDE CNST1 into num1
+           IF NUM1 = 1 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST004 FAILED: "
+              DISPLAY "Expected: 1"
+              DISPLAY "Actual: " NUM1
+           end-if.
+
+       TEST005.
+           DIVIDE CNST3 into cnst4 giving num1 remainder num2
+           IF NUM1 = -1 and num2 = 0 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST005 FAILED: "
+              DISPLAY "Expected: -1 0 "
+              DISPLAY "Actual: " NUM1 " " num2
+           end-if.
+
+       TEST006.
+           DIVIDE CNST6 by cnst7 giving num1 remainder num2
+           IF NUM1 = -1 and num2 = 0 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST006 FAILED: "
+              DISPLAY "Expected: -1 0 "
+              DISPLAY "Actual: " NUM1 " " num2
+           end-if.
+
+       TEST007.
+           MULTIPLY CNST8 by NUM1
+           MULTIPLY CNST7 by NUM1
+           IF NUM1 = 0 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST007 FAILED: "
+              DISPLAY "Expected: 0"
+              DISPLAY "Actual: " NUM1
+           end-if.
+
+       TEST008.
+           MULTIPLY CNST7 by CNST8 GIVING NUM1
+           IF NUM1 = 0 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST008 FAILED: "
+              DISPLAY "Expected: 0"
+              DISPLAY "Actual: " NUM1
+           end-if.
+
+       TEST009.
+           ADD 0.000000000000000000000000000001 TO NUM1
+           ADD 0 TO NUM3
+           ADD CNST1 CNST2 CNST3 CNST4 CNST6 CNST7
+               NUM1 1.0 NUM3 TO NUM2.
+           SUBTRACT CNST1 CNST2 CNST3 CNST4 CNST6 CNST7
+               NUM1 1.0 NUM3 FROM NUM2.
+           IF NUM2 = 0 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST009 FAILED: "
+              DISPLAY "Expected: 0 "
+              DISPLAY "Actual: " NUM2
+           end-if.
+
+       TEST010.
+           SUBTRACT CNST1 FROM CNST3 GIVING NUM2
+           IF NUM2 = 0.000000000000000000000000000001 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST010 FAILED: "
+              DISPLAY "Expected: 0.000000000000000000000000000001 "
+              DISPLAY "Actual: " NUM2
+           end-if.
+
+       TEST011.
+           SUBTRACT CNST8 FROM CNST5 GIVING NUM3
+           IF NUM3 = 1.797693134862315E+307 then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST011 FAILED: "
+              DISPLAY "Expected: 1.797693134862315E+307 "
+              DISPLAY "Actual: " NUM3
+           end-if.
+
+       TEST014.
+           compute num1 = 0
+           compute num1a = 0
+           MOVE " ZABABABAB Z" TO STR1
+           MOVE " ZABABABAB Z" TO STR1A
+           INSPECT STR1A TALLYING NUM1A FOR CHARACTERS AFTER INITIAL
+                   " " REPLACINg ALL "A" BY "0".
+           INSPECT STR1 TALLYING NUM1 FOR CHARACTERS AFTER INITIAL
+                   CNST15 REPLACINg ALL CNST13 BY CNST14.
+           IF NUM1 = num1a AND STR1 = str1a then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST014 FAILED: "
+              DISPLAY "Expected: 11 ' Z0B0B0B0B Z'"
+              DISPLAY "Actual: " NUM1 " '" STR1 "'"
+           end-if.
+
+       TEST015.
+           MOVE "'ZABABABAB#Z" TO STR1
+           MOVE "'ZABABABAB#Z" TO STR1A
+           INSPECT STR1A CONVERTING "A"    TO "0" AFTER
+                   """"   BEFORE "#".
+           INSPECT STR1 CONVERTING CNST13 TO CNST14 AFTER
+                   CNST16 BEFORE CNST17.
+           IF STR1 = STR1A then
+              add 1 to pass-count
+           else
+              add 1 to fail-count
+              DISPLAY "TEST015 FAILED: "
+              DISPLAY "Expected: 'Z0B0B0B0B#Z"
+              DISPLAY "Actual: " """ STR1 """
+           end-if.
+
+       TEST999.
+           CONTINUE.
+

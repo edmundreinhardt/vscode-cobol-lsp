@@ -1,0 +1,131 @@
+       PROCESS OPTIONS PGMINFO(NOPGMINFO).
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.     STPCMLF21.
+       AUTHOR.         Phil Mawby.
+       INSTALLATION.   IBM Toronto Lab.
+       DATE-WRITTEN.   09/05/01.
+
+      *************************************************************************
+      *  11/30/01                Testcase Documentation                       *
+      *                                                                       *
+      * Testcase Name: PCMLF21      Library: NC0C520      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *   Generate PCML for basic supported data types declared at level 01   *
+      *   and 77, and passed by reference and by value.                       *
+      *   See the linkage section in source code below for the supported data *
+      *   types that are tested.                                              *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *   The program should compile successfully and PCML source             *
+      *   should be generated. The PCML source is compared with a previously  *
+      *   captured version and ITRAP is updated with PASS/FAIL.               *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      * PCMLF21       QCBLLESRC                                               *
+      * PCMLF21       QCLSRC                                                  *
+      *                                                                       *
+      *************************************************************************
+       ENVIRONMENT DIVISION.
+
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+       01 R1   PIC X(1).
+
+       01 PR1   PIC X(20) VALUE "ABCDEFGHIJ1234567890".
+       77 PR2   PIC A(20) VALUE "ABCDEFGHIJKLMNOPQRST".
+       01 PR3   PIC 9(5)        DISPLAY VALUE 55555.
+       77 PR4   PIC 9(5)V9(3)   PACKED-DECIMAL VALUE 12345.678.
+       01 PR5   PIC S9(5)V9(3)  PACKED-DECIMAL VALUE -22.345.
+       77 PR6   PIC 9(5)V9(3)   COMP VALUE 78787.878.
+       01 PR7   PIC S9(5)V9(3)  COMP VALUE +3456.999.
+       77 PR8   PIC 9(5)V9(3)   COMP-3 VALUE 55555.333.
+       01 PR9   PIC S9(5)V9(3)  COMP-3 VALUE -0.123.
+       77 PR10  PIC 9(4)        BINARY VALUE 9999.
+       01 PR11  PIC S9(4)       BINARY VALUE -9999.
+       77 PR12  PIC 9(5)        BINARY VALUE 44556.
+       01 PR13  PIC S9(5)       BINARY VALUE +11111.
+       77 PR14  PIC 9(6)        BINARY VALUE 333444.
+       01 PR15  PIC S9(6)       BINARY VALUE -1.
+       77 PR16  PIC 9(7)        COMP-4 VALUE 1234567.
+       01 PR17  PIC S9(7)       COMP-4 VALUE -1234567.
+       77 PR18  PIC 9(8)        COMP-4 VALUE 11223344.
+       01 PR19  PIC S9(8)       COMP-4 VALUE +2.
+       77 PR20  PIC 9(9)        COMP-4 VALUE 123456789.
+       01 PR21  PIC S9(9)       COMP-4 VALUE 999999999.
+       77 PR22                  COMP-1 VALUE 1.123E05.
+       01 PR23                  COMP-2 VALUE -3.12345678901234E06.
+       77 PR24  PIC N(4)        NATIONAL VALUE NX"0042004200200020".
+       01 PR25  PIC G(3)        DISPLAY-1 VALUE
+           G"·A·A·A".
+       LINKAGE SECTION.
+      *****************************************************************
+      *These data types are supported by PCML.
+      *****************************************************************
+       01 P1   PIC X(20).
+       77 P2   PIC A(20).
+       01 P3   PIC 9(5)        DISPLAY.
+       77 P4   PIC 9(5)V9(3)   PACKED-DECIMAL.
+       01 P5   PIC S9(5)V9(3)  PACKED-DECIMAL.
+       77 P6   PIC 9(5)V9(3)   COMP.
+       01 P7   PIC S9(5)V9(3)  COMP.
+       77 P8   PIC 9(5)V9(3)   COMP-3.
+       01 P9   PIC S9(5)V9(3)  COMP-3.
+       77 P10  PIC 9(4)        BINARY.
+       01 P11  PIC S9(4)       BINARY.
+       77 P12  PIC 9(5)        BINARY.
+       01 P13  PIC S9(5)       BINARY.
+       77 P14  PIC 9(6)        BINARY.
+       01 P15  PIC S9(6)       BINARY.
+       77 P16  PIC 9(7)        COMP-4.
+       01 P17  PIC S9(7)       COMP-4.
+       77 P18  PIC 9(8)        COMP-4.
+       01 P19  PIC S9(8)       COMP-4.
+       77 P20  PIC 9(9)        COMP-4.
+       01 P21  PIC S9(9)       COMP-4.
+       77 P22                  COMP-1.
+       01 P23                  COMP-2.
+       77 P24  PIC N(10)       NATIONAL.
+       01 P25  PIC G(3)        DISPLAY-1.
+       PROCEDURE DIVISION USING BY REFERENCE
+           P1  P2  P3  P4  P5  P6  P7  P8  P9  P10 P11
+           BY VALUE
+           P12 P13 P14 P15 P16 P17 P18 P19 P20 P21
+           BY REFERENCE
+           P22 P23 P24 P25.
+       MAIN-LINE SECTION.
+       MAIN-LINE.
+           DISPLAY "****  Start of Testcase PCMLF21 in COBOL ****".
+           MOVE PR1 TO P1.
+           MOVE PR2 TO P2.
+           MOVE PR3 TO P3.
+           MOVE PR4 TO P4.
+           MOVE PR5 TO P5.
+           MOVE PR6 TO P6.
+           MOVE PR7 TO P7.
+           MOVE PR8 TO P8.
+           MOVE PR9 TO P9.
+           MOVE PR10 TO P10.
+           MOVE PR11 TO P11.
+
+      ** Changes to P12... P21 inclusive won't appear in calling pgm
+           MOVE PR12 TO P12.
+           MOVE PR13 TO P13.
+           MOVE PR14 TO P14.
+           MOVE PR15 TO P15.
+           MOVE PR16 TO P16.
+           MOVE PR17 TO P17.
+           MOVE PR18 TO P18.
+           MOVE PR19 TO P19.
+           MOVE PR20 TO P20.
+           MOVE PR21 TO P21.
+      **
+           MOVE PR22 TO P22.
+           MOVE PR23 TO P23.
+           MOVE PR24 TO P24.
+           MOVE PR25 TO P25.
+           DISPLAY "****   End of Testcase in COBOL"
+           GOBACK.

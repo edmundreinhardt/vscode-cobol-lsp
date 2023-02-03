@@ -1,0 +1,612 @@
+       process extend31full options seclvl.
+      *****************************************************************
+      *Try 1 occurance of each numeric intrinsic Fn - use literals
+      *****************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. FEALL1.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       Special-Names.
+                Currency SIGN is "#".
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+      ****************************************************************
+      * ITRAP Defined Data
+      ****************************************************************
+
+       01  ITRAP-VARS.
+           05  ITRAP100         PIC X(10)      VALUE "ITRAP100".
+           05  PGM-ID           PIC X(10)      VALUE "FEALL1  ".
+           05  PGM-STS          PIC X          VALUE "M".
+
+       77  SUCC-FLAG            PIC X.
+           88   VAR-PASS                       VALUE "P".
+           88   VAR-FAIL                       VALUE "F".
+
+       01  ERROR-COUNTER        PIC 9(3)       VALUE 0.
+       01  VARIATION-NO         PIC 9(3)       VALUE 0.
+      *****************************************************************
+       01  pack20                Pic 9(10)v9(10) usage comp-3 value 11.
+       01  pack20a               Pic 9(10)v9(10) usage comp-3.
+       01  pack31                Pic 9(31) usage comp-3.
+       01  pack30v1              Pic S9(30)v9(1) usage comp-3 value 13.
+       01  pack30v3              Pic S9(30)v9(3) usage comp-3 value 13.
+       01  pack33v1              Pic S9(33)v9(1) usage comp-3.
+       01  pack31a               Pic 9(31) usage comp-3.
+       01  pack40v5              Pic 9(40)v9(5) comp-3.
+       01  pack1v30              Pic S9(1)v9(30) usage comp-3.
+       01  pack1v33              Pic S9(1)v9(33) usage comp-3.
+       01  pack1v15              Pic S9(1)v9(15) usage comp-3.
+       01  pack3v15              Pic S9(3)v9(15) usage comp-3.
+       01  pack3v28              Pic S9(3)v9(28) usage comp-3.
+       01  packv31               Pic v9(31) usage comp-3.
+       01  packv31a              Pic v9(31) usage comp-3.
+       01  packv32               Pic v9(32) usage comp-3.
+       01  packv32a              Pic v9(32) usage comp-3.
+       01  pack3v31              Pic 9(3)v9(31) comp-3.
+       01  pack3v34              Pic 9(3)v9(44) comp-3.
+       01  pack1v62              Pic 9v9(62) comp-3.
+       01  pack63                Pic 9(31)v9(32) comp-3.
+       01  pack63a               Pic 9(31)v9(32) comp-3.
+       01  pack63r               Pic 9(31)v9(32) comp-3.
+       01  pack53i               Pic 9(53) comp-3.
+       01  zone18                Pic 9(18) usage display.
+       01  P                     Pic X(15) value "1234567.8901234".
+       01  P31I Pic X(33)  value "001234567890123456789012345678901".
+       01  P31IA Pic X(33)  value " 1234567890123456789012345678901 ".
+       01  P31DA Pic X(34)  value " .1234567890123456789012345678901 ".
+       01  P31IC Pic X(34) value "1234567890123456789012,345,678,901"  .
+       01  P30D Pic X(34) value ".123456789012345678901234567890000".
+       01  P31D Pic X(32) value ".1234567890123456789012345678901".
+       01  P32D Pic X(33) value ".12345678901234567890123456789012".
+       01  P63 PIC X(64) value "1234567890123456789012345678901.12345678
+      -    "901234567890123456789012".
+       01 interest CONSTANT 0.05.
+
+       PROCEDURE DIVISION.
+       Start-Test.
+      *****************************************************************
+      * Note1: TRIG results are in radians, not degrees and
+      *        their accuracy is only 15 or 16 digits due to flt point!
+      * Note2: COS gives a 31 digit result when EXTEND31 specified
+      *        BUT specifying EXTEND31 does NOT improve accuracy!
+      * Note3: Specifying FULLEXTEND31 MUST give the same the same
+      *        result (OR better) as when EXTEND31 specified
+      * Note4: Expect digits after 15th digit to be the same between
+      *        EXTEND31 & EXTENDFULL31 unless EXTEND31FULL more accurate
+      *****************************************************************
+           DISPLAY "****  Start of Testcase  FEALL     ****".
+           DISPLAY "We show INTRINSIC FUNCTION name followed by result"
+           PERFORM VARIATION-001 THRU VARIATION-999.
+           IF ERROR-COUNTER = 0
+             DISPLAY "         * TESTCASE " PGM-ID " SUCCESSFUL *"
+             MOVE "P" TO PGM-STS
+           ELSE
+             DISPLAY "         * TESTCASE " PGM-ID " FAILED *"
+             MOVE "F" TO PGM-STS.
+           DISPLAY "****   End of Testcase  FEALL      ****".
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           STOP RUN.
+
+      * test 1
+       VARIATION-001.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION ACOS(0.5).
+           compute pack1v62 = FUNCTION ACOS(0.5).
+           display "ACOS(.5): " pack1v30.
+      ***  display "Test 1  expect:  1.0471975511965977461542144610932"
+           compute pack1v15 = pack1v30.
+           if pack1v15 = 1.047197551196597 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 2
+       VARIATION-002.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION ASIN(0.5).
+           display "ASIN(.5): " pack1v30.
+      ***  display "Test 2a expect:   0.523598775598298"
+           compute pack1v15 = pack1v30.
+           if pack1v15 = 0.523598775598298 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 3
+       VARIATION-003.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION ATAN(0.5).
+           display "ATAN(.5): " pack1v30.
+      ***  display "Test 3a expect:  0.463647609000806".
+           compute pack1v15 = pack1v30.
+           if pack1v15 = 0.463647609000806 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 4
+       VARIATION-004.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION COS(0.5).
+           display "COS(.5): " pack1v30.
+      ***  display "Test 4a expect:  0.87758256189037271611628158260383"
+           compute pack1v15 = pack1v30.
+           if pack1v15 = 0.877582561890372 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 5
+       VARIATION-005.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION SIN(0.5).
+           display "SIN(.5): " pack1v30.
+      ***  display "Test 5a expect:  0.47942553860420300027328793521557"
+           compute pack1v15 = pack1v30.
+           if pack1v15 = 0.479425538604203 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 6
+       VARIATION-006.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION TAN(0.5).
+           display "TAN(.5): " pack1v30.
+      ***  display "Test 6a expect:  0.54630248984379051325517946578029"
+           compute pack1v15 = pack1v30.
+           if pack1v15 = 0.546302489843790 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      *********************** end of trig tests **********************
+      * test 7
+       VARIATION-007.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION LOG(0.5).
+           display "LOG(.5) " pack1v30.
+      ***  display "Test 7a expect:  -0.6931471805599453094172321214581"
+           compute pack1v15 = pack1v30.
+           if pack1v15 = -0.693147180559945 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 8
+       VARIATION-008.
+           PERFORM START-VARIATION-NNN.
+           compute pack1v30 = FUNCTION LOG10(0.5).
+           display "LOG10(.5) " pack1v30.
+      ***  display "Test 8a expect:  -0.3010299956639811952137388947244"
+           compute pack1v15 = pack1v30.
+           if pack1v15 = -0.301029995663981 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      *********************** end of log tests **********************
+      *
+      ************** start of intrinsics calculated by COBOL ********
+      * test 20
+       VARIATION-020.
+           PERFORM START-VARIATION-NNN.
+           compute packv31 = FUNCTION ANNUITY(interest 7).
+           display "ANNUITY " packv31.
+      *    display "Test 20 expect 0.17281981844617074394656473553119".
+      *    display "with 31st digit rounded up".
+           if packv31 = 0.1728198184461707439465647355312
+              SET VAR-PASS TO TRUE
+           ELSE
+              DISPLAY "EXPECTED:  0.1728198184461707439465647355312"
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 21: 34 digit result followed by zeros
+       VARIATION-021.
+           PERFORM START-VARIATION-NNN.
+           compute pack3v34 = FUNCTION ANNUITY(.05 7).
+           display "ANNUITY " pack3v34.
+      * NOTE: due to the 34 digit literal limit, can't have zero before dec pt
+           if pack3v34 = .1728198184461707439465647355311926
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 22
+       VARIATION-022.
+           PERFORM START-VARIATION-NNN.
+           compute pack31 = FUNCTION FACTORIAL(29).
+           display "FACTORIAL " pack31.
+           if pack31 = 8841761993739701954543616000000 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      *********************** end of log tests **********************
+      *
+      ************** start of other numeric intrinsics **************
+      * test 30 (INTEGER of neg 33 digits)
+       VARIATION-030.
+           PERFORM START-VARIATION-NNN.
+           compute pack30v3 =
+                  FUNCTION INTEGER(-123456789012345678901234567890.123)
+           display "INTEGER " pack30v3.
+           if pack30v3 = -123456789012345678901234567891 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 31 (INTEGER PART of 33 digits)
+       VARIATION-031.
+           PERFORM START-VARIATION-NNN.
+           compute pack30v3 =
+             FUNCTION INTEGER-PART(-123456789012345678901234567890.123)
+           display "INTEGER-PART " pack30v3.
+           if pack30v3 = -123456789012345678901234567890 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 32 (INTEGER PART of neg 23 digits)
+       VARIATION-032.
+           PERFORM START-VARIATION-NNN.
+           compute pack30v3 =
+             FUNCTION INTEGER-PART(-12345678901234567890.123)
+           display "INTEGER-PART " pack30v3.
+           if pack30v3 = -12345678901234567890 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 33 (MAX of 34 digits)
+       VARIATION-033.
+           PERFORM START-VARIATION-NNN.
+           compute pack33v1 =
+             FUNCTION MAX(123456789012345678901234567890123.2
+                          123456789012345678901234567890123.4)
+           display "MAX " pack33v1.
+           if pack33v1 = 123456789012345678901234567890123.4 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 34 (MEAN of 34 digits - rounding up!)
+       VARIATION-034.
+           PERFORM START-VARIATION-NNN.
+      * The MEAN function returns a numeric value that approximates the
+      * arithmetic
+      * average of its arguments.
+           compute pack33v1 =
+             FUNCTION MEAN(123456789012345678901234567890123.3
+                          123456789012345678901234567890123.4
+                          123456789012345678901234567890123.4)
+           display "MEAN " pack33v1.
+           if pack33v1 = 123456789012345678901234567890123.4 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 35 (MEDIAN of 34 digits)
+       VARIATION-035.
+           PERFORM START-VARIATION-NNN.
+      * The MEDIAN function returns the content of the argument whose
+      * value is the
+      * middle value in the list formed by arranging the arguments in
+      * sorted order.
+           compute pack33v1 =
+             FUNCTION MEDIAN(123456789012345678901234567890120.9
+                             123456789012345678901234567890123.4
+                             123456789012345678901234567890123.6
+                             123456789012345678901234567890124.2)
+           display "MEDIAN " pack33v1.
+           if pack33v1 = 123456789012345678901234567890123.5 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 36 (MIDRANGE of 34 digits)
+       VARIATION-036.
+           PERFORM START-VARIATION-NNN.
+      * Arithmetic average of the values of the minimum argument and
+      * the maximum argument
+           compute pack33v1 =
+             FUNCTION MIDRANGE(-123456789012345678901234567890120.0
+                               123456789012345678901234567890123.4
+                               123456789012345678901234567890123.6
+                               123456789012345678901234567890124.2)
+           display "MIDRANGE " pack33v1.
+           if pack33v1 =  2.1 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 37 (MIDRANGE of 34 digits)
+       VARIATION-037.
+           PERFORM START-VARIATION-NNN.
+      * Arithmetic average of the values of the minimum argument and
+      * the maximum argument
+           compute pack33v1 =
+             FUNCTION MIDRANGE(123456789012345678901234567890120.0
+                               123456789012345678901234567890123.4
+                               123456789012345678901234567890123.6
+                               123456789012345678901234567890124.2)
+           display "MIDRANGE " pack33v1.
+           if pack33v1 =  123456789012345678901234567890122.1 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 38 (MIN of 31 digits)
+       VARIATION-038.
+           PERFORM START-VARIATION-NNN.
+           compute pack63 = FUNCTION MIN(0.123456789012345678901234
+                            0.1234567890123456789012345678901).
+           display "MIN " pack63
+           if (pack63 = 0.123456789012345678901234) then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 39 (MOD of 31 digits)
+       VARIATION-039.
+           PERFORM START-VARIATION-NNN.
+           compute pack63 = FUNCTION MOD(123456789012345678901234
+                            1234567890123456789012345678901).
+           display "MOD " pack63
+           if (pack63 = 123456789012345678901234) then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 40 (NUMVAL-C of 31 digits)
+       VARIATION-040.
+           PERFORM START-VARIATION-NNN.
+      *The NUMVAL-C function returns the numeric value represented by
+      *the alphanumeric character string specified as argument-1. Any
+      *optional currency sign specified by argument-2 and any optional
+      *commas preceding the decimal point are stripped away, producing
+      *a numeric value that can be used in an arithmetic expression.
+           compute pack31 = FUNCTION NUMVAL-C (P31IC).
+           compute packv31a = FUNCTION NUMVAL-C (P31D).
+           compute packv31 = FUNCTION NUMVAL-C (P31D) - .01.
+           display "NUMVAL-C " pack31
+           if pack31 = 1234567890123456789012345678901 and
+              packv31a = .1234567890123456789012345678901  and
+              packv31 = .1134567890123456789012345678901   then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " packv31 " and " packv31a
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * test 41 (NUMVAL of 31 digits)
+       VARIATION-041.
+           PERFORM START-VARIATION-NNN.
+      *The NUMVAL function returns the numeric value represented by the
+      *alphanumeric character string specified in an argument. The
+      *function strips away any leading or trailing blanks in the
+      *string, producing a numeric value that can be used in an
+      *arithmetic expression.
+           compute pack31 = FUNCTION NUMVAL (P31IA).
+           compute packv31 = FUNCTION NUMVAL (P31DA).
+           display "NUMVAL " pack31
+           if pack31 = 1234567890123456789012345678901 and
+              packv31 = .1234567890123456789012345678901
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack31
+              display "expect 1234567890123456789012345678901"
+              display "FAIL " packv31
+              display "expect .1234567890123456789012345678901"
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+      * test 42 (PRESENT-VALUE)
+      *The PRESENT-VALUE function returns a value that approximates the
+      *present value of a series of future period-end amounts specified
+      *by argument-2 at a discount rate specified by argument-1.
+       VARIATION-042.
+           PERFORM START-VARIATION-NNN.
+           compute pack3v31 = FUNCTION PRESENT-VALUE(.05 200).
+           display "PRESENT-VALUE(.05 200) " pack3v31
+           display "Note last digit is rounded up by decimal float calc"
+      * max 34 digit literal used here
+           if pack3v31 = 190.4761904761904761904761904761905 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack3v31
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-043.
+           PERFORM START-VARIATION-NNN.
+           compute pack3v31 = FUNCTION RANDOM.
+           compute pack3v31 = FUNCTION RANDOM.
+           compute pack3v34 = FUNCTION RANDOM.
+           display "RANDOM() " pack3v34
+      * max 34 digit literal used here (34 digits are always returned by RANDOM)
+      * third random value with the same seed always has same value in each job
+      * since it is a mathematical calculation based on the seed
+           if pack3v34 = .8047837297454401017660075012827292 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack3v34
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-044.
+      *The RANGE function returns a value that is equal to the value of
+      *the maximum argument minus the value of the minimum argument.
+           PERFORM START-VARIATION-NNN.
+           compute pack40v5 = FUNCTION RANGE(2.1
+              1234567890123456789012345678901.123
+              5.67  1.1)
+           display "RANGE " pack40v5.
+           if (pack40v5 = 1234567890123456789012345678900.023) then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack40v5
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-045.
+           PERFORM START-VARIATION-NNN.
+           compute pack53i = FUNCTION REM(123456789012345678901234
+                            1234567890123456789012345678901).
+           display "REM " pack53i
+           if (pack53i = 123456789012345678901234) then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack53i
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-046.
+      *Note1:SQRT accuracy is only 15 or 16 digits due to flt point!
+      *Note2: accurate result would be 11.09053650640941716205160010261
+           PERFORM START-VARIATION-NNN.
+           compute pack3v28 = FUNCTION SQRT(123).
+           compute pack3v15 = pack3v28.
+           display "SQRT(123) " pack3v15.
+           if pack3v15 = 11.090536506409417 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack3v15
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-047.
+      *Note1:STDDEV accuracy is only 15 or 16 digits due to SQRT flt point!
+      *The returned value is the approximation of the standard deviation of the
+      *argument-1 series. The returned value is calculated as follows:
+      *1. The difference between each argument-1 and the arithmetic
+      *mean of the argument-1 series is calculated and squared.
+      *2. The values obtained are then added together. This quantity is
+      *divided by the number of values in the argument-1 series.
+      *3. The square root of the quotient obtained is then calculated.
+      *The returned value is the absolute value of this square root.
+
+           PERFORM START-VARIATION-NNN.
+           compute pack1v33 = FUNCTION STANDARD-DEVIATION(2 4 6 8)
+           display "STANDARD-DEVIATION(2 4 6 8) " pack3v15.
+      ***  display "Test36 expect 2.2360679774997896964091736687313"
+           move pack1v33 to pack1v15.
+           if pack1v15 = 2.236067977499789 then
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack3v15
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-048.
+           PERFORM START-VARIATION-NNN.
+           compute pack33v1 = FUNCTION SUM(
+                               111111111111111111111111111111111.2
+                               222222222222222222222222222222222.4
+                               333333333333333333333333333333333.6
+                               222222222222222222222222222222222.7)
+           display "SUM " pack33v1.
+           if pack33v1 = 888888888888888888888888888888889.9
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack3v15
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-049.
+      *The returned value is the approximation of the VARIANCE of the
+      *argument-1 series.
+      *The returned value is defined as the square of the standard
+      *deviation of the argument-1 series (ie the square root is NOT taken).
+      *This value is calculated as follows:
+      *1. The difference between each argument-1 value and the
+      *arithmetic mean of the argument-1 series is calculated and squared.
+      *2. The values obtained are then added together. This quantity is
+      *divided by the number of values in the argument series.
+
+           PERFORM START-VARIATION-NNN.
+           compute pack1v33 = FUNCTION VARIANCE(2 4 6 8)
+           display "Test36 (VARIANCE of four 34 digit #s): " pack1v33.
+           display "Test36 expect 5.0"
+           compute pack33v1 = FUNCTION VARIANCE(
+                               111111111111111111.2
+                               222222222222222222.4
+                               333333333333333333.6)
+           display "VARIANCE " pack33v1.
+           if pack33v1 = 616722864163260443652209272808496.6
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              display "FAIL " pack33v1
+           END-IF.
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-999.
+           EXIT.
+
+       START-VARIATION-NNN.
+           ADD 1 TO VARIATION-NO.
+           DISPLAY "=====> Start of test Variation-" VARIATION-NO.
+           SET VAR-PASS TO TRUE.
+
+       END-VARIATION-NNN.
+           IF VAR-PASS
+              DISPLAY "=====> Variation ", VARIATION-NO, " PASSES"
+           ELSE
+              ADD 1 TO ERROR-COUNTER
+              DISPLAY "=====> Variation ", VARIATION-NO, " FAILS".
+

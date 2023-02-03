@@ -1,0 +1,755 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.     CB6F207N.
+       AUTHOR.         Phil Mawby.
+       INSTALLATION.   IBM Toronto Lab.
+       DATE-WRITTEN.   January 27, 2016
+       DATE-COMPILED.  Will be replaced by compile date.
+      *
+      *************************************************************************
+      *  1/27/2016                  Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: CB6F207N     Library: NC0C730      Product: V7R3       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   DCR72078.DE-EDIT.MOVE.$. De-editing occurs when a source            *
+      *   numeric-edited item is moved to a receiving                         *
+      *   numeric/numeric-edited item. Through de-editing, the source's       *
+      *   unedited numeric value is first established, and is then moved      *
+      *   to the receiving item. The PICTURE clause of each source            *
+      *   numeric-edited item should contain a fixed currency symbol "$".     *
+      *   In addition it should contain various subsets and permutations      *
+      *   of the symbols "B" "0" "/" "," "." "+" (fixed) "-" (fixed) "CR"     *
+      *   "DB" "Z" "*" "+" (float) "-" (float) "9" "V" "P". (See the          *
+      *   PICTURE Clause section in the Version 2 Reference Manual for the    *
+      *   allowable combinations.) The following form of the MOVE             *
+      *   statement should be tested: "MOVE source-1 TO target-1 ...          *
+      *   target-n". Source-1 should be an elementary numeric-edited item     *
+      *   into which a numeric value has already been moved. Target-1 ...     *
+      *   target-n should be elementary numeric/numeric-edited items.         *
+      *   (Alphanumeric and alphanumeric-edited items should be included      *
+      *   to a much lesser degree.) An attempt should be made to come up      *
+      *   with a large variety of PICTURE clauses for source-1 containing     *
+      *   the fixed currency symbol "$". Each of the symbols appearing in     *
+      *   the sub-features section should appear in at least one              *
+      *   non-trivial target-1 PICTURE clause. PICTURE clauses from other     *
+      *   test cases should not be copied.                                    *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: RUNATEST       Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      * DE-EDIT       MOVE with DE-EDIT                                       *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *   FUNCTIONAL COVERAGE:                                                *
+      *   C)  SOURCE FIELD:                                                   *
+      *     - Numeric-edited                                                  *
+      *      -- PICTURE clause:                                               *
+      *       - Symbol should appear in PIC clause:                           *
+      *        - $ (fixed insertion)                                          *
+      *      -- USAGE clause:                                                 *
+      *        - DISPLAY                                                      *
+      *     - Repetition Factor                                               *
+      *     - Level tested:                                                   *
+      *      -- 01                                                            *
+      *      -- 66                                                            *
+      *      -- 77                                                            *
+      *     - RENAMES clause                                                  *
+      *     - LIKE clause                                                     *
+      *   D)  TARGET FIELD(S):                                                *
+      *     - Numeric                                                         *
+      *      -- PICTURE clause:                                               *
+      *        - 9                                                            *
+      *        - P                                                            *
+      *        - S                                                            *
+      *        - V                                                            *
+      *      -- SIGN clause:                                                  *
+      *        - LEADING                                                      *
+      *      -- USAGE clause:                                                 *
+      *        - DISPLAY                                                      *
+      *        - BINARY                                                       *
+      *        - PACKED-DECIMAL                                               *
+      *     - Numeric-edited                                                  *
+      *      -- PICTURE clause:                                               *
+      *        - B (simple insertion)                                         *
+      *        - , (simple insertion)                                         *
+      *        - + (fixed insertion, at beginning)                            *
+      *        - + (fixed insertion, at end)                                  *
+      *        - - (fixed insertion, at beginning)                            *
+      *        - - (fixed insertion, at end)                                  *
+      *        - DB (fixed insertion)                                         *
+      *        - $ (fixed insertion)                                          *
+      *        - * (0 suppress & replace, before .)                           *
+      *        - * (0 suppress & replace, after .)                            *
+      *        - + (float ins & replace, before .)                            *
+      *        - + (float ins & replace, after .)                             *
+      *        - $ (float ins & replace, before .)                            *
+      *        - $ (float ins & replace, after .)                             *
+      *        - P (before .)                                                 *
+      *        - P (after .)                                                  *
+      *     - Alphanumeric                                                    *
+      *     - Alphanumeric-edited                                             *
+      *     - Repetition Factor                                               *
+      *     - Level tested:                                                   *
+      *      -- 01                                                            *
+      *      -- 66                                                            *
+      *      -- 77                                                            *
+      *     - RENAMES clause                                                  *
+      *      FUNCTIONAL VARIANTS:                                             *
+      *   B)  Boundary conditions:                                            *
+      *     - SOURCE:                                                         *
+      *      -- Numeric-edited                                                *
+      *        - PICTURE character string:                                    *
+      *         -- PRECISION:                                                 *
+      *           - Max (18,0),(18,18)                                        *
+      *         -- 127 character positions                                    *
+      *   C)  SOURCE:                                                         *
+      *     - Number of digits in PICTURE clause:                             *
+      *      -- even                                                          *
+      *     - Signed/Unsigned                                                 *
+      *     - De-edit with 0 value                                            *
+      *     - Elementary item                                                 *
+      *   D)  TARGET:                                                         *
+      *     - Signed/Unsigned                                                 *
+      *     - Elementary item                                                 *
+      *     - Multiple items                                                  *
+      *   E)  STATEMENTS:                                                     *
+      *     - MOVE statement                                                  *
+      *   G)  Figurative constants:                                           *
+      *     - ZERO/ZEROS/ZEROES                                               *
+      *   I)  ENVIRONMENT TESTED:                                             *
+      *     - Batch                                                           *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *   The MOVE statement should be tested with both single and            *
+      *   multiple targets.                                                   *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *   If the target item is numeric/numeric-edited de-editing should      *
+      *   occur and the target item should contain the correct value. If      *
+      *   the target item is alphanumeric or alphanumeric-edited,             *
+      *   de-editing should not occur.                                        *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      * CB6F207N      QCLSRC                                                  *
+      * CB6F207N      QLBLSRC                                                 *
+      *                                                                       *
+      *************************************************************************
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+
+       01  ITRAP-VARS.
+           05  ITRAP100         PIC X(10)      VALUE "ITRAP100".
+           05  PGM-ID           PIC X(10)      VALUE "CB6F207N".
+           05  PGM-STS          PIC X          VALUE "M".
+
+       01  ERROR-COUNTER       PIC 9(3) VALUE 0.
+       01  VARIATION-NO        PIC 9(3) VALUE 0.
+
+       77  SUCC-FLAG           PIC X.
+           88   VAR-PASS       VALUE "P".
+           88   VAR-FAIL       VALUE "F".
+
+      ******************************************************************
+      *                     SOURCE ITEMS
+      ******************************************************************
+      *source contains symbols Z, B, ., + (fixed, beg)
+       01  SRC01               PIC +$BZ(3)BZ(3)B.99 national.
+      *01  SRC01               PIC +$BZZZBZZZB.99.
+
+      *source contains symbol + (fixed, end), usage display-PTR T501906
+       01  SRC02               PIC B$9+ national.
+
+      *source contains symbols *, /, - (fixed, beg)
+       77  SRC03               PIC -$***B***B***B./*/* national.
+
+      *source contains symbol 9, ,, P, - (fixed, end),
+      *                       clause BLANK WHEN ZERO
+       01  SRC04               PIC $,Z,Z9,,,9,PP- BLANK WHEN ZERO.
+
+      *source contains symbol CR, 0, V
+      *77  SRC05               PIC $99B99/99,99B99,9/VB000B000B9CR.
+      * CHANGED FOR ILE ..... (based on ANSII & VSCII)
+       77  SRC05          PIC $99B99/99,99B99,9/VB00B000B9CR national.
+
+      *source contains symbol DB
+      *boundary condition - precision (18,18)
+       01  SRC06          PIC $//.ZZ,ZBZZ/Z(6)00Z(5)0ZZDB national.
+      *01  SRC06          PIC $//.ZZ,ZBZZ/ZZZZZZ00ZZZZZ0ZZDB national.
+
+      *source contains symbol + (float)
+      *boundary condition - precision (18,0), no of digits even
+       01  SRC07-REC.
+           05 SRC07            PIC $+0,++/+BB+0++,+0990/P(9) national.
+      *    05 SRC07            PIC $+0,++/+BB+0++,+0990/PPPPPPPPP.
+       66  RENAMES-SRC07 RENAMES SRC07.
+
+      *source contains symbol - (float)
+      *boundary condition - 127 char pos'ns
+       01  SRC08          PIC $/(99)-,B---0-9,VB/B90999B(9) national.
+       01  LIKE-SRC08 LIKE SRC08 SYNCHRONIZED BLANK WHEN ZERO.
+
+      *source unsigned
+       01  SRC09          PIC $*/(49)*B(33)*,(17)**V0(9)9(7) national.
+
+      ******************************************************************
+      *                     TARGET ITEMS
+      * Note: The TRG__-CHECK items are used to check that de-editing
+      * is occurring correctly.
+      ******************************************************************
+      *target numeric contains symbols 9, P, S, V, sign leading,
+      *                                            usage display
+       01  TRG01               PIC S999999PP LEADING USAGE DISPLAY.
+       01  TRG01-CHECK LIKE TRG01.
+
+      *target numeric contains usage binary, unsigned
+       77  TRG02               PIC 99V99999 USAGE IS BINARY.
+       77  TRG02-CHECK LIKE TRG02.
+
+      *target numeric contains usage packed-decimal, unsigned
+       01  TRG03               PIC 9(2)P(4) PACKED-DECIMAL.
+      *01  TRG03               PIC 99PPPP PACKED-DECIMAL.
+       01  TRG03-CHECK LIKE TRG03.
+
+      *target contains symbol + (fixed, end), $ (float), ,
+       01  TRG04               PIC B0/,$,,$B$.$//$,$0$$/,$,$$0$$+.
+       01  TRG04-CHECK LIKE TRG04.
+
+      *target contains symbols B, + (float)
+       01  TRG05               PIC B+BVB++B+B++B+B+B++B+B++B++B+B.
+       01  TRG05-CHECK LIKE TRG05.
+
+      *target contains symbol P, $ (fixed), - (fixed, beg)
+       77  TRG06               PIC -$99990(9)P(9)V.
+      *77  TRG06               PIC -$9999000000000PPPPPPPPPV.
+       77  TRG06-CHECK LIKE TRG06.
+
+      *target contains symbols *, - (fixed, end)
+       01  TRG07               PIC /**/***/9(6)/9(6)/(7)9-.
+      *01  TRG07               PIC /**/***/999999/999999///////9-.
+       01  TRG07-CHECK LIKE TRG07.
+
+      *target contains symbol + (fixed, beg)
+       01  TRG08-REC.
+           10 TRG08            PIC +Z.Z.
+       66  RENAMES-TRG08 RENAMES TRG08.
+       01  TRG08-CHECK LIKE TRG08.
+
+      *target contains symbol DB
+      *77  TRG09               PIC ZB/(102)Z,ZZ/ZBZZ9/9,99/.999/DB.
+      * CHANGED FOR ILE COBOL (based on ANSII & VSCII)
+       77  TRG09               PIC ZB/(102)Z,ZZ/ZBZZ9/9,99/.99/DB.
+       77  TRG09-CHECK LIKE TRG09.
+
+      *target alphabetic
+       01  TRG-ALPHA           PIC A(32767).
+       01  TRG-ALPHA-CHECK LIKE TRG-ALPHA.
+
+      *target alphanumeric
+       01  TRG-ALPHA-NUM       PIC N(32767) national.
+       01  TRG-ALPHA-NUM-CHECK LIKE TRG-ALPHA-NUM.
+
+      *target alphanumeric-edited
+       01  TRG-ALPHA-NUM-ED    PIC BN(60)/N(63)NN national.
+       01  TRG-ALPHA-NUM-ED-CHECK LIKE TRG-ALPHA-NUM-ED.
+
+      *used to initialize source numeric-edited items
+       77  INIT-SRC01          PIC S9(6)V9(2).
+       77  init-src01-display  PIC -9(6).9(2).
+       77  INIT-SRC02          PIC S9.
+       77  init-src02-display  PIC -9.
+       77  INIT-SRC03          PIC S9(9)V9(2).
+       77  init-src03-display  PIC -9(9).9(2).
+       77  INIT-SRC04          PIC S9(6).
+       77  init-src04-display  PIC -9(6).
+       77  INIT-SRC05          PIC S9(11)V9.
+       77  init-src05-display  PIC -9(11).9.
+       77  INIT-SRC06          PIC SV9(18).
+       77  init-src06-display  PIC -.9(18).
+       77  INIT-SRC07          PIC S9(18).
+       77  init-src07-display  PIC -9(18).
+       77  INIT-SRC08          PIC S9(5)V9(4).
+       77  init-src08-display  PIC -9(5).9(4).
+       77  INIT-SRC09          PIC S9(5)V9(7).
+       77  init-src09-display  PIC -9(5).9(7).
+
+       PROCEDURE DIVISION.
+
+       MAIN-LINE SECTION.
+       MAIN-PROGRAM-LOGIC.
+
+           DISPLAY "****  Start of Testcase " PGM-ID "  ****".
+           DISPLAY " ".
+           PERFORM VARIATION-001 THRU VARIATION-999.
+           DISPLAY " ".
+           IF ERROR-COUNTER = 0
+             DISPLAY "         *--------------------------------*"
+             DISPLAY "         * TESTCASE " PGM-ID " SUCCESSFUL *"
+             DISPLAY "         *--------------------------------*"
+             MOVE "P" TO PGM-STS
+           ELSE
+             DISPLAY "         *----------------------------*"
+             DISPLAY "         * TESTCASE " PGM-ID " FAILED *"
+             DISPLAY "         *----------------------------*"
+             MOVE "F" TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           DISPLAY " ".
+           DISPLAY "****   End of Testcase " PGM-ID "   ****".
+           DISPLAY " ".
+           STOP RUN.
+
+       START-VARIATION-NNN.
+           ADD 1 TO VARIATION-NO.
+           DISPLAY "=====> START OF TEST VARIATION-" VARIATION-NO.
+           SET VAR-PASS TO TRUE.
+
+       END-VARIATION-NNN.
+           IF VAR-PASS
+              DISPLAY "=====> VARIATION ", VARIATION-NO, " PASSES"
+           ELSE
+              ADD 1 TO ERROR-COUNTER
+              DISPLAY "=====> VARIATION ", VARIATION-NO, " FAILS".
+
+
+       VARIATION-001.
+      *----------------------------------------------------------------********
+      * VARIATION-001
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *01  SRC01               PIC +$BZZZBZZZB.99.
+           MOVE ZERO TO INIT-SRC01.
+           PERFORM VARIATION-001-CODE.
+           MOVE -904567.82 TO INIT-SRC01.
+           PERFORM VARIATION-001-CODE.
+           MOVE 45.9 TO INIT-SRC01.
+           PERFORM VARIATION-001-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-002.
+      *----------------------------------------------------------------********
+      * VARIATION-002
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *01  SRC02               PIC B$9+ DISPLAY.
+           MOVE -5 TO INIT-SRC02.
+           PERFORM VARIATION-002-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-003.
+      *----------------------------------------------------------------********
+      * VARIATION-003
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *77  SRC03               PIC -$***B***B***B./*/*.
+           MOVE +48039630.0 TO INIT-SRC03.
+           PERFORM VARIATION-003-CODE.
+           MOVE -039586701.87 TO INIT-SRC03.
+           PERFORM VARIATION-003-CODE.
+           MOVE -701 TO INIT-SRC03.
+           PERFORM VARIATION-003-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-004.
+      *----------------------------------------------------------------********
+      * VARIATION-004
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *01  SRC04               PIC $,Z,Z9,,,9,PP- BLANK WHEN ZERO.
+           MOVE 29300 TO INIT-SRC04.
+           PERFORM VARIATION-004-CODE.
+           MOVE 0 TO INIT-SRC04.
+           PERFORM VARIATION-004-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-005.
+      *----------------------------------------------------------------********
+      * VARIATION-005
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *77  SRC05               PIC $99B99/99,99B99,9/VB000B000B9CR.
+           MOVE -82957463.7 TO INIT-SRC05.
+           PERFORM VARIATION-005-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-006.
+      *----------------------------------------------------------------********
+      * VARIATION-006
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *01  SRC06               PIC $//.ZZ,ZBZZ/ZZZZZZ00ZZZZZ0ZZDB.
+           MOVE ZERO TO INIT-SRC06.
+           PERFORM VARIATION-006-CODE.
+           MOVE -.93875602615473869 TO INIT-SRC06.
+           PERFORM VARIATION-006-CODE.
+           MOVE +.000000000000000079 TO INIT-SRC06.
+           PERFORM VARIATION-006-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-007.
+      *----------------------------------------------------------------********
+      * VARIATION-007
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *66  RENAMES-SRC07 RENAMES SRC07.
+      *    05 SRC07            PIC $+0,++/+BB+0++,+0990/PPPPPPPPP.
+           MOVE 57392659000000000 TO INIT-SRC07.
+           PERFORM VARIATION-007-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-008.
+      *----------------------------------------------------------------********
+      * VARIATION-008
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *01  LIKE-SRC08 LIKE SRC08 SYNCHRONIZED BLANK WHEN ZERO.
+      *01  SRC08               PIC $/(99)-,B---0-9,VB/B90999B(9).
+           MOVE -47562.9564 TO INIT-SRC08.
+           PERFORM VARIATION-008-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-009.
+      *----------------------------------------------------------------********
+      * VARIATION-009
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *01  SRC09               PIC +$BZZZBZZZB.99.
+           MOVE ZERO TO INIT-SRC09.
+           PERFORM VARIATION-009-CODE.
+           MOVE 92763.98405 TO INIT-SRC09.
+           PERFORM VARIATION-009-CODE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-010.
+      *----------------------------------------------------------------********
+      * VARIATION-010: alphabetic, alphanumeric & alphanumeric-edited
+      *                targets
+      *----------------------------------------------------------------********
+           PERFORM START-VARIATION-NNN.
+      *    MOVE SRC09 TO TRG03 TRG-ALPHA-NUM TRG-ALPHA TRG08 TRG06
+      *                                           TRG-ALPHA-NUM-ED.
+           MOVE SRC09 TO TRG03 TRG-ALPHA-NUM           TRG08 TRG06
+                                                  TRG-ALPHA-NUM-ED.
+           MOVE SRC09(1:) TO                 TRG-ALPHA-NUM-CHECK
+                                          TRG-ALPHA-NUM-ED-CHECK.
+           IF
+              TRG-ALPHA-NUM NOT EQUAL TRG-ALPHA-NUM-CHECK OR
+              TRG-ALPHA-NUM-ED NOT EQUAL TRG-ALPHA-NUM-ED-CHECK
+              SET VAR-FAIL TO TRUE.
+           PERFORM END-VARIATION-NNN.
+
+
+       VARIATION-999.
+            EXIT.
+
+
+       VARIATION-001-CODE.
+      *01  SRC01               PIC +$BZZZBZZZB.99.
+           MOVE INIT-SRC01 TO SRC01.
+                move init-src01 to init-src01-display.
+                display "move " init-src01-display " into source".
+                display "source:".
+                perform display-src01.
+           MOVE SRC01 TO TRG01.
+                display "move source to target".
+                display "target:".
+                perform display-trg01.
+           MOVE INIT-SRC01 TO TRG01-CHECK.
+           IF TRG01 NOT EQUAL TRG01-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-002-CODE.
+      *01  SRC02               PIC B$9+ DISPLAY.
+           MOVE INIT-SRC02 TO SRC02.
+                move init-src02 to init-src02-display.
+                display "move " init-src02-display " into source".
+                display "source:".
+                perform display-src02.
+           MOVE SRC02 TO TRG02 SRC02 TRG05 TRG01 TRG09.
+                display "move source to target".
+                display "target:".
+                perform display-trg02.
+                perform display-src02.
+                perform display-trg05.
+                perform display-trg01.
+                perform display-trg09.
+           MOVE INIT-SRC02 TO TRG02-CHECK TRG05-CHECK TRG01-CHECK
+                                                      TRG09-CHECK.
+           IF TRG02 NOT EQUAL TRG02-CHECK OR
+              TRG05 NOT EQUAL TRG05-CHECK OR
+              TRG01 NOT EQUAL TRG01-CHECK OR
+              TRG09 NOT EQUAL TRG09-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-003-CODE.
+      *77  SRC03               PIC -$***B***B***B./*/*.
+           MOVE INIT-SRC03 TO SRC03.
+                move init-src03 to init-src03-display.
+                display "move " init-src03-display " into source".
+                display "source:".
+                perform display-src03.
+           MOVE SRC03 TO TRG03.
+                display "move source to target".
+                display "target:".
+                perform display-trg03.
+           MOVE INIT-SRC03 TO TRG03-CHECK.
+           IF TRG03 NOT EQUAL TRG03-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-004-CODE.
+      *01  SRC04               PIC $,Z,Z9,,,9,PP- BLANK WHEN ZERO.
+           MOVE INIT-SRC04 TO SRC04.
+                move init-src04 to init-src04-display.
+                display "move " init-src04-display " into source".
+                display "source:".
+                perform display-src04.
+           MOVE SRC04 TO TRG09 TRG08 TRG07 TRG06 TRG05 TRG04 TRG03
+                         TRG02 TRG01.
+                display "move source to target".
+                display "target:".
+                perform display-trg09.
+                perform display-trg08.
+                perform display-trg07.
+                perform display-trg06.
+                perform display-trg05.
+                perform display-trg04.
+                perform display-trg03.
+                perform display-trg02.
+                perform display-trg01.
+           MOVE INIT-SRC04 TO TRG09-CHECK TRG08-CHECK TRG07-CHECK
+                              TRG06-CHECK TRG05-CHECK TRG04-CHECK
+                              TRG03-CHECK TRG02-CHECK TRG01-CHECK.
+           IF TRG09 NOT EQUAL TRG09-CHECK OR
+              TRG08 NOT EQUAL TRG08-CHECK OR
+              TRG07 NOT EQUAL TRG07-CHECK OR
+              TRG06 NOT EQUAL TRG06-CHECK OR
+              TRG05 NOT EQUAL TRG05-CHECK OR
+              TRG04 NOT EQUAL TRG04-CHECK OR
+              TRG03 NOT EQUAL TRG03-CHECK OR
+              TRG02 NOT EQUAL TRG02-CHECK OR
+              TRG01 NOT EQUAL TRG01-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-005-CODE.
+      *77  SRC05               PIC $99B99/99,99B99,9/VB000B000B9CR.
+           MOVE INIT-SRC05 TO SRC05.
+                move init-src05 to init-src05-display.
+                display "move " init-src05-display " to source".
+                display "source:".
+                perform display-src05.
+           MOVE SRC05 TO TRG05.
+                display "move source to target".
+                display "target:".
+                perform display-trg05.
+           MOVE INIT-SRC05 TO TRG05-CHECK.
+           IF TRG05 NOT EQUAL TRG05-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-006-CODE.
+      *01  SRC06               PIC $//.ZZ,ZBZZ/ZZZZZZ00ZZZZZ0ZZDB.
+           MOVE INIT-SRC06 TO SRC06.
+                move init-src06 to init-src06-display.
+                display "move " init-src06-display " into source".
+                display "source:".
+                perform display-src06.
+           MOVE SRC06 TO TRG06.
+                display "move source to target".
+                display "target:".
+                perform display-trg06.
+           MOVE SRC06 TO TRG05.
+           MOVE INIT-SRC06 TO TRG06-CHECK
+                              TRG05-CHECK.
+           IF TRG06 NOT EQUAL TRG06-CHECK OR
+              TRG05 NOT EQUAL TRG05-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-007-CODE.
+      *66  RENAMES-SRC07 RENAMES SRC07.
+      *    05 SRC07            PIC $+0,++/+BB+0++,+0990/PPPPPPPPP.
+           MOVE INIT-SRC07 TO RENAMES-SRC07.
+                move init-src07 to init-src07-display.
+                display "move " init-src07-display " into source".
+                display "source:".
+                perform display-renames-src07.
+           MOVE RENAMES-SRC07 TO TRG07 TRG05 SRC08 TRG01 SRC09 TRG06
+                                                         TRG07 TRG02.
+                display "move source to target".
+                display "target:".
+                perform display-trg07.
+                perform display-trg05.
+                perform display-src08.
+                perform display-trg01.
+                perform display-src09.
+                perform display-trg06.
+                perform display-trg02.
+           MOVE INIT-SRC07 TO TRG07-CHECK TRG05-CHECK
+                  TRG01-CHECK TRG06-CHECK TRG02-CHECK.
+           IF TRG07 NOT EQUAL TRG07-CHECK OR
+              TRG05 NOT EQUAL TRG05-CHECK OR
+              TRG01 NOT EQUAL TRG01-CHECK OR
+              TRG06 NOT EQUAL TRG06-CHECK OR
+              TRG02 NOT EQUAL TRG02-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-008-CODE.
+      *01  LIKE-SRC08 LIKE SRC08 SYNCHRONIZED BLANK WHEN ZERO.
+      *01  SRC08               PIC $/(99)-,B---0-9,VB/B90999B(9).
+           MOVE INIT-SRC08 TO LIKE-SRC08.
+                move init-src08 to init-src08-display.
+                display "move " init-src08-display " into source".
+                display "source:".
+                perform display-like-src08.
+           MOVE LIKE-SRC08 TO TRG07 SRC09 TRG08 TRG04 TRG03 TRG09
+                                                            TRG01.
+                display "move source to target".
+                display "target:".
+                perform display-trg07.
+                perform display-src09.
+                perform display-trg08.
+                perform display-trg04.
+                perform display-trg03.
+                perform display-trg09.
+                perform display-trg01.
+           MOVE INIT-SRC08 TO TRG07-CHECK TRG08-CHECK TRG04-CHECK
+                              TRG03-CHECK TRG09-CHECK TRG01-CHECK.
+           IF TRG07 NOT EQUAL TRG07-CHECK OR
+              TRG08 NOT EQUAL TRG08-CHECK OR
+              TRG04 NOT EQUAL TRG04-CHECK OR
+              TRG03 NOT EQUAL TRG03-CHECK OR
+              TRG09 NOT EQUAL TRG09-CHECK OR
+              TRG01 NOT EQUAL TRG01-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       VARIATION-009-CODE.
+      *01  SRC09               PIC +$BZZZBZZZB.99.
+           MOVE INIT-SRC09 TO SRC09.
+                move init-src09 to init-src09-display.
+                display "move " init-src09-display " into source".
+                display "source:".
+                perform display-src09.
+           MOVE SRC09 TO TRG09.
+                display "move source to target".
+                display "target:".
+                perform display-trg09.
+           MOVE INIT-SRC09 TO TRG09-CHECK.
+           IF TRG09 NOT EQUAL TRG09-CHECK
+              SET VAR-FAIL TO TRUE.
+                display "end of move".
+                display ">".
+
+
+       display-src01.
+            display "PIC +$BZZZBZZZB.99".
+            display "    " SRC01.
+       display-src02.
+            display "PIC B$9+ DISPLAY".
+            display "    " SRC02.
+       display-src03.
+            display "PIC -$***B***B***B./*/*".
+            display "    " SRC03.
+       display-src04.
+            display "PIC $,Z,Z9,,,9,PP- BLANK WHEN ZERO".
+            display "    " SRC04.
+       display-src05.
+            display "PIC $99B99/99,99B99,9/VB000B000B9CR".
+            display "    " SRC05.
+       display-src06.
+            display "PIC $//.ZZ,ZBZZ/ZZZZZZ00ZZZZZ0ZZDB".
+            display "    " SRC06.
+       display-src07.
+            display "PIC $+0,++/+BB+0++,+0990/PPPPPPPPP".
+            display "    " SRC07.
+       display-renames-src07.
+            display "PIC $+0,++/+BB+0++,+0990/PPPPPPPPP".
+            display "    " RENAMES-SRC07.
+       display-src08.
+            display "PIC $/(99)-,B---0-9,VB/B90999B(9)".
+            display "    " SRC08.
+       display-like-SRC08.
+            display "PIC $/(99)-,B---0-9,VB/B90999B(9)".
+            display "SYNCHRONIZED BLANK WHEN ZERO".
+            display "    " LIKE-SRC08.
+       display-src09.
+            display "PIC $*/(49)*B(33)*,(17)**V0(9)9(7)".
+            display "    " SRC09.
+       display-trg01.
+            display "PIC S999999PP LEADING USAGE DISPLAY".
+            display "    " TRG01.
+       display-trg02.
+            display "PIC 99V99999 USAGE IS BINARY".
+            display "    " TRG02.
+       display-trg03.
+            display "PIC 99PPPP PACKED-DECIMAL".
+            display "    " TRG03.
+       display-trg04.
+            display "PIC B0/,$,,$B$.$//$,$0$$/,$,$$0$$+".
+            display "    " TRG04.
+       display-trg05.
+            display "PIC B+BVB++B+B++B+B+B++B+B++B++B+B".
+            display "    " TRG05.
+       display-trg06.
+            display "PIC -$9999000000000PPPPPPPPPV".
+            display "    " TRG06.
+       display-trg07.
+            display "PIC /**/***/999999/999999///////9-".
+            display "    " TRG07.
+       display-trg08.
+            display "PIC +Z.Z".
+            display "    " TRG08.
+       display-renames-trg08.
+            display "PIC +Z.Z".
+            display "    " RENAMES-TRG08.
+       display-trg09.
+            display "PIC ZB/(102)Z,ZZ/ZBZZ9/9,99/.999/DB".
+            display "    " TRG09.

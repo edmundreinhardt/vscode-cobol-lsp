@@ -1,0 +1,86 @@
+       PROCESS  NATIONAL NATIONALPICNLIT OPTIONS.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. NATEDIT1.
+         AUTHOR. PHIL MAWBY.
+         INSTALLATION. TORONTO LABORATORY.
+         DATE-WRITTEN. MAY 1, 2015.
+         DATE-COMPILED.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+         SOURCE-COMPUTER. IBM-I.
+         OBJECT-COMPUTER. IBM-I.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  ITRAP-VARS.
+          05  ITRAP100      PIC X(10)      VALUE "ITRAP100".
+          05  PGM-ID        PIC X(10)      VALUE "NATEDIT1".
+          05  PGM-STS       PIC X          VALUE "P".
+      *77 DBCSB  pic GGBGGBGG usage DISPLAY-1.
+       77 SLASH1 pic NN/NN/NN usage national.
+       77 zero1 pic NN0NN0NN usage national.
+       77 blank1 pic NNBNNBNN usage national.
+       77 mixed1 pic NN/NN0NNBNN usage national.
+       77 PICN PIC  N(10) value "0123456789".
+       77 PICL PIC  N(27) value "abcdefghijklmnopqrstuvwxy z".
+       77 PICU PIC  N(27) value "ABCDEFGHIJKLMNOPQRSTUVWXY Z".
+       77 PICM PIC  N(26) value "ABCDabcdxyzMNOPQRSxUVaXYZ".
+       77 NNUM PIC  9(10)v99 USAGE national value 123.
+       77 NUMT PIC S9(10)v99 USAGE national trailing separate value 123.
+       77 NUML PIC S9(10)v99 USAGE national leading separate value 123.
+       77 XNUM PIC  9(10)v99 USAGE display value 123.
+       PROCEDURE DIVISION.
+       MAIN1.
+           if PICN is NATIONAL and
+              PICL is NATIONAL and
+              PICU is NATIONAL and
+              PICM is NATIONAL and
+              NNUM is NATIONAL and
+              SLASH1 is NATIONAL and
+              zero1  is NATIONAL and
+              blank1 is NATIONAL and
+              mixed1 is NATIONAL and
+              NNUM is NUMERIC  and
+              XNUM is NUMERIC
+             DISPLAY "PICN,PICL,PICU,PICM,NNUM ARE NATIONAL - PASS"
+             DISPLAY "SLASH1, ZERO1, BLANK1, MIXED ARE NATIONAL - PASS"
+           else
+             DISPLAY "PICN IS NOT NATIONAL - FAIL"
+             MOVE "F" TO PGM-STS.
+
+           if PICN is NUMERIC
+             DISPLAY "PICN IS NUMERIC - PASS"
+           else
+             DISPLAY "PICN IS NOT NUMERIC - FAIL"
+             MOVE "F" TO PGM-STS.
+
+           if PICM is ALPHABETIC
+             DISPLAY "PICM IS ALPHABETIC - PASS"
+           else
+             DISPLAY "PICM IS NOT ALPHABETIC - FAIL"
+             MOVE "F" TO PGM-STS.
+
+           if PICU is ALPHABETIC-UPPER
+             DISPLAY "PICU IS ALPHABETIC-UPPER - PASS"
+           else
+             DISPLAY "PICU IS NOT ALPHABETIC-UPPER - FAIL"
+             MOVE "F" TO PGM-STS.
+
+           if PICL is ALPHABETIC-LOWER
+             DISPLAY "PICL IS ALPHABETIC-LOWER - PASS"
+           else
+             DISPLAY "PICL IS NOT ALPHABETIC-LOWER - FAIL"
+             MOVE "F" TO PGM-STS.
+
+           if NUMT is numeric
+             DISPLAY "NUMT NATIONAL NUMERIC IS NUMERIC - PASS"
+           else
+             DISPLAY "NUMT NATIONAL NUMERIC IS NOT NUMERIC - FAIL"
+             MOVE "F" TO PGM-STS.
+
+           if NUML is numeric
+             DISPLAY "NUML NATIONAL NUMERIC IS NUMERIC - PASS"
+           else
+             DISPLAY "NUML NATIONAL NUMERIC IS NOT NUMERIC - FAIL"
+             MOVE "F" TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           STOP RUN.

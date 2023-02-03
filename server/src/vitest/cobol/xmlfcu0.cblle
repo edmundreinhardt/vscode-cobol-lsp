@@ -1,0 +1,372 @@
+      *Process rent,rmode(any),nos
+      *Process codepage(00290)
+       PROCESS APOST NOSTDTRUNC.
+       Identification division.
+         Program-id. 'xmlcu0'.
+         Author. Teodoro Cipresso.
+         Installation. IBM - Silicon Valley Laboratory.
+         Date-written. September, 2001.
+         Security. Property of IBM Corporation.
+      ******************************************************************
+      ***                                                            ***
+      *** Function:                                                  ***
+      ***   Test a CCSID that is valid but unsupported by the        ***
+      ***   XML PARSE implementation. The document contains a        ***
+      ***   a CCSID supported by the parser, which will be used.     ***
+      ***                                                            ***
+      *** Restrictions:                                              ***
+      ***   Functional                                               ***
+      ***                                                            ***
+      *** Expected Results:                                          ***
+      ***   'xmlcu0 started'                                         ***
+      ***   'nnnnn tests passed'                                     ***
+      ***   'xmlcu0 successful'                                      ***
+      ***                                                            ***
+      *** Include code: (from copy library)                          ***
+      ***   Name    -  COPYLIB                                       ***
+      ***   none                                                     ***
+      ***                                                            ***
+      *** Files used:                                                ***
+      ***   Input:                                                   ***
+      ***   Output:                                                  ***
+      ***                                                            ***
+      *** Matrix:  XML      MATRIX                                   ***
+      ***                                                            ***
+      *** Modified From:                                             ***
+      ***                                                            ***
+      *** Remarks:                                                   ***
+      ***                                                            ***
+      *** Structure:                                                 ***
+      ***                                                            ***
+      ***   ___ Program xmlcu0                                       ***
+      ***  ]                                                         ***
+      ***  ]___ End program xmlcu0                                   ***
+      ***                                                            ***
+      *** Change activities:                                         ***
+      ***  Date     Description                      Programmer      ***
+      ***                                                            ***
+      ******************************************************************
+       Data division.
+        Working-storage section.
+         1 xml-document-sbcs.
+          2 pic x(41) value '<?xml version="1.0" encoding="ibm-1140"?>'.
+          2 pic x(5) value '<B2B>'.
+          2 pic x(12) value '<B2B_HEADER>'.
+          2 pic x(31) value '<Service_ID>VIEW1X</Service_ID>'.
+          2 pic x(33) value '<Product_Code>OLTX</Product_Code>'.
+          2 pic x(26) value '<Error_Code>0</Error_Code>'.
+          2 pic x(38) value '<Error_Message>Success</Error_Message>'.
+          2 pic x(30) value '<DTD_Version>1.0</DTD_Version>'.
+          2 pic x(39) value '<Business_Domain>FTPS</Business_Domain>'.
+          2 pic x(51) value
+              '<B2BStats>XML2App:00.110;AppCall:00.000;</B2BStats>'.
+          2 pic x(13) value '</B2B_HEADER>'.
+          2 pic x(13) value '<B2B_Payload>'.
+          2 pic x(8) value '<VIEW1X>'.
+          2 pic x(6) value '<FDRB>'.
+          2 pic x(41) value '<FDRB_APP_APPLIC_SEGMENT_ID>FDRBA</FDRB_A'.
+          2 pic x(21) value 'PP_APPLIC_SEGMENT_ID>'.
+          2 pic x(41) value '<FDRB_APP_SYMBOLIC_VIEWNAME>0AC01101</FDR'.
+          2 pic x(24) value 'B_APP_SYMBOLIC_VIEWNAME>'.
+          2 pic x(41) value '<FDRB_APP_SIZE_OF_APPLIC_DATA>014014</FDR'.
+          2 pic x(26) value 'B_APP_SIZE_OF_APPLIC_DATA>'.
+          2 pic x(41) value '<FDRB_APP_MAX_DATA_TO_BE_RET>000000</FDRB'.
+          2 pic x(24) value '_APP_MAX_DATA_TO_BE_RET>'.
+          2 pic x(41) value '<FDRB_APP_LOGICAL_REC_COUNT>000001</FDRB_'.
+          2 pic x(22) value 'APP_LOGICAL_REC_COUNT>'.
+          2 pic x(41) value '<FDRB_APP_APPLIC_SENSE_CODE>0000</FDRB_AP'.
+          2 pic x(20) value 'P_APPLIC_SENSE_CODE>'.
+          2 pic x(48) value
+              '<FDRB_APP_LOGON_ID>497631284</FDRB_APP_LOGON_ID>'.
+          2 pic x(44) value
+              '<FDRB_APP_ORIGIN_ID>OCS</FDRB_APP_ORIGIN_ID>'.
+          2 pic x(41) value '<FDRB_APP_SECONDARY_ORIGIN_ID>PSL FIT2</F'.
+          2 pic x(28) value 'DRB_APP_SECONDARY_ORIGIN_ID>'.
+          2 pic x(45) value
+              '<FDRB_APP_REQUEST_NO>00</FDRB_APP_REQUEST_NO>'.
+          2 pic x(7) value '</FDRB>'.
+          2 pic x(14) value '<FOP_REC_1010>'.
+          2 pic x(49) value
+              '<FOP_POS_AS_OF_DATE>19990816</FOP_POS_AS_OF_DATE>'.
+          2 pic x(46) value
+              '<FOP_POS_ACCT_NUM>CTA243140</FOP_POS_ACCT_NUM>'.
+          2 pic x(39) value '<FOP_REC_CNT_1010>09</FOP_REC_CNT_1010>'.
+          2 pic x(41) value '<FOP_CYCLE_LAST_END_DATE>19981003</FOP_CY'.
+          2 pic x(18) value 'CLE_LAST_END_DATE>'.
+          2 pic x(41) value '<FOP_CYCLE_LAST_END_TIME>0342000</FOP_CYC'.
+          2 pic x(17) value 'LE_LAST_END_TIME>'.
+          2 pic x(15) value '</FOP_REC_1010>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>1</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>00088E104</FOP_POS_CUSIP>'.
+          2 pic x(37) value '<FOP_POS_SYMBOL>IATV</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>600.00000</FOP_P'.
+          2 pic x(19) value 'OS_TRADE_DATE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_UNCOMM_SHRS>600.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_SETTLE_SHRS>600.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_CLOSE_PRICE>11.8750000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(52) value
+              '<FOP_POS_MARKET_VALUE>7125.00</FOP_POS_MARKET_VALUE>'.
+          2 pic x(51) value
+              '<FOP_POS_DESCRIPTION>ACTV INC</FOP_POS_DESCRIPTION>'.
+          2 pic x(53) value
+              '<FOP_FLOOR_TRADE_SYMBOL>IATV</FOP_FLOOR_TRADE_SYMBOL>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>2</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>00088E104</FOP_POS_CUSIP>'.
+          2 pic x(37) value '<FOP_POS_SYMBOL>IATV</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>2400.00000</FOP_'.
+          2 pic x(20) value 'POS_TRADE_DATE_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_UNCOMM_SHRS>2400.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_SETTLE_SHRS>2400.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_CLOSE_PRICE>11.8750000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(53) value
+              '<FOP_POS_MARKET_VALUE>28500.00</FOP_POS_MARKET_VALUE>'.
+          2 pic x(51) value
+              '<FOP_POS_DESCRIPTION>ACTV INC</FOP_POS_DESCRIPTION>'.
+          2 pic x(53) value
+              '<FOP_FLOOR_TRADE_SYMBOL>IATV</FOP_FLOOR_TRADE_SYMBOL>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>2</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>104499108</FOP_POS_CUSIP>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>500.00000</FOP_P'.
+          2 pic x(19) value 'OS_TRADE_DATE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_UNCOMM_SHRS>500.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_SETTLE_SHRS>500.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(49) value
+              '<FOP_POS_MARKET_VALUE>0.00</FOP_POS_MARKET_VALUE>'.
+          2 pic x(55) value
+              '<FOP_POS_DESCRIPTION>BRADLEES INC</FOP_POS_DESCRIPTION>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>2</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>270312200</FOP_POS_CUSIP>'.
+          2 pic x(38) value '<FOP_POS_SYMBOL>ESCIC</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>8000.00000</FOP_'.
+          2 pic x(20) value 'POS_TRADE_DATE_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_UNCOMM_SHRS>8000.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_SETTLE_SHRS>8000.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_CLOSE_PRICE>0.5630000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(52) value
+              '<FOP_POS_MARKET_VALUE>4504.00</FOP_POS_MARKET_VALUE>'.
+          2 pic x(41) value '<FOP_POS_DESCRIPTION>EARTH SCIENCES INC N'.
+          2 pic x(24) value 'EW</FOP_POS_DESCRIPTION>'.
+          2 pic x(53) value
+              '<FOP_FLOOR_TRADE_SYMBOL>ESCI</FOP_FLOOR_TRADE_SYMBOL>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>2</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>36114Q109</FOP_POS_CUSIP>'.
+          2 pic x(37) value '<FOP_POS_SYMBOL>FLNK</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>2500.00000</FOP_'.
+          2 pic x(20) value 'POS_TRADE_DATE_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_UNCOMM_SHRS>2500.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_SETTLE_SHRS>2500.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_CLOSE_PRICE>0.2900000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(51) value
+              '<FOP_POS_MARKET_VALUE>725.00</FOP_POS_MARKET_VALUE>'.
+          2 pic x(41) value '<FOP_POS_DESCRIPTION>FUTURELINK DISTR COR'.
+          2 pic x(41) value 'P 1 FOR 5 REVERSESPLIT INTO FUTURELINK DI'.
+          2 pic x(52) value
+              'STR CORP "NEW" CUSIP 36114Q208</FOP_POS_DESCRIPTION>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>2</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>744654104</FOP_POS_CUSIP>'.
+          2 pic x(37) value '<FOP_POS_SYMBOL>PCNA</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>700.00000</FOP_P'.
+          2 pic x(19) value 'OS_TRADE_DATE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_UNCOMM_SHRS>700.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_SETTLE_SHRS>700.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_CLOSE_PRICE>1.7500000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(52) value
+              '<FOP_POS_MARKET_VALUE>1225.00</FOP_POS_MARKET_VALUE>'.
+          2 pic x(41) value '<FOP_POS_DESCRIPTION>PUBLISHING CO OF NOR'.
+          2 pic x(36) value 'TH AMERICA INC</FOP_POS_DESCRIPTION>'.
+          2 pic x(53) value
+              '<FOP_FLOOR_TRADE_SYMBOL>PCNA</FOP_FLOOR_TRADE_SYMBOL>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>1</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>749283107</FOP_POS_CUSIP>'.
+          2 pic x(37) value '<FOP_POS_SYMBOL>RBID</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>300.00000</FOP_P'.
+          2 pic x(19) value 'OS_TRADE_DATE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_UNCOMM_SHRS>300.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_SETTLE_SHRS>300.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_CLOSE_PRICE>6.1880000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(52) value
+              '<FOP_POS_MARKET_VALUE>1856.40</FOP_POS_MARKET_VALUE>'.
+          2 pic x(54) value
+              '<FOP_POS_DESCRIPTION>RIB.COM INC</FOP_POS_DESCRIPTION>'.
+          2 pic x(54) value
+              '<FOP_FLOOR_TRADE_SYMBOL>RBIDE</FOP_FLOOR_TRADE_SYMBOL>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>2</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>847623303</FOP_POS_CUSIP>'.
+          2 pic x(37) value '<FOP_POS_SYMBOL>SITI</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>21.00000</FOP_PO'.
+          2 pic x(18) value 'S_TRADE_DATE_SHRS>'.
+          2 pic x(51) value
+              '<FOP_POS_UNCOMM_SHRS>21.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(51) value
+              '<FOP_POS_SETTLE_SHRS>21.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_CLOSE_PRICE>0.9380000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(50) value
+              '<FOP_POS_MARKET_VALUE>19.69</FOP_POS_MARKET_VALUE>'.
+          2 pic x(41) value '<FOP_POS_DESCRIPTION>SPECTRUM INFORMATION'.
+          2 pic x(30) value 'TECH INC</FOP_POS_DESCRIPTION>'.
+          2 pic x(53) value
+              '<FOP_FLOOR_TRADE_SYMBOL>SITI</FOP_FLOOR_TRADE_SYMBOL>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(14) value '<FOP_REC_1011>'.
+          2 pic x(40) value '<FOP_POS_ACCT_TYPE>1</FOP_POS_ACCT_TYPE>'.
+          2 pic x(40) value '<FOP_POS_CUSIP>866947104</FOP_POS_CUSIP>'.
+          2 pic x(38) value '<FOP_POS_SYMBOL>SNLMF</FOP_POS_SYMBOL>'.
+          2 pic x(41) value '<FOP_POS_TRADE_DATE_SHRS>2000.00000</FOP_'.
+          2 pic x(20) value 'POS_TRADE_DATE_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_UNCOMM_SHRS>2000.00000</FOP_POS_UNCOMM_SHRS>'.
+          2 pic x(53) value
+              '<FOP_POS_SETTLE_SHRS>2000.00000</FOP_POS_SETTLE_SHRS>'.
+          2 pic x(52) value
+              '<FOP_POS_CLOSE_PRICE>0.2200000</FOP_POS_CLOSE_PRICE>'.
+          2 pic x(48) value
+              '<FOP_POS_SECURITY_TYPE>1</FOP_POS_SECURITY_TYPE>'.
+          2 pic x(51) value
+              '<FOP_POS_MARKET_VALUE>440.00</FOP_POS_MARKET_VALUE>'.
+          2 pic x(41) value '<FOP_POS_DESCRIPTION>SUNCOM TELECOMMUNICA'.
+          2 pic x(31) value 'TIONS INC</FOP_POS_DESCRIPTION>'.
+          2 pic x(52) value
+              '<FOP_SECURITY_TYPE_CODE>SEC</FOP_SECURITY_TYPE_CODE>'.
+          2 pic x(15) value '</FOP_REC_1011>'.
+          2 pic x(9) value '</VIEW1X>'.
+          2 pic x(14) value '</B2B_Payload>'.
+          2 pic x(6) value '</B2B>'.
+         1 xml-document-national pic n(8096) national.
+         1 num-passed       pic 9(4) USAGE BINARY.
+         1 num-failed       pic 9(4) USAGE BINARY.
+
+       01  ITRAP-VARS.
+           05  ITRAP100      PIC X(10)      VALUE 'ITRAP100'.
+           05  PGM-ID        PIC X(10)      VALUE 'XMLFCU0 '.
+           05  PGM-STS       PIC X          VALUE 'M'.
+
+       Procedure division.
+        MAIN.
+           display 'xmlcu0 started'
+
+           xml parse xml-document-sbcs processing procedure h
+             on exception
+               display 'xmlcu0 failed!'
+               move 16 to return-code
+               MOVE 'F' TO PGM-STS
+             not on exception
+               display 'xmlcu0 successful'
+               move 2 to return-code
+               MOVE 'P' TO PGM-STS
+           end-xml
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+
+           goback.
+
+         h.
+           evaluate xml-event
+             when 'CONTENT-CHARACTERS'
+               continue
+             when 'START-OF-ELEMENT'
+               continue
+             when 'END-ELEMENT'
+               continue
+             when 'ATTRIBUTE-NAME'
+               continue
+             when 'ATTRIBUTE-CHARACTERS'
+               continue
+             when 'ATTRIBUTE-CHARACTER'
+               continue
+             when 'START-OF-CDATA-SECTION'
+               continue
+             when 'END-OF-CDATA-SECTION'
+               continue
+             when 'CONTENT-CHARACTER'
+               continue
+             when 'PROCESSING-INSTRUCTION-TARGET'
+               continue
+             when 'PROCESSING-INSTRUCTION-DATA'
+               continue
+             when 'COMMENT'
+               continue
+             when 'EXCEPTION'
+               if xml-code = 51
+                 move 0 to xml-code
+               end-if
+               continue
+             when 'VERSION-INFORMATION'
+               continue
+             when 'ENCODING-DECLARATION'
+               continue
+             when 'STANDALONE-DECLARATION'
+               continue
+             when 'START-OF-DOCUMENT'
+               continue
+             when 'END-OF-DOCUMENT'
+               continue
+           end-evaluate
+           .
+       End program 'xmlcu0'.

@@ -1,0 +1,501 @@
+       PROCESS APOST GRAPHIC.
+
+       IDENTIFICATION DIVISION.
+
+      *************************************************************************
+      *  7/22/04                    Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: TRIMF001     Library: NC0C540      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   TRIMx Intrinsic Function                                            *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: RUNATEST       Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *   1. Intrinsic Function                                               *
+      *      - TRIM                                                           *
+      *      - TRIML                                                          *
+      *      - TRIMR                                                          *
+      *   2. Argument Type                                                    *
+      *      - Literal                                                        *
+      *        - non-numeric literal                                          *
+      *        - hexadecimal literal                                          *
+      *        - null terminated literal                                      *
+      *      - Special Register                                               *
+      *        - XML-TEXT                                                     *
+      *      - Identifier                                                     *
+      *        - alphabetic                                                   *
+      *        - alphanumeric                                                 *
+      *        - constant                                                     *
+      *        - function                                                     *
+      *        - referenced modified                                          *
+      *   3. Arguments Specified                                              *
+      *      - arugment-1 (mandatory)                                         *
+      *      - argument-2 (optional)                                          *
+      *   4. Procedure Division Statement                                     *
+      *      - MOVE statement                                                 *
+      *      - STRING statement                                               *
+      *      - UNSTRING statement                                             *
+      *      - IF statement                                                   *
+      *      - INSPECT statement                                              *
+      *      - DISPLAY statement                                              *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *   - Update ITRAP with SUCC.                                           *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      *                                                                       *
+      *************************************************************************
+
+       PROGRAM-ID. TRIMF001.
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+          SOURCE-COMPUTER. IBM-ISERIES.
+          OBJECT-COMPUTER. IBM-ISERIES.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  STRING1              PIC A(10)     VALUE '  A BC    '.
+       01  STRING2              CONSTANT AS  ' A B C '.
+       01  STRING3              PIC X(10).
+       01  STRING4              PIC X(10)     VALUE ALL 'ABBC'.
+       01  STRING5              PIC X(10)     VALUE 'A1 a B  1 '.
+       01  ARG2A                PIC A         VALUE ' '.
+       01  ARG2B                PIC X         VALUE X'00'.
+       01  ARG2C                PIC X(06)     VALUE 'ACCAAA'.
+       01  RESULT               PIC X(10).
+       01  RESULT-COUNT         PIC S99.
+       01  XML-DOC              PIC X(40)
+                VALUE '<?xml version="1.0" encoding="ibm-37" ?>'.
+
+       01  TABLE1.
+           02 ELEMENT1 OCCURS 2 TIMES.
+              03 ELEMENT2 OCCURS 5 TIMES.
+                 05  FILLER       PIC X.
+                 05  STRING6      PIC X(06)     VALUE '  A A '.
+                 05  FILLER       PIC X(03).
+
+       01  ITRAP-VARS.
+           05  ITRAP100         PIC X(10)     VALUE 'ITRAP100'.
+           05  PGM-ID           PIC X(10)     VALUE 'TRIMF001'.
+           05  PGM-STS          PIC X         VALUE 'M'.
+
+       77  SUCC-FLAG            PIC X.
+           88   VAR-PASS                      VALUE 'P'.
+           88   VAR-FAIL                      VALUE 'F'.
+
+       01  ERROR-COUNTER        PIC 9(3)      VALUE 0.
+       01  VARIATION-NO         PIC 9(3)      VALUE 0.
+
+       PROCEDURE DIVISION.
+       MAIN-LINE SECTION.
+       MAIN-LINE.
+
+           DISPLAY '****  Start of Testcase ' PGM-ID '  ****'.
+           PERFORM VARIATION-001 THRU VARIATION-999.
+           IF ERROR-COUNTER = 0
+              DISPLAY '         * TESTCASE ' PGM-ID ' PASSED *'
+              MOVE 'P' TO PGM-STS
+           ELSE
+              DISPLAY '         * TESTCASE ' PGM-ID ' FAILED *'
+              MOVE 'F' TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           DISPLAY '****   End of Testcase ' PGM-ID '   ****'.
+           STOP RUN.
+
+      * With MOVE statement, automatic space padding will occur.
+       VARIATION-001.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE FUNCTION TRIM('  A BC    ') TO RESULT.
+
+           IF RESULT = 'A BC      '
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A BC      '
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * STRING statement
+       VARIATION-002.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIML(STRING1)
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'A BC    **'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A BC    **'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * mixed literal processed as SBCS literal
+      * (i.e. only trimmed character X'40' by default)
+       VARIATION-003.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIM('  A âj   ')
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'A âj  **'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A âj  **'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * UNSTRING statement is just like MOVE statement. Automatic
+      * space padding occurs.
+       VARIATION-004.
+
+           PERFORM START-VARIATION-NNN.
+
+           UNSTRING FUNCTION TRIML('  A BC    ')
+              DELIMITED BY 'B'
+              INTO RESULT
+              COUNT IN RESULT-COUNT.
+
+           IF RESULT = 'A         '  AND
+              RESULT-COUNT = 2
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A         '
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+              DISPLAY 'COUNT  IS   ==> ', RESULT-COUNT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * IF statement
+       VARIATION-005.
+
+           PERFORM START-VARIATION-NNN.
+
+           COMPUTE RESULT-COUNT =
+                              FUNCTION LENGTH(FUNCTION TRIM(STRING2)).
+           IF FUNCTION TRIM(STRING2) = 'A B C'  AND
+              FUNCTION LENGTH(FUNCTION TRIM(STRING2)) = 5
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> ABC*******'
+              DISPLAY 'ACTUAL IS   ==> ', FUNCTION TRIM(STRING2)
+              DISPLAY 'LENGTH IS   ==> ', RESULT-COUNT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * DISPLAY statement
+       VARIATION-006.
+
+           PERFORM START-VARIATION-NNN.
+
+           DISPLAY 'EXPECTED IS ==>  A B C'
+           DISPLAY 'ACTUAL IS   ==>  ', FUNCTION TRIML(STRING2)
+           SET VAR-PASS TO TRUE
+
+           PERFORM END-VARIATION-NNN.
+
+      * INSPECT statement
+       VARIATION-007.
+
+           PERFORM START-VARIATION-NNN.
+
+           INITIALIZE RESULT-COUNT.
+           INSPECT FUNCTION TRIMR(STRING4, 'BAA')
+              TALLYING RESULT-COUNT
+              FOR CHARACTERS AFTER 'A'.
+
+           IF RESULT-COUNT = 7
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'COUNT  IS   ==> ', RESULT-COUNT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-008.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIM(STRING5 '  1')
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'A1 a B****'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A1 a B****'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * TRIML of null-terminated literal
+       VARIATION-009.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIM(Z'String'  ARG2B)
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'String****'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> String****'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * TRIMR of hex literal
+       VARIATION-010.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIMR(X'4040C1C140C240')
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = X'4040C1C140C25C5C5C5C'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==>   AA B****'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * TRIM of XML-TEXT special register
+       VARIATION-011.
+
+           PERFORM START-VARIATION-NNN.
+
+           XML PARSE XML-DOC
+               PROCESSING PROCEDURE XML-HANDLER
+               ON EXCEPTION DISPLAY 'EXCEPTION...'
+               NOT ON EXCEPTION DISPLAY 'NOT ON EXCEPTION...'
+           END-XML.
+
+           PERFORM END-VARIATION-NNN.
+
+      * Function identifier
+       VARIATION-012.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIM(FUNCTION UPPER-CASE('   aa bbb c  '))
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'AA BBB C**'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> AA BBB C**'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * Reference Modified
+       VARIATION-013.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIMR(STRING1(2:3))
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = ' A********'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==>  A********'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-014.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIMR(FUNCTION TRIML('   a a '))
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'a a*******'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> a a*******'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-015.
+
+           PERFORM START-VARIATION-NNN.
+
+           COMPUTE RESULT-COUNT =
+                    FUNCTION LENGTH(FUNCTION TRIMR('  ')).
+
+           STRING FUNCTION TRIMR('  ')
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = '**********' AND
+              RESULT-COUNT = 0
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> **********'
+              DISPLAY 'ACTUAL IS   ==> ', FUNCTION TRIM('  ')
+              DISPLAY 'LENGTH IS   ==> ', RESULT-COUNT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * DISPLAY-OF and NATIONAL-OF intrinsic functions
+       VARIATION-016.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION DISPLAY-OF(FUNCTION NATIONAL-OF
+                                     (FUNCTION TRIML(STRING1)))
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'A BC    **'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A BC    **'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-017.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION DISPLAY-OF(FUNCTION TRIML
+                                     (FUNCTION NATIONAL-OF(STRING1)))
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'A BC    **'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A BC    **'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-018.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIML(FUNCTION DISPLAY-OF
+                                     (FUNCTION NATIONAL-OF(STRING1)))
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'A BC    **'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A BC    **'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+      * Table subscript
+       VARIATION-019.
+
+           PERFORM START-VARIATION-NNN.
+
+           STRING FUNCTION TRIM(STRING6(2 4))
+              DELIMITED BY SIZE
+              INTO RESULT.
+
+           IF RESULT = 'A A*******'
+              SET VAR-PASS TO TRUE
+           ELSE
+              SET VAR-FAIL TO TRUE
+              DISPLAY 'EXPECTED IS ==> A A*******'
+              DISPLAY 'ACTUAL IS   ==> ', RESULT
+           END-IF.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-999.
+           EXIT.
+
+       XML-HANDLER.
+           EVALUATE XML-EVENT
+              WHEN  'START-OF-DOCUMENT'
+                    DISPLAY  XML-TEXT
+                    DISPLAY  XML-EVENT
+                    DISPLAY  XML-CODE
+      * Not working properly. Will cause automatic
+      * storage overflow.
+      *             DISPLAY  FUNCTION TRIM(XML-TEXT)
+           END-EVALUATE.
+
+       START-VARIATION-NNN.
+           ADD 1 TO VARIATION-NO.
+           DISPLAY '=====> Start of test Variation-' VARIATION-NO.
+           SET VAR-PASS TO TRUE.
+           MOVE ALL '*' TO RESULT.
+
+       END-VARIATION-NNN.
+           IF VAR-PASS
+              DISPLAY '=====> Variation ', VARIATION-NO, ' PASSES'
+           ELSE
+              ADD 1 TO ERROR-COUNTER
+              DISPLAY '=====> Variation ', VARIATION-NO, ' FAILS'.
+

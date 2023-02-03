@@ -1,0 +1,195 @@
+       PROCESS  OPTIONS seclvl.
+      ***  Duration can be in PICOSECONDS for: ********
+      **ADD-DURATION - adds a duration to date, time, or timestamp
+      * EXTRACT-DATE-TIME  - extracts part of date, time or timestamp
+      * FIND-DURATION - calculate duration between date, time, or
+      *                 timestamp and a timestamp
+      * SUBTRACT-DURATION subtract duration from date, time, or timestamp
+      *****************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PICOSEC22.
+         AUTHOR. PMAWBY.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  ITRAP-VARS.
+           05  ITRAP100      PIC X(10)      VALUE 'ITRAP100'.
+           05  PGM-ID        PIC X(10)      VALUE 'PICOSEC22'.
+           05  PGM-STS       PIC X          VALUE 'P'.
+       77  time1  format time.
+      *Test timestamps with different SIZEs and with default (no SIZE)
+       77  tsOK format timestamp.
+       77  ts19 format timestamp SIZE 19.
+       77  ts21 format timestamp SIZE 21.
+       77  ts26 format timestamp SIZE 26.
+       77  ts32 format timestamp SIZE 32.
+       77  ts32a format timestamp SIZE 32.
+       77  ts32b format timestamp SIZE 32.
+       77  ts32c format timestamp SIZE 32.
+       77  ts32d format timestamp SIZE 32.
+       77  ts32e format timestamp SIZE 32.
+       PROCEDURE DIVISION.
+       TEST1-INIT.
+      *1. Test MOVE timestamp literal to timestamp defined with SIZE
+           MOVE "1995-07-23-15.37.12.123456" TO tsOK.
+           MOVE "1995-07-23-15.37.12.123456" TO ts19.
+           MOVE "1995-07-23-15.37.12.123456" TO ts21.
+           MOVE "1995-07-23-15.37.12.123456" TO ts26.
+           MOVE "1995-07-23-15.37.12.123456789012" TO ts32.
+           if tsOK = "1995-07-23-15.37.12.123456"
+              and ts19 = "1995-07-23-15.37.12"
+              and ts21 = "1995-07-23-15.37.12.1"
+              and ts26 = "1995-07-23-15.37.12.123456"
+              and ts32 = "1995-07-23-15.37.12.123456789012"
+               DISPLAY "PASS: MOVE of several SIZE timestamp literals"
+           else
+               DISPLAY "FAIL: MOVE of several SIZE timestamp literals"
+               DISPLAY tsOK " = 1995-07-23-15.37.12.123456"
+               DISPLAY ts19 " = 1995-07-23-15.37.12"
+               DISPLAY ts21 " = 1995-07-23-15.37.12.1"
+               DISPLAY ts26 " = 1995-07-23-15.37.12.123456"
+               DISPLAY ts32 " = 1995-07-23-15.37.12.123456789012"
+               MOVE "F" TO PGM-STS
+               .
+      *2. Test MOVE ADD-DURATION MICROSECONDS of SIZEd ts to SIZEd ts
+           MOVE FUNCTION ADD-DURATION(tsOK MICROSECONDS 33) to tsOK.
+           MOVE FUNCTION ADD-DURATION(ts19 MICROSECONDS 33) to ts19.
+           MOVE FUNCTION ADD-DURATION(ts21 MICROSECONDS 33) to ts21.
+           MOVE FUNCTION ADD-DURATION(ts26 MICROSECONDS 33) to ts26.
+           MOVE FUNCTION ADD-DURATION(ts32 MICROSECONDS 33) to ts32.
+           if tsOK = "1995-07-23-15.37.12.123489"
+              and ts19 = "1995-07-23-15.37.12"
+              and ts21 = "1995-07-23-15.37.12.1"
+              and ts26 = "1995-07-23-15.37.12.123489"
+              and ts32 = "1995-07-23-15.37.12.123489789012"
+               DISPLAY "PASS: ADD-DURATION MICROSECONDS"
+           else
+               DISPLAY "FAIL: ADD-DURATION of MICROSECONDS"
+               DISPLAY tsOK " = 1995-07-23-15.37.12.123489"
+               DISPLAY ts19 " = 1995-07-23-15.37.12"
+               DISPLAY ts21 " = 1995-07-23-15.37.12.1"
+               DISPLAY ts26 " = 1995-07-23-15.37.12.123489"
+               DISPLAY ts32 " = 1995-07-23-15.37.12.123489789012"
+               MOVE "F" TO PGM-STS
+               .
+
+      *2A. Test MOVE ADD-DURATION MICROSECONDS of SIZEd ts to SIZEd ts
+      * TRY SENDER SMALLER THAN RECEIVER - RESULT WILL BE TRUNCATED
+           MOVE FUNCTION ADD-DURATION(tsOK MICROSECONDS 33) to ts32A.
+           MOVE FUNCTION ADD-DURATION(ts19 MICROSECONDS 33) to ts32B.
+           MOVE FUNCTION ADD-DURATION(ts21 MICROSECONDS 33) to ts32C.
+           MOVE FUNCTION ADD-DURATION(ts26 MICROSECONDS 33) to ts32D.
+           MOVE FUNCTION ADD-DURATION(ts32 MICROSECONDS 33) to ts32E.
+           if ts32A     = "1995-07-23-15.37.12.123522000000"
+              and ts32B = "1995-07-23-15.37.12.000000000000"
+              and ts32C = "1995-07-23-15.37.12.100000000000"
+              and ts32D = "1995-07-23-15.37.12.123522000000"
+              and ts32E = "1995-07-23-15.37.12.123522789012"
+               DISPLAY "PASS: ADD-DURATION MICROSECONDS"
+           else
+               DISPLAY "FAIL: ADD-DURATION of MICROSECONDS"
+               DISPLAY ts32A " = 1995-07-23-15.37.12.123522000000"
+               DISPLAY ts32B " = 1995-07-23-15.37.12.000000000000"
+               DISPLAY ts32C " = 1995-07-23-15.37.12.100000000000"
+               DISPLAY ts32D " = 1995-07-23-15.37.12.123522000000"
+               DISPLAY ts32E " = 1995-07-23-15.37.12.123522789012"
+               MOVE "F" TO PGM-STS
+               .
+
+      *3. Test MOVE ADD-DURATION PICOSECONDS of SIZEd ts to SIZEd ts
+           MOVE FUNCTION ADD-DURATION(tsOK PICOSECONDS 67) to tsOK .
+           MOVE FUNCTION ADD-DURATION(ts19 PICOSECONDS 67) to ts19 .
+           MOVE FUNCTION ADD-DURATION(ts21 PICOSECONDS 67) to ts21 .
+           MOVE FUNCTION ADD-DURATION(ts26 PICOSECONDS 67) to ts26 .
+           MOVE FUNCTION ADD-DURATION(ts32 PICOSECONDS 67) to ts32 .
+           if tsOK = "1995-07-23-15.37.12.123489"
+              and ts19 = "1995-07-23-15.37.12"
+              and ts21 = "1995-07-23-15.37.12.1"
+              and ts26 = "1995-07-23-15.37.12.123489"
+              and ts32 = "1995-07-23-15.37.12.123489789079"
+               DISPLAY "PASS: ADD-DURATION PICOSECONDS"
+           else
+               DISPLAY "FAIL: ADD-DURATION of PICOSECONDS"
+               DISPLAY tsOK " = 1995-07-23-15.37.12.123489"
+               DISPLAY ts19 " = 1995-07-23-15.37.12"
+               DISPLAY ts21 " = 1995-07-23-15.37.12.1"
+               DISPLAY ts26 " = 1995-07-23-15.37.12.123489"
+               DISPLAY ts32 " = 1995-07-23-15.37.12.123489789079"
+               MOVE "F" TO PGM-STS
+               .
+      *4. Test MOVE ADD-DURATION PICOSECONDS of SIZEd ts to tsOK
+      *   Expect no change to tsOK since it has no fractional seconds
+           MOVE FUNCTION ADD-DURATION(ts32 PICOSECONDS 67) to tsOK.
+           if tsOK = "1995-07-23-15.37.12.123489"
+               DISPLAY "PASS: ADD-DURATION PICOSECONDS"
+           else
+               DISPLAY "FAIL: ADD-DURATION 67 PICOSECONDS to tsOK"
+               DISPLAY tsOK " = 1995-07-23-15.37.12.123456"
+               MOVE "F" TO PGM-STS
+               .
+      *5. Test MOVE ADD-DURATION PICOSECONDS of SIZEd ts to ts32
+           MOVE "1995-07-23-15.37.12.123456" to tsOK.
+           MOVE "1995-07-23-15.37.12" to ts19.
+           MOVE "1995-07-23-15.37.12.1" to ts21.
+           MOVE "1995-07-23-15.37.12.123456" to ts26.
+           MOVE "1995-07-23-15.37.12.123456789012" TO ts32.
+      * NOTE: COBOL REF GUIDE DOCUMENTS THAT RECEIVER SIZE IS
+      * DEPENDENT ON ARG1 SENDER SIZE.  A RECEIVER THAT IS BIGGER THAN
+      * THE SENDER WILL GET ONLY THE ACCURACY OF THE SENDER.
+      * EXTRA DIGITS ARE TRUNCATED.
+           MOVE FUNCTION ADD-DURATION(tsOK PICOSECONDS 67) to ts32a.
+           MOVE FUNCTION ADD-DURATION(ts19 PICOSECONDS 67) to ts32b.
+           MOVE FUNCTION ADD-DURATION(ts21 PICOSECONDS 67) to ts32c.
+           MOVE FUNCTION ADD-DURATION(ts26 PICOSECONDS 67) to ts32d.
+      * THE FOLLOWING IS THE ONLY SENDER THAT MATCHES RECEIVER SIZE
+           MOVE FUNCTION ADD-DURATION(ts32 PICOSECONDS 67) to ts32e.
+           if     ts32a = "1995-07-23-15.37.12.123456000000"
+              and ts32b = "1995-07-23-15.37.12.000000000000"
+              and ts32c = "1995-07-23-15.37.12.100000000000"
+              and ts32d = "1995-07-23-15.37.12.123456000000"
+              and ts32e = "1995-07-23-15.37.12.123456789079"
+               DISPLAY "PASS: ADD-DURATION PICOSECONDS"
+           else
+               DISPLAY "FAIL: ADD-DURATION of PICOSECONDS"
+               DISPLAY ts32a " = 1995-07-23-15.37.12.123456000000"
+               DISPLAY ts32b " = 1995-07-23-15.37.12.000000000000"
+               DISPLAY ts32c " = 1995-07-23-15.37.12.100000000000"
+               DISPLAY ts32d " = 1995-07-23-15.37.12.123456000000"
+               DISPLAY ts32e " = 1995-07-23-15.37.12.123456789079"
+               MOVE "F" TO PGM-STS
+               .
+      *6. Test MOVE ADD-DURATION PICOSECONDS of SIZEd ts to ts32
+      * LARGE 9 DIGIT DURATIONS (9 DIGITS IS MAX - SEE REF GUIDE)
+           MOVE "1995-07-23-15.37.12.123456" to tsOK.
+           MOVE "1995-07-23-15.37.12" to ts19.
+           MOVE "1995-07-23-15.37.12.1" to ts21.
+           MOVE "1995-07-23-15.37.12.123456" to ts26.
+           MOVE "1995-07-23-15.37.12.123456789012" TO ts32.
+      * NOTE: COBOL REF GUIDE DOCUMENTS THAT RECEIVER SIZE IS
+      * DEPENDENT ON ARG1 SENDER SIZE.  A RECEIVER THAT IS BIGGER THAN
+      * THE SENDER WILL GET ONLY THE ACCURACY OF THE SENDER.
+      * EXTRA DIGITS ARE TRUNCATED.
+        MOVE FUNCTION ADD-DURATION(tsOK PICOSECONDS 333200111) to ts32A.
+        MOVE FUNCTION ADD-DURATION(ts19 PICOSECONDS 333200111) to ts32B.
+        MOVE FUNCTION ADD-DURATION(ts21 PICOSECONDS 333200111) to ts32C.
+        MOVE FUNCTION ADD-DURATION(ts26 PICOSECONDS 333200111) to ts32D.
+        MOVE FUNCTION ADD-DURATION(ts32 PICOSECONDS 333200111) to ts32E.
+           if     ts32a = "1995-07-23-15.37.12.123789000000"
+              and ts32b = "1995-07-23-15.37.12.000000000000"
+              and ts32c = "1995-07-23-15.37.12.100000000000"
+              and ts32d = "1995-07-23-15.37.12.123789000000"
+              and ts32e = "1995-07-23-15.37.12.123789989123"
+               DISPLAY "PASS: ADD-DURATION PICOSECONDS"
+           else
+               DISPLAY "FAIL: ADD-DURATION of PICOSECONDS"
+               DISPLAY ts32a " = 1995-07-23-15.37.12.123789000000"
+               DISPLAY ts32b " = 1995-07-23-15.37.12.000000000000"
+               DISPLAY ts32c " = 1995-07-23-15.37.12.100000000000"
+               DISPLAY ts32d " = 1995-07-23-15.37.12.123789000000"
+               DISPLAY ts32e " = 1995-07-23-15.37.12.123789989123"
+               MOVE "F" TO PGM-STS
+               .
+           DISPLAY "done".
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           STOP RUN.

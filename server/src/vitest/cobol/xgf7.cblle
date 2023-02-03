@@ -1,0 +1,141 @@
+       Process apost.                                                   XGF00010
+      ***************************************************************** XGF00020
+      *                                                               * XGF00030
+      * This program is designed to test varitions of storage         * XGF00040
+      * locations ie, working-storage, local-storage, linkage-sect   *  XGF00050
+      * with xml generate                                             * XGF00060
+      * Date Written: November, 2003                                  * XGF00070
+      * Author:       Tim Robertson                                   * XGF00080
+      * MATRIX:       XMLGEN MATRIX                                   * XGF00090
+      *                                                               * XGF00100
+      *                                                               * XGF00110
+      *                                                               * XGF00120
+      * ____xgf7                                                      * XGF00130
+      * |                                                             * XGF00140
+      * |___xgf7                                                      * XGF00150
+      *                                                               * XGF00160
+      *                                                               * XGF00170
+      *                                                               * XGF00180
+      *                                                               * XGF00190
+      *                                                               * XGF00200
+      *                                                               * XGF00210
+      *                                                               * XGF00220
+      *                                                               * XGF00230
+      *                                                               * XGF00240
+      *                                                               * XGF00250
+      *                                                               * XGF00260
+      *                                                               * XGF00270
+      *                                                               * XGF00280
+      *                                                               * XGF00290
+      *                                                               * XGF00300
+      *                                                               * XGF00310
+      ***************************************************************** XGF00320
+       Identification Division.                                         XGF00330
+        Program-id. xgf7.                                               XGF00340
+       Data Division.                                                   XGF00350
+        File Section.                                                   XGF00360
+                                                                        XGF00370
+                                                                        XGF00380
+        Working-Storage Section.                                        XGF00390
+         01 ws-struct.                                                  XGF00400
+          05 ws-s1 pic x(20).                                           XGF00410
+          05 ws-s2.                                                     XGF00420
+           10 ws-s3 pic x(20) occurs 3 times.                           XGF00430
+         01 ws-doc pic x(2000).                                         XGF00440
+         01 ws-ci comp pic 99999.                                       XGF00450
+         01 tt comp pic 99.                                             XGF00460
+         01 tf comp pic 99.                                             XGF00470
+         01 ws-v1.                                                      XGF00480
+          02 pic x(39) value '<ws-struct><ws-s1>holding this moment</'. XGF00490
+          02 pic x(39) value 'ws-s1><ws-s2><ws-s3>in the palm of my</'. XGF00500
+          02 pic x(39) value 'ws-s3><ws-s3>hand this thing</ws-s3><ws'. XGF00510
+          02 pic x(39) value '-s3>still means so much</ws-s3></ws-s2>'. XGF00520
+          02 pic x(12) value '</ws-struct>'.                            XGF00530
+
+        01  ITRAP-VARS.
+            05  ITRAP100      PIC X(10)      VALUE "ITRAP100".
+            05  PGM-ID        PIC X(10)      VALUE "XGF7    ".
+            05  PGM-STS       PIC X          VALUE "M".
+
+        77  SUCC-FLAG         PIC X.
+            88   VAR-PASS                    VALUE "P".
+            88   VAR-FAIL                    VALUE "F".
+
+        01  ERROR-COUNTER     PIC 9(3)       VALUE 0.
+        01  VARIATION-NO      PIC 9(3)       VALUE 0.
+                                                                        XGF00540
+        Local-Storage Section.                                          XGF00550
+         01 ls-struct.                                                  XGF00560
+          05 ls-s1 pic x(20).                                           XGF00570
+          05 ls-s2.                                                     XGF00580
+           10 ls-s3 pic x(20) occurs 3 times.                           XGF00590
+         01 ls-doc pic x(2000).                                         XGF00600
+         01 ls-ci comp pic 99999.                                       XGF00610
+         01 ls-v1.                                                      XGF00620
+          02 pic x(40) value '<ls-struct><ls-s1>to me beliefs that</ls'.XGF00630
+          02 pic x(40) value '-s1><ls-s2><ls-s3>have stood the test</l'.XGF00640
+          02 pic x(40) value 's-s3><ls-s3>of time a force</ls-s3><ls-s'.XGF00650
+          02 pic x(40) value '3>that surrounds us</ls-s3></ls-s2></ls-'.XGF00660
+          02 pic x(7) value 'struct>'.                                  XGF00670
+                                                                        XGF00680
+        Linkage Section.                                                XGF00690
+                                                                        XGF00700
+                                                                        XGF00710
+       Procedure Division.                                              XGF00720
+           move 0 to tt tf                                              XGF00730
+      *Test 1: XML GEN with WS items                                    XGF00740
+           add 1 to tt                                                  XGF00750
+           move 'holding this moment' to ws-s1                          XGF00760
+           move 'in the palm of my' to ws-s3(1)                         XGF00770
+           move 'hand this thing' to ws-s3(2)                           XGF00780
+           move 'still means so much' to ws-s3(3)                       XGF00790
+           xml generate ws-doc from ws-struct count in ws-ci            XGF00800
+           on exception                                                 XGF00810
+             add 1 to tf                                                XGF00820
+             display 'tc ' tt ' failed:'                                XGF00830
+             display 'xml code: ' xml-code                              XGF00840
+             display 'count in: ' ws-ci                                 XGF00850
+           not on exception                                             XGF00860
+             if ws-doc(1:ws-ci) not = ws-v1                             XGF00870
+               add 1 to tf                                              XGF00880
+               display 'tc ' tt ' failed:'                              XGF00890
+               display 'Expected: |' ws-v1 '|'                          XGF00900
+               display 'Found:    |' ws-doc(1:ws-ci) '|'                XGF00910
+             end-if                                                     XGF00920
+           end-xml                                                      XGF00930
+      *Test 2: XML GEN with LS items                                    XGF00940
+           add 1 to tt                                                  XGF00950
+           move 'to me beliefs that' to ls-s1                           XGF00960
+           move 'have stood the test' to ls-s3(1)                       XGF00970
+           move 'of time a force ' to ls-s3(2)                          XGF00980
+           move 'that surrounds us' to ls-s3(3)                         XGF00990
+           xml generate ls-doc from ls-struct count in ls-ci            XGF01000
+           on exception                                                 XGF01010
+             add 1 to tf                                                XGF01020
+             display 'tc ' tt ' failed:'                                XGF01030
+             display 'xml code: ' xml-code                              XGF01040
+             display 'count in: ' ls-ci                                 XGF01050
+           not on exception                                             XGF01060
+             if ls-doc(1:ls-ci) not = ls-v1                             XGF01070
+               add 1 to tf                                              XGF01080
+               display 'tc ' tt ' failed:'                              XGF01090
+               display 'Expected: |' ls-v1 '|'                          XGF01100
+               display 'Found:    |' ls-doc(1:ls-ci) '|'                XGF01110
+             end-if                                                     XGF01120
+                                                                        XGF01130
+                                                                        XGF01140
+                                                                        XGF01150
+                                                                        XGF01160
+                                                                        XGF01170
+                                                                        XGF01180
+      *Summary information                                              XGF01190
+           if tf not = 0                                                XGF01200
+            MOVE "F" TO PGM-STS
+            display tf ' of ' tt ' tests failed'                        XGF01210
+           else                                                         XGF01220
+            MOVE "P" TO PGM-STS
+            display 'xgf7 was successful'                               XGF01230
+           end-if                                                       XGF01240
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           stop run.                                                    XGF01250
+         end program xgf7.                                              XGF01260

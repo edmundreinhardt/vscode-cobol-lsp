@@ -1,0 +1,3087 @@
+      *CBL OFFSET
+000200 IDENTIFICATION DIVISION.
+000300 PROGRAM-ID.    FNRND01.
+000400******************************************************************
+000500*
+000600*  AUTHOR:
+000700*    Grace Lu
+000800*
+000900*  DATE:
+001000*    May 14, 1991
+001100*
+001200*  TEST FUNCTION:
+001300*    This is a functional test case.
+001400*  The RANDOM function returns a numeric
+001500*  value that is a pseudo-random number
+001600*  from a rectangular distribution.
+001700*    The type of this function is numeric.
+001800*
+001900*
+002000* MODIFIED BY.
+002100* ORIGIN.
+002200* FORMER NAME.
+002300*
+002400*
+002500* PROGRAM STRUCTURE:
+002600*    Main program without subroutines.
+002700*
+002800*
+002900* SYNTAX:
+003000*     FUNCTION RANDOM [ (arg-1) ]
+003100*
+003200*   Where:
+003300*        arg-1 is a non-negative integer.
+003400*      Values between zero and 2**31 - 3
+003500*      (2,147,483,645), inclusive, will
+003600*      yield a distinct sequence of
+003700*      pseudo-random numbers.
+003800*        Any time a value is given for
+003900*      arg-1, a new sequence of pseudo-
+004000*      random numbers is started.
+004100*        If arg-1 is not specified for the
+004200*      first reference to this function,
+004300*      a value of zero will be used.
+004400*        In either case, subsequent
+004500*      references within a run-unit without
+004600*      arg-1 return the next number in the
+004700*      current sequence.
+004800*
+004900*
+005000* RESULTS:
+005100*     Numeric -- ranging between zero
+005200*      (inclusive) and 1 (exclusive).
+005300*      Each distinct sequence of pseudo-
+005400*      random numbers is from a rectangular
+005500*      distribution.
+005600*        For a given seed (arg-1) value,
+005700*      the sequence of pseudo-random
+005800*      numbers will always be the same.
+005900*
+006000*
+006100*  EXPECTED MESSAGES:
+006200*
+006300*     Successful -
+006400*        xxxx Tests Completed Normally
+006500*        0000 Errors Detected
+006600*        ==> Test Case FNRND01 SUCCESSFUL <==
+006700*
+006800*     Unsuccessful -
+006900*        Test-Failed
+007000*        An error occurred in test aaaaa
+007100*        Argument: FUNCTION RANDOM ( a ) =  b
+007200*        Expected Result: xxxxxx
+007300*        Actual Result:   yyyyyy
+007400*        1607 Tests Completed Normally
+007500*        zzzz Errors Detected
+007600*        ==> Test Case FNRND01 FAILED <==
+007700*
+007800*
+007900*  RESTRICTIONS:
+008000*    None
+008100*
+008200*  MATRIX:
+008300*    FNRND matrix
+008400*
+008500*  SET-UP REQUIREMENTS:
+008600*    No external datasets.
+008700*       MVS:   no set up required
+008800*       CMS:   use @FNRND01 EXEC (@FNRND01)
+008900*
+009000*  VALIDATION REQUIREMENTS:
+009100*    SELF-CHECKING
+009200*       no failure messages should appear
+009300*       if test case is running successfully.
+009400*
+009500*
+009600******************************************************************
+009700 ENVIRONMENT DIVISION.
+009800
+009900 CONFIGURATION SECTION.
+010000
+010100 SOURCE-COMPUTER.  IBM-370.
+010200 OBJECT-COMPUTER.  IBM-370.
+010300
+010400 INPUT-OUTPUT SECTION.
+010500
+010600 FILE-CONTROL.
+010700     SELECT rnd-values-report        ASSIGN TO PRINTER-QSYSPRT.
+010800     SELECT dummy-sort-file          ASSIGN TO sortwork.
+010900
+011000
+011100 DATA DIVISION.
+011200
+011300 FILE SECTION.
+011400
+011500 FD  rnd-values-report
+011800     RECORD CONTAINS 80 CHARACTERS.
+012100
+012200 01  rnd-values-line.
+012300     02  FD-sending-item         PIC S9(18).
+012400     02  FD-receiving-item       PIC S9(18).
+012500     02  FILLER                  PIC X(44).
+012600
+012700
+012800 SD  dummy-sort-file.
+013100
+013200 01  dummy-sort-record.
+013300     02  dummy-sort-key          PIC X(10).
+013400     02  SD-sending-item         PIC S9(18).
+013500     02  SD-receiving-item       PIC S9(18).
+013600     02  FILLER                  PIC X(34).
+013700
+013800
+013900 WORKING-STORAGE SECTION.
+
+       01 ITRAP-VARS.
+          05 PGM-ID   PIC X(10)  VALUE "FNRND01".
+          05 PGM-STS  PIC X      VALUE "F".
+014000
+014100 01  DOUBLE-FLOAT-TEMPORARIES         COMP-2.
+014200     02  SAMPLE.
+014300
+014400 01  statistics              USAGE COMPUTATIONAL.
+014500     02  failures            PICTURE S9(4), VALUE 0.
+014600     02  successes           PICTURE S9(4), VALUE 0.
+014700
+014800 77  j                           PICTURE S9(18) COMP-3.
+014900 77  temp                        PICTURE 9(15).
+015000 77  fun-temp                    PICTURE -(18)9.
+015100 77  ii                          PICTURE 99     COMP.
+015200 77  five-byte-var               PICTURE X(5).
+015300 77  test-number                 PICTURE X(52).
+015400
+015500 77  one                         PICTURE S9(2), VALUE 1.
+015600 77  two                         PICTURE S9(2), VALUE +2.
+015700 77  negative-two                PICTURE S9(2), VALUE -2.
+015800 77  three                       PICTURE S9(2), VALUE 3.
+015900 77  third                       PICTURE S9(2), VALUE 3.
+016000 77  four                        PICTURE S9(2), VALUE 4.
+016100 77  five                        PICTURE S9(2), VALUE +5.
+016200 77  negative-five               PICTURE S9(2), VALUE -5.
+016300 77  six                         PICTURE S9(2), VALUE 6.
+016400 77  negative-six                PICTURE S9(2), VALUE -6.
+016500 77  seven                       PICTURE S9(2), VALUE 7.
+016600 77  eight                       PICTURE S9(2), VALUE +8.
+016700 77  negative-eight              PICTURE S9(2), VALUE -8.
+016800 77  ten                         PICTURE S9(2), VALUE 10.
+016900 77  eleven                      PICTURE S9(2), VALUE 11.
+017000 77  twelve                      PICTURE S9(2), VALUE 12.
+017100 77  sixteen                     PICTURE S9(2), VALUE 16.
+017200
+017300 01  halfword-integers           USAGE COMPUTATIONAL.
+017400     02  h-1                         picture S9.
+017500     02  h-2                         picture S99.
+017600     02  h-3                         picture S999.
+017700     02  h-4                         picture S9(4).
+017800
+017900 01  fullword-integers           USAGE COMPUTATIONAL.
+018000     02  f-5                         picture S9(5).
+018100     02  f-6                         picture S9(6).
+018200     02  f-7                         picture S9(7).
+018300     02  f-8                         picture S9(8).
+018400     02  f-9                         picture S9(9).
+018500
+018600 01  doubleword-integers         USAGE COMPUTATIONAL.
+018700     02  ff-10                       picture S9(10).
+018800     02  ff-11                       picture S9(11).
+018900     02  ff-12                       picture S9(12).
+019000     02  ff-13                       picture S9(13).
+019100     02  ff-14                       picture S9(14).
+019200     02  ff-15                       picture S9(15).
+019300     02  ff-16                       picture S9(16).
+019400     02  ff-17                       picture S9(17).
+019500     02  ff-18                       picture S9(18).
+019600
+019700 01  packed-decimal-integers     USAGE COMPUTATIONAL-3.
+019800     02  p-1                         picture S9.
+019900     02  p-2                         picture S99.
+020000     02  p-3                         picture S999.
+020100     02  p-4                         picture S9(4).
+020200     02  p-5                         picture S9(5).
+020300     02  p-6                         picture S9(6).
+020400     02  p-7                         picture S9(7).
+020500     02  p-8                         picture S9(8).
+020600     02  p-9                         picture S9(9).
+020700     02  p-10                        picture S9(10).
+020800     02  p-11                        picture S9(11).
+020900     02  p-12                        picture S9(12).
+021000     02  p-13                        picture S9(13).
+021100     02  p-14                        picture S9(14).
+021200     02  p-15                        picture S9(15).
+021300     02  p-16                        picture S9(16).
+021400     02  p-17                        picture S9(17).
+021500     02  p-18                        picture S9(18).
+021600
+021700 01  zoned-decimal-integers      USAGE DISPLAY.
+021800     02  z-1                         picture S9.
+021900     02  z-2                         picture S99.
+022000     02  z-3                         picture S999.
+022100     02  z-4                         picture S9(4).
+022200     02  z-5                         picture S9(5).
+022300     02  z-6                         picture S9(6).
+022400     02  z-7                         picture S9(7).
+022500     02  z-8                         picture S9(8).
+022600     02  z-9                         picture S9(9).
+022700     02  z-10                        picture S9(10).
+022800     02  z-11                        picture S9(11).
+022900     02  z-12                        picture S9(12).
+023000     02  z-13                        picture S9(13).
+023100     02  z-14                        picture S9(14).
+023200     02  z-15                        picture S9(15).
+023300     02  z-16                        picture S9(16).
+023400     02  z-17                        picture S9(17).
+023500     02  z-18                        picture S9(18).
+023600
+023700 01  Structure-elements.
+023800     25  Part-A.
+023900         49  element                 PIC S999 COMP-3.
+024000     25  Part-B.
+024100         49  element                 PIC S999 COMP-3.
+024200
+024300 01  Synchronzied-data-items.
+024400     02  z-sync-item                 PICTURE S9(3),
+024500                                     USAGE DISPLAY,
+024600                                     SYNCHRONIZED.
+024700     02  h-sync-item                 PICTURE S9(4),
+024800                                     USAGE COMPUTATIONAL,
+024900                                     SYNCHRONIZED.
+025000     02  f-sync-item                 PICTURE S9(9),
+025100                                     USAGE COMPUTATIONAL,
+025200                                     SYNCHRONIZED.
+025300     02  ff-sync-item                PICTURE S9(18),
+025400                                     USAGE COMPUTATIONAL,
+025500                                     SYNCHRONIZED.
+025600     02  p-sync-item                 PICTURE S9(3),
+025700                                     USAGE COMPUTATIONAL-3,
+025800                                     SYNCHRONIZED.
+025900
+026000 77  leading-sign-item               PICTURE S999,
+026100                             SIGN IS LEADING SEPARATE CHARACTER.
+026200
+026300 77  trailing-sign-item              PICTURE S999,
+026400                             SIGN IS TRAILING SEPARATE CHARACTER.
+026500
+026600 01  fixed-length-table-A.
+026700     02  fix-len-tab-item-a          PICTURE S9(18),
+026800                                     OCCURS 5 TIMES.
+026900
+027000 01  fixed-length-table-B.
+027100     02  fix-len-tab-item-b          PICTURE S9(18),
+027200                                     OCCURS 5 TIMES.
+027300
+027400 01  variable-length-table-A.
+027500     02  var-len-tab-item-a          PICTURE S9(18),
+027600                                     OCCURS 0 TO 7 TIMES,
+027700                                     DEPENDING ON table-length-A.
+027800
+027900 01  variable-length-table-B.
+028000     02  var-len-tab-item-b          PICTURE S9(18),
+028100                                     OCCURS 0 TO 7 TIMES,
+028200                                     DEPENDING ON table-length-B.
+028300
+028400 77  table-length-A                  PICTURE S9(4),
+028500                                     USAGE COMPUTATIONAL,
+028600                                     VALUE 5.
+028700
+028800 77  table-length-B                  PICTURE S9(4),
+028900                                     USAGE COMPUTATIONAL,
+029000                                     VALUE 5.
+029100
+029200 77  julian-day              PIC S9(7) COMP-3.
+029300
+029400 77  gregorian-date          PIC S9(8) COMP-3.
+029500
+029600 77  dollars-and-cents       PIC 999V99.
+029700
+029800 77  six-characters          PIC X(6).
+029900
+030000 77  ht                      PIC X   VALUE X"05".
+030100
+030200 77  three-characters        PIC X(3) VALUE "AbC".
+030300 77  two-point-seven         PIC 9v9 VALUE 2.7.
+      *
+       77  SORT-CORE-SIZE  PIC 9(9).
+       77  SORT-FILE-SIZE  PIC 9(9).
+       77  SORT-MODE-SIZE  PIC 9(9).
+       77  SORT-MESSAGE    PIC X(8).
+       77  TALLY           PIC 9(9).
+       88  S370-HEX        VALUE 0 .
+       88  MVS-AND-VM      VALUE 0 .
+030400
+030500
+030600 PROCEDURE DIVISION.
+030700
+030800 MAIN SECTION.
+030900
+031000 MAIN-LOGIC.
+031100
+031200     DISPLAY "FNRND01 started..".
+031300     DISPLAY "FNRND01 started.." upon console.
+031400
+031500     PERFORM TEST-NO-ARGUMENT.
+031600     PERFORM TEST-ARGUMENTS.
+031700
+031800     MOVE ZERO TO SORT-RETURN, SORT-CORE-SIZE, SORT-FILE-SIZE,
+031900         SORT-MODE-SIZE;
+032000     MOVE "SYSOUT  " TO SORT-MESSAGE;
+032100
+032200     SORT dummy-sort-file
+032300         ASCENDING KEY dummy-sort-key,
+032400         INPUT PROCEDURE IS E15-SORT-Input,
+032500         OUTPUT PROCEDURE IS E35-SORT-Output.
+032600
+032700     IF  SORT-RETURN NOT = ZERO  THEN
+032800         MOVE "SORT" TO test-number
+032900         PERFORM test-failed
+033000         DISPLAY "*** SORT failed with RC= " SORT-RETURN
+033100     END-IF.
+033200
+033300     PERFORM DISPLAY-STATISTICS.
+033400
+033500     CALL  "ITRAP100" USING PGM-ID PGM-STS
+033600     STOP RUN.
+033700
+033800
+033900 TEST-NO-ARGUMENT SECTION.
+034000**************************************************************
+034100* 00000000 Argument:  No argrument specified
+034200**************************************************************
+034300     COMPUTE  sample = FUNCTION RANDOM;
+034400     IF  sample < +0.0E+00 OR sample > +1.0E+00  THEN
+034500         DISPLAY "*** SAMPLE OUT OF RANGE. "
+034600         PERFORM test-failed
+034700         MOVE "00000001" TO test-number
+034800         DISPLAY "Argument:  none   "
+034900         DISPLAY "Expected result:  0 <= sample < 1. "
+035000         DISPLAY "Actual result:   " sample
+035100     ELSE
+035200         ADD 1 TO SUCCESSES;
+035300     END-IF.
+035400
+035500
+035600 TEST-ARGUMENTS SECTION.
+035700 FD-ARGUMENTS.
+035800**************************************************************
+035900* 11314100 Argument:  Located in FD
+036000**************************************************************
+036100     OPEN OUTPUT rnd-values-report.
+036200
+036300     MOVE +2 TO FD-sending-item
+036400     COMPUTE sample = FUNCTION RANDOM   ( FD-sending-item )
+036500     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+036600         DISPLAY "*** SAMPLE OUT OF RANGE. "
+036700         MOVE "11314100" TO test-number
+036800         PERFORM test-failed
+036900         DISPLAY "Argument Value =" FD-sending-item
+037000         DISPLAY "Expected result:  0 <= sample < 1. "
+037100         DISPLAY "Actual result:   " sample
+037200     ELSE
+037300         ADD 1 TO SUCCESSES;
+037400     END-IF.
+037500
+037600     CLOSE rnd-values-report.
+037700
+037800
+037900
+038000 SPECIAL-REGISTER-ARGUMENTS.
+038100**************************************************************
+038200* 34406310 Context: COMPUTE identifier = function-ref
+038300* 11208000 Argument:       SORT-RETURN (num)
+038400*
+038500*  The file associated with SORT-RETURN must be opened and
+038600*  have 3 lines written to it before the test, and closed after.
+038700**************************************************************
+038800*    OPEN OUTPUT rnd-values-report.
+038900
+039000*    WRITE rnd-values-line AFTER ADVANCING 2.
+039100
+039200     COMPUTE sample  = FUNCTION RANDOM   (SORT-RETURN)
+039300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+039400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+039500         MOVE "34406310,11208000" TO test-number
+039600         PERFORM test-failed
+039700         DISPLAY "Argument:  SORT-RETURN=" SORT-RETURN
+039800         DISPLAY "Expected result:  0 <= sample < 1. "
+039900         DISPLAY "Actual result:   " sample
+040000     ELSE
+040100         ADD 1 TO SUCCESSES;
+040200     END-IF.
+040300
+040400*    CLOSE rnd-values-report.
+040500
+040600
+040700**************************************************************
+040800* 34406310 Context: COMPUTE identifier = function-ref
+040900* 11211000 Argument:       RETURN-CODE (num) /*IBM*/
+041000**************************************************************
+041100     MOVE 6 TO RETURN-CODE
+041200
+041300     COMPUTE sample = FUNCTION RANDOM   (RETURN-CODE)
+041400     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+041500         DISPLAY "*** SAMPLE OUT OF RANGE. "
+041600         MOVE "34406310,11211000" TO test-number
+041700         PERFORM test-failed
+041800         DISPLAY "Argument:  RETURN-CODE=" RETURN-CODE
+041900         DISPLAY "Expected result:  0 <= sample < 1. "
+042000         DISPLAY "Actual result:   " sample
+042100     ELSE
+042200         ADD 1 TO SUCCESSES;
+042300     END-IF.
+042400
+042500**************************************************************
+042600* 34406310 Context: COMPUTE identifier = function-ref
+042700* 11215000 Argument:       SORT-RETURN  (num) /*IBM*/
+042800**************************************************************
+042900     MOVE 7 TO SORT-RETURN
+043000
+043100     COMPUTE sample = FUNCTION RANDOM   (SORT-RETURN)
+043200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+043300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+043400         MOVE "34406310,11215000" TO test-number
+043500         PERFORM test-failed
+043600         DISPLAY "Argument:  SORT-RETURN=" SORT-RETURN
+043700         DISPLAY "Expected result:  0 <= sample < 1. "
+043800         DISPLAY "Actual result:   " sample
+043900     ELSE
+044000         ADD 1 TO SUCCESSES;
+044100     END-IF.
+044200
+044300**************************************************************
+044400* 34406310 Context: COMPUTE identifier = function-ref
+044500* 11216000 Argument:       SORT-CORE-SIZE (num) /*IBM*/
+044600**************************************************************
+044700     MOVE 8 TO SORT-CORE-SIZE
+044800
+044900     COMPUTE sample = FUNCTION RANDOM   (SORT-CORE-SIZE)
+045000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+045100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+045200         MOVE "34406310,11216000" TO test-number
+045300         PERFORM test-failed
+045400         DISPLAY "Argument:  SORT-CORE-SIZE=" SORT-CORE-SIZE
+045500         DISPLAY "Expected result:  0 <= sample < 1. "
+045600         DISPLAY "Actual result:   " sample
+045700     ELSE
+045800         ADD 1 TO SUCCESSES;
+045900     END-IF.
+046000
+046100**************************************************************
+046200* 34406310 Context: COMPUTE identifier = function-ref
+046300* 11217000 Argument:       SORT-FILE-SIZE (num) /*IBM*/
+046400**************************************************************
+046500     MOVE 9 TO SORT-FILE-SIZE
+046600
+046700     COMPUTE sample = FUNCTION RANDOM   (SORT-FILE-SIZE)
+046800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+046900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+047000         MOVE "34406310,11217000" TO test-number
+047100         PERFORM test-failed
+047200         DISPLAY "Argument:  SORT-FILE-SIZE=" SORT-FILE-SIZE
+047300         DISPLAY "Expected result:  0 <= sample < 1. "
+047400         DISPLAY "Actual result:   " sample
+047500     ELSE
+047600         ADD 1 TO SUCCESSES;
+047700     END-IF.
+047800
+047900**************************************************************
+048000* 34406310 Context: COMPUTE identifier = function-ref
+048100* 11219000 Argument:       SORT-MODE-SIZE (num) /*IBM*/
+048200**************************************************************
+048300     MOVE 10 TO SORT-MODE-SIZE
+048400     COMPUTE sample = FUNCTION RANDOM   (SORT-MODE-SIZE)
+048500
+048600     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+048700         DISPLAY "*** SAMPLE OUT OF RANGE. "
+048800         MOVE "34406310,11219000" TO test-number
+048900         PERFORM test-failed
+049000         DISPLAY "Argument:  SORT-MODE-SIZE=" SORT-MODE-SIZE
+049100         DISPLAY "Expected result:  0 <= sample < 1. "
+049200         DISPLAY "Actual result:   " sample
+049300     ELSE
+049400         ADD 1 TO SUCCESSES;
+049500     END-IF.
+049600
+049700**************************************************************
+049800* 34406310 Context: COMPUTE identifier = function-ref
+049900* 11220000 Argument:       TALLY (num) /*IBM*/
+050000**************************************************************
+050100     MOVE 11 TO TALLY
+050200     COMPUTE sample = FUNCTION RANDOM   (TALLY)
+050300
+050400     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+050500         DISPLAY "*** SAMPLE OUT OF RANGE. "
+050600         MOVE "34406310,11222000" TO test-number
+050700         PERFORM test-failed
+050800         DISPLAY "Argument:  TALLY=" TALLY
+050900         DISPLAY "Expected result:  0 <= sample < 1. "
+051000         DISPLAY "Actual result:   " sample
+051100     ELSE
+051200         ADD 1 TO SUCCESSES;
+051300     END-IF.
+051400
+051500 HALFWORD-INTEGER-ARGUMENTS.
+051600**************************************************************
+051700*
+051800*    All arguments in this paragraph are --
+051900* 11301111 Argument:  Binary Halfword Integer Variable, 1-4 digits
+052000* 11302300 Argument:  level 49 --  elementary item in structure
+052100
+052200* 34406310 Context: COMPUTE identifier = function-ref
+052300**************************************************************
+052400         MOVE 7 TO h-1
+052500         COMPUTE sample = FUNCTION RANDOM   (h-1)
+052600         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+052700             DISPLAY "*** SAMPLE OUT OF RANGE. "
+052800             MOVE
+052900                "34406310,11302300,11301111.h-1,11513120,11512200"
+053000                 TO test-number
+053100             PERFORM test-failed
+053200             DISPLAY "Argument: h-1=" h-1
+053300             DISPLAY "Expected result:  0 <= sample < 1. "
+053400             DISPLAY "Actual result:   " sample
+053500         ELSE
+053600             ADD 1 TO SUCCESSES;
+053700         END-IF.
+053800
+053900**************************************************************
+054000* 34406310 Context: COMPUTE identifier = function-ref
+054100**************************************************************
+054200         MOVE 7 TO h-2
+054300         COMPUTE sample = FUNCTION RANDOM   (h-2)
+054400         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+054500             DISPLAY "*** SAMPLE OUT OF RANGE. "
+054600             MOVE
+054700                "34406310,11302300,11301111.h-2,11513120,11512200"
+054800                 TO test-number
+054900             PERFORM test-failed
+055000             DISPLAY "Argument: h-2=" h-2
+055100             DISPLAY "Expected result:  0 <= sample < 1. "
+055200             DISPLAY "Actual result:   " sample
+055300         ELSE
+055400             ADD 1 TO SUCCESSES;
+055500         END-IF.
+055600
+055700**************************************************************
+055800* 34406310 Context: COMPUTE identifier = function-ref
+055900**************************************************************
+056000         MOVE 7 TO h-3
+056100         COMPUTE sample = FUNCTION RANDOM   (h-3)
+056200         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+056300             DISPLAY "*** SAMPLE OUT OF RANGE. "
+056400             MOVE
+056500               "34406310,11302300,11301111.h-3,11513120,11512200"
+056600                 TO test-number
+056700             PERFORM test-failed
+056800             DISPLAY "Argument: h-3=" h-3
+056900             DISPLAY "Expected result:  0 <= sample < 1. "
+057000             DISPLAY "Actual result:   " sample
+057100         ELSE
+057200             ADD 1 TO SUCCESSES;
+057300         END-IF.
+057400
+057500**************************************************************
+057600* 34406310 Context: COMPUTE identifier = function-ref
+057700**************************************************************
+057800         MOVE 7 TO h-4
+057900         COMPUTE sample = FUNCTION RANDOM   (h-4)
+058000         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+058100             DISPLAY "*** SAMPLE OUT OF RANGE. "
+058200             DISPLAY "Argument: h-4=" h-4
+058300             MOVE
+058400               "34406310,11302300,11301111.h-4,11513120,11512200"
+058500                 TO test-number
+058600             DISPLAY "Expected result:  0 <= sample < 1. "
+058700             DISPLAY "Actual result:   " sample
+058800         ELSE
+058900             ADD 1 TO SUCCESSES;
+059000         END-IF.
+059100
+059200 FULLWORD-INTEGER-ARGUMENTS.
+059300**************************************************************
+059400*
+059500*    All arguments in this paragraph are --
+059600* 11301121 Argument:  Binary Fullword Integer Variable, 5-8 digits
+059700* 11302300 Argument:  level 49 --  elementary item in structure
+059800
+059900* 34406310 Context: COMPUTE identifier = function-ref
+060000**************************************************************
+060100         MOVE 7 TO f-5
+060200         COMPUTE sample = FUNCTION RANDOM   (f-5)
+060300         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+060400             DISPLAY "*** SAMPLE OUT OF RANGE. "
+060500             DISPLAY "Argument: f-5=" f-5
+060600             MOVE
+060700               "34406310,11302300,11301121.f-5,11513120,11512200"
+060800                 TO test-number
+060900             DISPLAY "Expected result:  0 <= sample < 1. "
+061000             DISPLAY "Actual result:   " sample
+061100         ELSE
+061200             ADD 1 TO SUCCESSES;
+061300         END-IF.
+061400
+061500**************************************************************
+061600* 34406310 Context: COMPUTE identifier = function-ref
+061700**************************************************************
+061800         MOVE 7 TO f-6
+061900         COMPUTE sample = FUNCTION RANDOM   (f-6)
+062000         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+062100             DISPLAY "*** SAMPLE OUT OF RANGE. "
+062200             DISPLAY "Argument: f-6=" f-6
+062300             MOVE
+062400               "34406310,11302300,11301121.f-6,11513120,11512200"
+062500                 TO test-number
+062600             DISPLAY "Expected result:  0 <= sample < 1. "
+062700             DISPLAY "Actual result:   " sample
+062800         ELSE
+062900             ADD 1 TO SUCCESSES;
+063000         END-IF.
+063100
+063200**************************************************************
+063300* 34406310 Context: COMPUTE identifier = function-ref
+063400**************************************************************
+063500         MOVE 7 TO f-7
+063600         COMPUTE sample = FUNCTION RANDOM   (f-7)
+063700         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+063800             DISPLAY "*** SAMPLE OUT OF RANGE. "
+063900             DISPLAY "Argument: f-7=" f-7
+064000             MOVE
+064100              "34406310,11302300,11301121.f-7,11513120,11512200"
+064200                 TO test-number
+064300             DISPLAY "Expected result:  0 <= sample < 1. "
+064400             DISPLAY "Actual result:   " sample
+064500         ELSE
+064600             ADD 1 TO SUCCESSES;
+064700         END-IF.
+064800
+064900**************************************************************
+065000* 34406310 Context: COMPUTE identifier = function-ref
+065100**************************************************************
+065200         MOVE 7 TO f-8
+065300         COMPUTE sample = FUNCTION RANDOM   (f-8)
+065400         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+065500             DISPLAY "*** SAMPLE OUT OF RANGE. "
+065600             MOVE
+065700              "34406310,11302300,11301121.f-8,11513120,11512200"
+065800                 TO test-number
+065900             DISPLAY "Argument: f-8=" f-8
+066000             DISPLAY "Expected result:  0 <= sample < 1. "
+066100             DISPLAY "Actual result:   " sample
+066200         ELSE
+066300             ADD 1 TO SUCCESSES;
+066400         END-IF.
+066500
+066600**************************************************************
+066700* 34406310 Context: COMPUTE identifier = function-ref
+066800**************************************************************
+066900         MOVE 7 TO f-9
+067000         COMPUTE sample = FUNCTION RANDOM   (f-9)
+067100         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+067200             DISPLAY "*** SAMPLE OUT OF RANGE. "
+067300             MOVE
+067400               "34406310,11302300,11301121.f-9,11513120,11512200"
+067500                 TO test-number
+067600             DISPLAY "Argument: f-9=" f-9
+067700             DISPLAY "Expected result:  0 <= sample < 1. "
+067800             DISPLAY "Actual result:   " sample
+067900         ELSE
+068000             ADD 1 TO SUCCESSES;
+068100         END-IF.
+068200
+068300
+068400 DOUBLEWORD-INTEGER-ARGUMENTS.
+068500**************************************************************
+068600*
+068700*    All arguments in this paragraph are --
+068800* 11301131 Argument:  Binary Doubleword Integer Var, 9-18 digits
+068900* 11302300 Argument:  level 49 --  elementary item in structure
+069000
+069100* 34406310 Context: COMPUTE identifier = function-ref
+069200**************************************************************
+069300         MOVE 7 TO ff-10
+069400         COMPUTE sample = FUNCTION RANDOM   (ff-10)
+069500         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+069600             DISPLAY "*** SAMPLE OUT OF RANGE. "
+069700             MOVE
+069800             "34406310,11302300,11301131.ff-10,11513120,11512200"
+069900                 TO test-number
+070000             DISPLAY "Argument: f-10=" ff-10
+070100             DISPLAY "Expected result:  0 <= sample < 1. "
+070200             DISPLAY "Actual result:   " sample
+070300         ELSE
+070400             ADD 1 TO SUCCESSES;
+070500         END-IF.
+070600
+070700**************************************************************
+070800* 34406310 Context: COMPUTE identifier = function-ref
+070900**************************************************************
+071000         MOVE 7 TO ff-11
+071100         COMPUTE sample = FUNCTION RANDOM   (ff-11)
+071200         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+071300             DISPLAY "*** SAMPLE OUT OF RANGE. "
+071400             MOVE
+071500             "34406310,11302300,11301131.ff-11,11513120,11512200"
+071600                 TO test-number
+071700             DISPLAY "Argument: ff-11=" ff-11
+071800             DISPLAY "Expected result:  0 <= sample < 1. "
+071900             DISPLAY "Actual result:   " sample
+072000         ELSE
+072100             ADD 1 TO SUCCESSES;
+072200         END-IF.
+072300
+072400**************************************************************
+072500* 34406310 Context: COMPUTE identifier = function-ref
+072600**************************************************************
+072700         MOVE 7 TO ff-12
+072800         COMPUTE sample = FUNCTION RANDOM   (ff-12)
+072900         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+073000             DISPLAY "*** SAMPLE OUT OF RANGE. "
+073100             MOVE
+073200             "34406310,11302300,11301131.ff-12,11513120,11512200"
+073300                 TO test-number
+073400             DISPLAY "Argument: ff-12=" ff-12
+073500             DISPLAY "Expected result:  0 <= sample < 1. "
+073600             DISPLAY "Actual result:   " sample
+073700         ELSE
+073800             ADD 1 TO SUCCESSES;
+073900         END-IF.
+074000
+074100**************************************************************
+074200* 34406310 Context: COMPUTE identifier = function-ref
+074300**************************************************************
+074400         MOVE 7 TO ff-13
+074500         COMPUTE sample = FUNCTION RANDOM   (ff-13)
+074600         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+074700             DISPLAY "*** SAMPLE OUT OF RANGE. "
+074800             MOVE
+074900             "34406310,11302300,11301131.ff-13,11513120,11512200"
+075000                 TO test-number
+075100             DISPLAY "Argument: ff-13=" ff-13
+075200             DISPLAY "Expected result:  0 <= sample < 1. "
+075300             DISPLAY "Actual result:   " sample
+075400         ELSE
+075500             ADD 1 TO SUCCESSES;
+075600         END-IF.
+075700
+075800**************************************************************
+075900* 34406310 Context: COMPUTE identifier = function-ref
+076000**************************************************************
+076100         MOVE 7 TO ff-14
+076200         COMPUTE sample = FUNCTION RANDOM   (ff-14)
+076300         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+076400             DISPLAY "*** SAMPLE OUT OF RANGE. "
+076500             MOVE
+076600             "34406310,11302300,11301131.ff-14,11513120,11512200"
+076700                 TO test-number
+076800             DISPLAY "Argument: ff-14=" ff-14
+076900             DISPLAY "Expected result:  0 <= sample < 1. "
+077000             DISPLAY "Actual result:   " sample
+077100         ELSE
+077200             ADD 1 TO SUCCESSES;
+077300         END-IF.
+077400
+077500**************************************************************
+077600* 34406310 Context: COMPUTE identifier = function-ref
+077700**************************************************************
+077800         MOVE 7 TO ff-15
+077900         COMPUTE sample = FUNCTION RANDOM   (ff-15)
+078000         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+078100             DISPLAY "*** SAMPLE OUT OF RANGE. "
+078200             MOVE
+078300             "34406310,11302300,11301131.ff-15,11513120,11512200"
+078400                 TO test-number
+078500             DISPLAY "Argument: ff-15=" ff-15
+078600             DISPLAY "Expected result:  0 <= sample < 1. "
+078700             DISPLAY "Actual result:   " sample
+078800         ELSE
+078900             ADD 1 TO SUCCESSES;
+079000         END-IF.
+079100
+079200**************************************************************
+079300* 34406310 Context: COMPUTE identifier = function-ref
+079400**************************************************************
+079500         MOVE 7 TO ff-16
+079600         COMPUTE sample = FUNCTION RANDOM   (ff-16)
+079700         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+079800             DISPLAY "*** SAMPLE OUT OF RANGE. "
+079900             MOVE
+080000             "34406310,11302300,11301131.ff-16,11513120,11512200"
+080100                 TO test-number
+080200             DISPLAY "Argument: ff-16=" ff-16
+080300             DISPLAY "Expected result:  0 <= sample < 1. "
+080400             DISPLAY "Actual result:   " sample
+080500         ELSE
+080600             ADD 1 TO SUCCESSES;
+080700         END-IF.
+080800
+080900**************************************************************
+081000* 34406310 Context: COMPUTE identifier = function-ref
+081100**************************************************************
+081200         MOVE 7 TO ff-17
+081300         COMPUTE sample = FUNCTION RANDOM   (ff-17)
+081400         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+081500             DISPLAY "*** SAMPLE OUT OF RANGE. "
+081600             MOVE
+081700             "34406310,11302300,11301131.ff-17,11513120,11512200"
+081800                 TO test-number
+081900             DISPLAY "Argument: ff-17=" ff-17
+082000             DISPLAY "Expected result:  0 <= sample < 1. "
+082100             DISPLAY "Actual result:   " sample
+082200         ELSE
+082300             ADD 1 TO SUCCESSES;
+082400         END-IF.
+082500
+082600**************************************************************
+082700* 34406310 Context: COMPUTE identifier = function-ref
+082800**************************************************************
+082900         MOVE 7 TO ff-18
+083000         COMPUTE sample = FUNCTION RANDOM   (ff-18)
+083100         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+083200             DISPLAY "*** SAMPLE OUT OF RANGE. "
+083300             MOVE
+083400             "34406310,11302300,11301131.ff-18,11513120,11512200"
+083500                 TO test-number
+083600             DISPLAY "Argument: ff-18=" ff-18
+083700             DISPLAY "Expected result:  0 <= sample < 1. "
+083800             DISPLAY "Actual result:   " sample
+083900         ELSE
+084000             ADD 1 TO SUCCESSES;
+084100         END-IF.
+084200
+084300
+084400 PACKED-DECIMAL-INTGR-ARGUMENTS.
+084500**************************************************************
+084600*
+084700*    All arguments in this paragraph are --
+084800* 11301401 Argument:  Packed Decimal Integer Variable 1-18 digits
+084900* 11302300 Argument:  level 49 --  elementary item in structure
+085000
+085100* 34406310 Context: COMPUTE identifier = function-ref
+085200**************************************************************
+085300         MOVE 7 TO p-1
+085400         COMPUTE sample = FUNCTION RANDOM   (p-1)
+085500         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+085600             DISPLAY "*** SAMPLE OUT OF RANGE. "
+085700             MOVE
+085800             "34406310,11302300,11301410.p-1,11513120,11512200"
+085900                 TO test-number
+086000             DISPLAY "Argument: p-1 =" p-1
+086100             DISPLAY "Expected result:  0 <= sample < 1. "
+086200             DISPLAY "Actual result:   " sample
+086300         ELSE
+086400             ADD 1 TO SUCCESSES;
+086500         END-IF.
+086600
+086700**************************************************************
+086800* 34406310 Context: COMPUTE identifier = function-ref
+086900**************************************************************
+087000         MOVE 7 TO p-2
+087100         COMPUTE sample = FUNCTION RANDOM   (p-2)
+087200         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+087300             DISPLAY "*** SAMPLE OUT OF RANGE. "
+087400             MOVE
+087500             "34406310,11302300,11301410.p-2,11513120,11512200"
+087600                 TO test-number
+087700             DISPLAY "Argument: p-2 =" p-2
+087800             DISPLAY "Expected result:  0 <= sample < 1. "
+087900             DISPLAY "Actual result:   " sample
+088000         ELSE
+088100             ADD 1 TO SUCCESSES;
+088200         END-IF.
+088300
+088400**************************************************************
+088500* 34406310 Context: COMPUTE identifier = function-ref
+088600* 11512200 Argument:  Variable or Expression with value Zero
+088700* 11513120 Argument:  Variable or Expression with positive values
+088800*                         1 through 28
+088900**************************************************************
+089000         MOVE 7 TO p-3
+089100         COMPUTE sample = FUNCTION RANDOM   (p-3)
+089200         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+089300             DISPLAY "*** SAMPLE OUT OF RANGE. "
+089400             MOVE
+089500             "34406310,11302300,11301410.p-3,11513120,11512200"
+089600                 TO test-number
+089700             DISPLAY "Argument: p-3 =" p-3
+089800             DISPLAY "Expected result:  0 <= sample < 1. "
+089900             DISPLAY "Actual result:   " sample
+090000         ELSE
+090100             ADD 1 TO SUCCESSES;
+090200         END-IF.
+090300
+090400**************************************************************
+090500* 34406310 Context: COMPUTE identifier = function-ref
+090600**************************************************************
+090700         MOVE 7 TO p-4
+090800         COMPUTE sample = FUNCTION RANDOM   (p-4)
+090900         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+091000             DISPLAY "*** SAMPLE OUT OF RANGE. "
+091100             MOVE
+091200             "34406310,11302300,11301410.p-4,11513120,11512200"
+091300                 TO test-number
+091400             DISPLAY "Argument: p-4 =" p-4
+091500             DISPLAY "Expected result:  0 <= sample < 1. "
+091600             DISPLAY "Actual result:   " sample
+091700         ELSE
+091800             ADD 1 TO SUCCESSES;
+091900         END-IF.
+092000
+092100**************************************************************
+092200* 34406310 Context: COMPUTE identifier = function-ref
+092300**************************************************************
+092400         MOVE 7 TO p-5
+092500         COMPUTE sample = FUNCTION RANDOM   (p-5)
+092600         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+092700             DISPLAY "*** SAMPLE OUT OF RANGE. "
+092800             MOVE
+092900             "34406310,11302300,11301410.p-5,11513120,11512200"
+093000                 TO test-number
+093100             DISPLAY "Argument: p-5 =" p-5
+093200             DISPLAY "Expected result:  0 <= sample < 1. "
+093300             DISPLAY "Actual result:   " sample
+093400         ELSE
+093500             ADD 1 TO SUCCESSES;
+093600         END-IF.
+093700
+093800**************************************************************
+093900* 34406310 Context: COMPUTE identifier = function-ref
+094000**************************************************************
+094100         MOVE 7 TO p-6
+094200         COMPUTE sample = FUNCTION RANDOM   (p-6)
+094300         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+094400             DISPLAY "*** SAMPLE OUT OF RANGE. "
+094500             MOVE
+094600             "34406310,11302300,11301410.p-6,11513120,11512200"
+094700                 TO test-number
+094800             DISPLAY "Argument: p-6 =" p-6
+094900             DISPLAY "Expected result:  0 <= sample < 1. "
+095000             DISPLAY "Actual result:   " sample
+095100         ELSE
+095200             ADD 1 TO SUCCESSES;
+095300         END-IF.
+095400
+095500**************************************************************
+095600* 34406310 Context: COMPUTE identifier = function-ref
+095700**************************************************************
+095800         MOVE 7 TO p-7
+095900         COMPUTE sample = FUNCTION RANDOM   (p-7)
+096000         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+096100             DISPLAY "*** SAMPLE OUT OF RANGE. "
+096200             MOVE
+096300             "34406310,11302300,11301410.p-7,11513120,11512200"
+096400                 TO test-number
+096500             DISPLAY "Argument: p-7 =" p-7
+096600             DISPLAY "Expected result:  0 <= sample < 1. "
+096700             DISPLAY "Actual result:   " sample
+096800         ELSE
+096900             ADD 1 TO SUCCESSES;
+097000         END-IF.
+097100
+097200**************************************************************
+097300* 34406310 Context: COMPUTE identifier = function-ref
+097400**************************************************************
+097500         MOVE 7 TO p-8
+097600         COMPUTE sample = FUNCTION RANDOM   (p-8)
+097700         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+097800             DISPLAY "*** SAMPLE OUT OF RANGE. "
+097900             MOVE
+098000             "34406310,11302300,11301410.p-8,11513120,11512200"
+098100                 TO test-number
+098200             DISPLAY "Argument: p-8 =" p-8
+098300             DISPLAY "Expected result:  0 <= sample < 1. "
+098400             DISPLAY "Actual result:   " sample
+098500         ELSE
+098600             ADD 1 TO SUCCESSES;
+098700         END-IF.
+098800
+098900**************************************************************
+099000* 34406310 Context: COMPUTE identifier = function-ref
+099100**************************************************************
+099200         MOVE 7 TO p-9
+099300         COMPUTE sample = FUNCTION RANDOM   (p-9)
+099400         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+099500             DISPLAY "*** SAMPLE OUT OF RANGE. "
+099600             MOVE
+099700             "34406310,11302300,11301410.p-9,11513120,11512200"
+099800                 TO test-number
+099900             DISPLAY "Argument: p-9 =" p-9
+100000             DISPLAY "Expected result:  0 <= sample < 1. "
+100100             DISPLAY "Actual result:   " sample
+100200         ELSE
+100300             ADD 1 TO SUCCESSES;
+100400         END-IF.
+100500
+100600**************************************************************
+100700* 34406310 Context: COMPUTE identifier = function-ref
+100800**************************************************************
+100900         MOVE 7 TO p-10
+101000         COMPUTE sample = FUNCTION RANDOM   (p-10)
+101100         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+101200             DISPLAY "*** SAMPLE OUT OF RANGE. "
+101300             MOVE
+101400             "34406310,11302300,11301410.p-10,11513120,11512200"
+101500                 TO test-number
+101600             DISPLAY "Argument: p-10 =" p-10
+101700             DISPLAY "Expected result:  0 <= sample < 1. "
+101800             DISPLAY "Actual result:   " sample
+101900         ELSE
+102000             ADD 1 TO SUCCESSES;
+102100         END-IF.
+102200
+102300**************************************************************
+102400* 34406310 Context: COMPUTE identifier = function-ref
+102500**************************************************************
+102600         MOVE 7 TO p-11
+102700         COMPUTE sample = FUNCTION RANDOM   (p-11)
+102800         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+102900             DISPLAY "*** SAMPLE OUT OF RANGE. "
+103000             MOVE
+103100             "34406310,11302300,11301410.p-11,11513120,11512200"
+103200                 TO test-number
+103300             DISPLAY "Argument: p-11 =" p-11
+103400             DISPLAY "Expected result:  0 <= sample < 1. "
+103500             DISPLAY "Actual result:   " sample
+103600         ELSE
+103700             ADD 1 TO SUCCESSES;
+103800         END-IF.
+103900
+104000**************************************************************
+104100* 34406310 Context: COMPUTE identifier = function-ref
+104200**************************************************************
+104300         MOVE 7 TO p-12
+104400         COMPUTE sample = FUNCTION RANDOM   (p-12)
+104500         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+104600             DISPLAY "*** SAMPLE OUT OF RANGE. "
+104700             MOVE
+104800             "34406310,11302300,11301410.p-12,11513120,11512200"
+104900                 TO test-number
+105000             DISPLAY "Argument: p-12 =" p-12
+105100             DISPLAY "Expected result:  0 <= sample < 1. "
+105200             DISPLAY "Actual result:   " sample
+105300         ELSE
+105400             ADD 1 TO SUCCESSES;
+105500         END-IF.
+105600
+105700**************************************************************
+105800* 34406310 Context: COMPUTE identifier = function-ref
+105900**************************************************************
+106000         MOVE 7 TO p-13
+106100         COMPUTE sample = FUNCTION RANDOM   (p-13)
+106200         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+106300             DISPLAY "*** SAMPLE OUT OF RANGE. "
+106400             MOVE
+106500             "34406310,11302300,11301410.p-13,11513120,11512200"
+106600                 TO test-number
+106700             DISPLAY "Argument: p-13 =" p-13
+106800             DISPLAY "Expected result:  0 <= sample < 1. "
+106900             DISPLAY "Actual result:   " sample
+107000         ELSE
+107100             ADD 1 TO SUCCESSES;
+107200         END-IF.
+107300
+107400**************************************************************
+107500* 34406310 Context: COMPUTE identifier = function-ref
+107600**************************************************************
+107700         MOVE 7 TO p-14
+107800         COMPUTE sample = FUNCTION RANDOM   (p-14)
+107900         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+108000             DISPLAY "*** SAMPLE OUT OF RANGE. "
+108100             MOVE
+108200             "34406310,11302300,11301410.p-14,11513120,11512200"
+108300                 TO test-number
+108400             DISPLAY "Argument: p-14 =" p-14
+108500             DISPLAY "Expected result:  0 <= sample < 1. "
+108600             DISPLAY "Actual result:   " sample
+108700         ELSE
+108800             ADD 1 TO SUCCESSES;
+108900         END-IF.
+109000
+109100**************************************************************
+109200* 34406310 Context: COMPUTE identifier = function-ref
+109300**************************************************************
+109400         MOVE 7 TO p-15
+109500         COMPUTE sample = FUNCTION RANDOM   (p-15)
+109600         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+109700             DISPLAY "*** SAMPLE OUT OF RANGE. "
+109800             MOVE
+109900             "34406310,11302300,11301410.p-15,11513120,11512200"
+110000                 TO test-number
+110100             DISPLAY "Argument: p-15 =" p-15
+110200             DISPLAY "Expected result:  0 <= sample < 1. "
+110300             DISPLAY "Actual result:   " sample
+110400         ELSE
+110500             ADD 1 TO SUCCESSES;
+110600         END-IF.
+110700
+110800**************************************************************
+110900* 34406310 Context: COMPUTE identifier = function-ref
+111000**************************************************************
+111100         MOVE 7 TO p-16
+111200         COMPUTE sample = FUNCTION RANDOM   (p-16)
+111300         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+111400             DISPLAY "*** SAMPLE OUT OF RANGE. "
+111500             MOVE
+111600             "34406310,11302300,11301410.p-16,11513120,11512200"
+111700                 TO test-number
+111800             DISPLAY "Argument: p-16 =" p-16
+111900             DISPLAY "Expected result:  0 <= sample < 1. "
+112000             DISPLAY "Actual result:   " sample
+112100         ELSE
+112200             ADD 1 TO SUCCESSES;
+112300         END-IF.
+112400
+112500**************************************************************
+112600* 34406310 Context: COMPUTE identifier = function-ref
+112700**************************************************************
+112800         MOVE 7 TO p-17
+112900         COMPUTE sample = FUNCTION RANDOM   (p-17)
+113000         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+113100             DISPLAY "*** SAMPLE OUT OF RANGE. "
+113200             MOVE
+113300             "34406310,11302300,11301410.p-17,11513120,11512200"
+113400                 TO test-number
+113500             DISPLAY "Argument: p-17 =" p-17
+113600             DISPLAY "Expected result:  0 <= sample < 1. "
+113700             DISPLAY "Actual result:   " sample
+113800         ELSE
+113900             ADD 1 TO SUCCESSES;
+114000         END-IF.
+114100
+114200**************************************************************
+114300* 34406310 Context: COMPUTE identifier = function-ref
+114400**************************************************************
+114500         MOVE 7 TO p-18
+114600         COMPUTE sample = FUNCTION RANDOM   (p-18)
+114700         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+114800             DISPLAY "*** SAMPLE OUT OF RANGE. "
+114900             MOVE
+115000             "34406310,11302300,11301410.p-18,11513120,11512200"
+115100                 TO test-number
+115200             DISPLAY "Argument: p-18 =" p-18
+115300             DISPLAY "Expected result:  0 <= sample < 1. "
+115400             DISPLAY "Actual result:   " sample
+115500         ELSE
+115600             ADD 1 TO SUCCESSES;
+115700         END-IF.
+115800
+115900
+116000 ZONED-DECIMAL-INTGR-ARGUMENTS.
+116100**************************************************************
+116200*
+116300*    All arguments in this paragraph are --
+116400* 11301951 Argument:  External Decimal Integer Var, 1-18 digits
+116500* 11302300 Argument:  level 49 --  elementary item in structure
+116600
+116700* 34406310 Context: COMPUTE identifier = function-ref
+116800**************************************************************
+116900         MOVE 7 TO z-1
+117000         COMPUTE sample = FUNCTION RANDOM   (z-1)
+117100         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+117200             DISPLAY "*** SAMPLE OUT OF RANGE. "
+117300             MOVE
+117400             "34406310,11302300,11301951.z-1,11513120,11512200"
+117500                 TO test-number
+117600             DISPLAY "Argument: z-1=" z-1
+117700             DISPLAY "Expected result:  0 <= sample < 1. "
+117800             DISPLAY "Actual result:   " sample
+117900         ELSE
+118000             ADD 1 TO SUCCESSES;
+118100         END-IF.
+118200
+118300**************************************************************
+118400* 34406310 Context: COMPUTE identifier = function-ref
+118500**************************************************************
+118600         MOVE 7 TO z-2
+118700         COMPUTE sample = FUNCTION RANDOM   (z-2)
+118800         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+118900             DISPLAY "*** SAMPLE OUT OF RANGE. "
+119000             MOVE
+119100             "34406310,11302300,11301951.z-2,11513120,11512200"
+119200                 TO test-number
+119300             DISPLAY "Argument: z-2=" z-2
+119400             DISPLAY "Expected result:  0 <= sample < 1. "
+119500             DISPLAY "Actual result:   " sample
+119600         ELSE
+119700             ADD 1 TO SUCCESSES;
+119800         END-IF.
+119900
+120000**************************************************************
+120100* 34406310 Context: COMPUTE identifier = function-ref
+120200**************************************************************
+120300         MOVE 7 TO z-3
+120400         COMPUTE sample = FUNCTION RANDOM   (z-3)
+120500         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+120600             DISPLAY "*** SAMPLE OUT OF RANGE. "
+120700             MOVE
+120800             "34406310,11302300,11301951.z-3,11513120,11512200"
+120900                 TO test-number
+121000             DISPLAY "Argument: z-3=" z-3
+121100             DISPLAY "Expected result:  0 <= sample < 1. "
+121200             DISPLAY "Actual result:   " sample
+121300         ELSE
+121400             ADD 1 TO SUCCESSES;
+121500         END-IF.
+121600
+121700**************************************************************
+121800* 34406310 Context: COMPUTE identifier = function-ref
+121900**************************************************************
+122000         MOVE 7 TO z-4
+122100         COMPUTE sample = FUNCTION RANDOM   (z-4)
+122200         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+122300             DISPLAY "*** SAMPLE OUT OF RANGE. "
+122400             MOVE
+122500             "34406310,11302300,11301951.z-4,11513120,11512200"
+122600                 TO test-number
+122700             DISPLAY "Argument: z-4=" z-4
+122800             DISPLAY "Expected result:  0 <= sample < 1. "
+122900             DISPLAY "Actual result:   " sample
+123000         ELSE
+123100             ADD 1 TO SUCCESSES;
+123200         END-IF.
+123300
+123400**************************************************************
+123500* 34406310 Context: COMPUTE identifier = function-ref
+123600**************************************************************
+123700         MOVE 7 TO z-5
+123800         COMPUTE sample = FUNCTION RANDOM   (z-5)
+123900         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+124000             DISPLAY "*** SAMPLE OUT OF RANGE. "
+124100             MOVE
+124200             "34406310,11302300,11301951.z-5,11513120,11512200"
+124300                 TO test-number
+124400             DISPLAY "Argument: z-5=" z-5
+124500             DISPLAY "Expected result:  0 <= sample < 1. "
+124600             DISPLAY "Actual result:   " sample
+124700         ELSE
+124800             ADD 1 TO SUCCESSES;
+124900         END-IF.
+125000
+125100**************************************************************
+125200* 34406310 Context: COMPUTE identifier = function-ref
+125300**************************************************************
+125400         MOVE 7 TO z-6
+125500         COMPUTE sample = FUNCTION RANDOM   (z-6)
+125600         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+125700             DISPLAY "*** SAMPLE OUT OF RANGE. "
+125800             MOVE
+125900             "34406310,11302300,11301951.z-6,11513120,11512200"
+126000                 TO test-number
+126100             DISPLAY "Argument: z-6=" z-6
+126200             DISPLAY "Expected result:  0 <= sample < 1. "
+126300             DISPLAY "Actual result:   " sample
+126400         ELSE
+126500             ADD 1 TO SUCCESSES;
+126600         END-IF.
+126700
+126800**************************************************************
+126900* 34406310 Context: COMPUTE identifier = function-ref
+127000**************************************************************
+127100         MOVE 7 TO z-7
+127200         COMPUTE sample = FUNCTION RANDOM   (z-7)
+127300         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+127400             DISPLAY "*** SAMPLE OUT OF RANGE. "
+127500             MOVE
+127600             "34406310,11302300,11301951.z-7,11513120,11512200"
+127700                 TO test-number
+127800             DISPLAY "Argument: z-7=" z-7
+127900             DISPLAY "Expected result:  0 <= sample < 1. "
+128000             DISPLAY "Actual result:   " sample
+128100         ELSE
+128200             ADD 1 TO SUCCESSES;
+128300         END-IF.
+128400
+128500**************************************************************
+128600* 34406310 Context: COMPUTE identifier = function-ref
+128700**************************************************************
+128800         MOVE 7 TO z-8
+128900         COMPUTE sample = FUNCTION RANDOM   (z-8)
+129000         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+129100             DISPLAY "*** SAMPLE OUT OF RANGE. "
+129200             MOVE
+129300             "34406310,11302300,11301951.z-8,11513120,11512200"
+129400                 TO test-number
+129500             DISPLAY "Argument: z-8=" z-8
+129600             DISPLAY "Expected result:  0 <= sample < 1. "
+129700             DISPLAY "Actual result:   " sample
+129800         ELSE
+129900             ADD 1 TO SUCCESSES;
+130000         END-IF.
+130100
+130200**************************************************************
+130300* 34406310 Context: COMPUTE identifier = function-ref
+130400**************************************************************
+130500         MOVE 7 TO z-9
+130600         COMPUTE sample = FUNCTION RANDOM   (z-9)
+130700         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+130800             DISPLAY "*** SAMPLE OUT OF RANGE. "
+130900             MOVE
+131000             "34406310,11302300,11301951.z-9,11513120,11512200"
+131100                 TO test-number
+131200             DISPLAY "Argument: z-9=" z-9
+131300             DISPLAY "Expected result:  0 <= sample < 1. "
+131400             DISPLAY "Actual result:   " sample
+131500         ELSE
+131600             ADD 1 TO SUCCESSES;
+131700         END-IF.
+131800
+131900**************************************************************
+132000* 34406310 Context: COMPUTE identifier = function-ref
+132100**************************************************************
+132200         MOVE 7 TO z-10
+132300         COMPUTE sample = FUNCTION RANDOM   (z-10)
+132400         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+132500             DISPLAY "*** SAMPLE OUT OF RANGE. "
+132600             MOVE
+132700             "34406310,11302300,11301951.z-10,11513120,11512200"
+132800                 TO test-number
+132900             DISPLAY "Argument: z-10=" z-10
+133000             DISPLAY "Expected result:  0 <= sample < 1. "
+133100             DISPLAY "Actual result:   " sample
+133200         ELSE
+133300             ADD 1 TO SUCCESSES;
+133400         END-IF.
+133500
+133600**************************************************************
+133700* 34406310 Context: COMPUTE identifier = function-ref
+133800**************************************************************
+133900         MOVE 7 TO z-11
+134000         COMPUTE sample = FUNCTION RANDOM   (z-11)
+134100         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+134200             DISPLAY "*** SAMPLE OUT OF RANGE. "
+134300             MOVE
+134400             "34406310,11302300,11301951.z-11,11513120,11512200"
+134500                 TO test-number
+134600             DISPLAY "Argument: z-11=" z-11
+134700             DISPLAY "Expected result:  0 <= sample < 1. "
+134800             DISPLAY "Actual result:   " sample
+134900         ELSE
+135000             ADD 1 TO SUCCESSES;
+135100         END-IF.
+135200
+135300**************************************************************
+135400* 34406310 Context: COMPUTE identifier = function-ref
+135500**************************************************************
+135600         MOVE 7 TO z-12
+135700         COMPUTE sample = FUNCTION RANDOM   (z-12)
+135800         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+135900             DISPLAY "*** SAMPLE OUT OF RANGE. "
+136000             MOVE
+136100             "34406310,11302300,11301951.z-12,11513120,11512200"
+136200                 TO test-number
+136300             DISPLAY "Argument: z-12=" z-12
+136400             DISPLAY "Expected result:  0 <= sample < 1. "
+136500             DISPLAY "Actual result:   " sample
+136600         ELSE
+136700             ADD 1 TO SUCCESSES;
+136800         END-IF.
+136900
+137000**************************************************************
+137100* 34406310 Context: COMPUTE identifier = function-ref
+137200**************************************************************
+137300         MOVE 7 TO z-13
+137400         COMPUTE sample = FUNCTION RANDOM   (z-13)
+137500         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+137600             DISPLAY "*** SAMPLE OUT OF RANGE. "
+137700             MOVE
+137800             "34406310,11302300,11301951.z-13,11513120,11512200"
+137900                 TO test-number
+138000             DISPLAY "Argument: z-13=" z-13
+138100             DISPLAY "Expected result:  0 <= sample < 1. "
+138200             DISPLAY "Actual result:   " sample
+138300         ELSE
+138400             ADD 1 TO SUCCESSES;
+138500         END-IF.
+138600
+138700**************************************************************
+138800* 34406310 Context: COMPUTE identifier = function-ref
+138900**************************************************************
+139000         MOVE 7 TO z-14
+139100         COMPUTE sample = FUNCTION RANDOM   (z-14)
+139200         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+139300             DISPLAY "*** SAMPLE OUT OF RANGE. "
+139400             MOVE
+139500             "34406310,11302300,11301951.z-14,11513120,11512200"
+139600                 TO test-number
+139700             DISPLAY "Argument: z-14=" z-14
+139800             DISPLAY "Expected result:  0 <= sample < 1. "
+139900             DISPLAY "Actual result:   " sample
+140000         ELSE
+140100             ADD 1 TO SUCCESSES;
+140200         END-IF.
+140300
+140400**************************************************************
+140500* 34406310 Context: COMPUTE identifier = function-ref
+140600**************************************************************
+140700         MOVE 7 TO z-15
+140800         COMPUTE sample = FUNCTION RANDOM   (z-15)
+140900         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+141000             DISPLAY "*** SAMPLE OUT OF RANGE. "
+141100             MOVE
+141200             "34406310,11302300,11301951.z-15,11513120,11512200"
+141300                 TO test-number
+141400             DISPLAY "Argument: z-15=" z-15
+141500             DISPLAY "Expected result:  0 <= sample < 1. "
+141600             DISPLAY "Actual result:   " sample
+141700         ELSE
+141800             ADD 1 TO SUCCESSES;
+141900         END-IF.
+142000
+142100**************************************************************
+142200* 34406310 Context: COMPUTE identifier = function-ref
+142300**************************************************************
+142400         MOVE 7 TO z-16
+142500         COMPUTE sample = FUNCTION RANDOM   (z-16)
+142600         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+142700             DISPLAY "*** SAMPLE OUT OF RANGE. "
+142800             MOVE
+142900             "34406310,11302300,11301951.z-16,11513120,11512200"
+143000                 TO test-number
+143100             DISPLAY "Argument: z-16=" z-16
+143200             DISPLAY "Expected result:  0 <= sample < 1. "
+143300             DISPLAY "Actual result:   " sample
+143400         ELSE
+143500             ADD 1 TO SUCCESSES;
+143600         END-IF.
+143700
+143800**************************************************************
+143900* 34406310 Context: COMPUTE identifier = function-ref
+144000**************************************************************
+144100         MOVE 7 TO z-17
+144200         COMPUTE sample = FUNCTION RANDOM   (z-17)
+144300         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+144400             DISPLAY "*** SAMPLE OUT OF RANGE. "
+144500             MOVE
+144600             "34406310,11302300,11301951.z-17,11513120,11512200"
+144700                 TO test-number
+144800             DISPLAY "Argument: z-17=" z-17
+144900             DISPLAY "Expected result:  0 <= sample < 1. "
+145000             DISPLAY "Actual result:   " sample
+145100         ELSE
+145200             ADD 1 TO SUCCESSES;
+145300         END-IF.
+145400
+145500**************************************************************
+145600* 34406310 Context: COMPUTE identifier = function-ref
+145700**************************************************************
+145800         MOVE 7 TO z-18
+145900         COMPUTE sample = FUNCTION RANDOM   (z-18)
+146000         IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+146100             DISPLAY "*** SAMPLE OUT OF RANGE. "
+146200             MOVE
+146300             "34406310,11302300,11301951.z-18,11513120,11512200"
+146400                 TO test-number
+146500             PERFORM test-failed
+146600             DISPLAY "Argument: z-18=" z-18
+146700             DISPLAY "Expected result:  0 <= sample < 1. "
+146800             DISPLAY "Actual result:   " sample
+146900         ELSE
+147000             ADD 1 TO SUCCESSES;
+147100         END-IF.
+147200
+147300
+147400 QUALIFIED-ARGUMENTS.
+147500*
+147600**************************************************************
+147700* 34406310 Context: COMPUTE identifier = function-ref
+147800* 11303000 Argument:  Qualified
+147900**************************************************************
+148000     MOVE 1 TO element in Part-A.
+148100     MOVE 4 TO element in Part-B.
+148200     COMPUTE sample = FUNCTION RANDOM   (element in Part-A)
+148300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+148400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+148500         MOVE "34406310,11303000.A" TO test-number
+148600         DISPLAY "Argument: element in Part-A=" element in Part-A
+148700         DISPLAY "Other element in Part-B=" element in Part-B
+148800         DISPLAY "Expected result:  0 <= sample < 1. "
+148900         DISPLAY "Actual result:   " sample
+149000     ELSE
+149100         ADD 1 TO SUCCESSES;
+149200     END-IF.
+149300
+149400     MOVE 1 TO element in Part-A.
+149500     MOVE 4 TO element in Part-B.
+149600     COMPUTE sample = FUNCTION RANDOM   (element in Part-B)
+149700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+149800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+149900         MOVE "34406310,11303000.B" TO test-number
+150000         DISPLAY "Argument: element in Part-B=" element in Part-B
+150100         DISPLAY "Other element in Part-A=" element in Part-A
+150200         DISPLAY "Expected result:  0 <= sample < 1. "
+150300         DISPLAY "Actual result:   " sample
+150400     ELSE
+150500         ADD 1 TO SUCCESSES;
+150600     END-IF.
+150700
+150800
+150900
+151000 SYNCHRONIZED-ARGUMENTS.
+151100*
+151200**************************************************************
+151300* 34406310 Context: COMPUTE identifier = function-ref
+151400* 11310000 Argument:     SYNCHRONIZED
+151500**************************************************************
+151600     MOVE 6 TO z-sync-item
+151700     COMPUTE sample = FUNCTION RANDOM   ( z-sync-item )
+151800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+151900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+152000         MOVE "34406310,11313212,11313310,11310000.z"
+152100             TO test-number
+152200         PERFORM test-failed
+152300         DISPLAY "Argument:  z-sync-item= " z-sync-item
+152400         DISPLAY "Expected result:  0 <= sample < 1. "
+152500         DISPLAY "Actual result:   " sample
+152600     ELSE
+152700         ADD 1 TO SUCCESSES;
+152800     END-IF.
+152900
+153000     MOVE 6 TO h-sync-item
+153100     COMPUTE sample = FUNCTION RANDOM   ( h-sync-item )
+153200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+153300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+153400         MOVE "34406310,11313212,11313310,11310000.h"
+153500             TO test-number
+153600         PERFORM test-failed
+153700         DISPLAY "Argument:  h-sync-item= " h-sync-item
+153800         DISPLAY "Expected result:  0 <= sample < 1. "
+153900         DISPLAY "Actual result:   " sample
+154000     ELSE
+154100         ADD 1 TO SUCCESSES;
+154200     END-IF.
+154300
+154400     MOVE 6 TO f-sync-item
+154500     COMPUTE sample = FUNCTION RANDOM   ( f-sync-item )
+154600     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+154700         DISPLAY "*** SAMPLE OUT OF RANGE. "
+154800         MOVE "34406310,11313212,11313310,11310000.f"
+154900             TO test-number
+155000         PERFORM test-failed
+155100         DISPLAY "Argument:  f-sync-item= " f-sync-item
+155200         DISPLAY "Expected result:  0 <= sample < 1. "
+155300         DISPLAY "Actual result:   " sample
+155400     ELSE
+155500         ADD 1 TO SUCCESSES;
+155600     END-IF.
+155700
+155800     MOVE 6 TO ff-sync-item
+155900     COMPUTE sample = FUNCTION RANDOM   ( ff-sync-item )
+156000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+156100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+156200         MOVE "34406310,11313212,11313310,11310000.ff"
+156300             TO test-number
+156400         PERFORM test-failed
+156500         DISPLAY "Argument:  ff-sync-item= " ff-sync-item
+156600         DISPLAY "Expected result:  0 <= sample < 1. "
+156700         DISPLAY "Actual result:   " sample
+156800     ELSE
+156900         ADD 1 TO SUCCESSES;
+157000     END-IF.
+157100
+157200     MOVE 6 TO p-sync-item
+157300     COMPUTE sample = FUNCTION RANDOM   ( p-sync-item )
+157400     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+157500         DISPLAY "*** SAMPLE OUT OF RANGE. "
+157600         MOVE "34406310,11313212,11313310,11310000.p"
+157700             TO test-number
+157800         PERFORM test-failed
+157900         DISPLAY "Argument:  p-sync-item= " p-sync-item
+158000         DISPLAY "Expected result:  0 <= sample < 1. "
+158100         DISPLAY "Actual result:   " sample
+158200     ELSE
+158300         ADD 1 TO SUCCESSES;
+158400     END-IF.
+158500
+158600
+158700
+158800 LEADING-ARGUMENT.
+158900*
+159000**************************************************************
+159100* 34406310 Context: COMPUTE identifier = function-ref
+159200* 11312100 Argument:  SIGN IS LEADING SEPARATE CHARACTER
+159300**************************************************************
+159400     MOVE 6 TO leading-sign-item
+159500     COMPUTE sample = FUNCTION RANDOM   ( leading-sign-item )
+159600     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+159700         DISPLAY "*** SAMPLE OUT OF RANGE. "
+159800         MOVE "34406310,11312100" TO test-number
+159900         PERFORM test-failed
+160000         DISPLAY "Argument: leading-sign-item= " leading-sign-item
+160100         DISPLAY "Expected result:  0 <= sample < 1. "
+160200         DISPLAY "Actual result:   " sample
+160300     ELSE
+160400         ADD 1 TO SUCCESSES;
+160500     END-IF.
+160600
+160700
+160800
+160900 TRAILING-ARGUMENT.
+161000*
+161100**************************************************************
+161200* 34406310 Context: COMPUTE identifier = function-ref
+161300* 11312200 Argument:  SIGN IS TRAILING SEPARATE CHARACTER
+161400**************************************************************
+161500     MOVE 6 TO trailing-sign-item
+161600     COMPUTE sample = FUNCTION RANDOM   ( trailing-sign-item )
+161700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+161800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+161900         MOVE "34406310,11312200" TO test-number
+162000         PERFORM test-failed
+162100         DISPLAY "Argument:trailing-sign-item=" trailing-sign-item
+162200         DISPLAY "Expected result:  0 <= sample < 1. "
+162300         DISPLAY "Actual result:   " sample
+162400     ELSE
+162500         ADD 1 TO SUCCESSES;
+162600     END-IF.
+162700
+162800
+162900
+163000 SUBSCRIPTED-FIX-LEN-TAB-ARGS.
+163100*
+163200**************************************************************
+163300* 11304000      Subscripting:
+163400* 11304100        Subscripted:
+163500* 11304100          Fixed-length table:
+163600* 11304110            literal:
+163700* 11304113              Subscript = 1
+163800* 11304114              Subscript = length/2 & > 1
+163900* 11304115              Subscript = length - 1
+164000* 11304116              Subscript = length
+164100* 11304120            data-name {+|-} integerÙ:
+164200* 11304123              Subscript = 1
+164300* 11304124              Subscript = length/2 & > 1
+164400* 11304125              Subscript = length - 1
+164500* 11304126              Subscript = length
+164600
+164700* 11313100 Argument is fixed length table entry
+164800* 11313310 Argument: Table size Under 64K
+164900
+165000* 34406310 Context: COMPUTE identifier = function-ref
+165100* 11304113 Argument:  Fixed-length table with literal subscript
+165200*                         where Subscript = 1
+165300**************************************************************
+165400     INITIALIZE fixed-length-table-A
+165500         REPLACING NUMERIC DATA BY 0
+165600     MOVE 6 TO fix-len-tab-item-a(1)
+165700     COMPUTE sample = FUNCTION RANDOM   ( fix-len-tab-item-a(1) )
+165800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+165900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+166000         MOVE "34406310,11313100,11313310,11304113" TO test-number
+166100         PERFORM test-failed
+166200         DISPLAY "Argument:  fix-len-tab-item-a(1)= 6"
+166300         DISPLAY "Expected result:  0 <= sample < 1. "
+166400         DISPLAY "Actual result:   " sample
+166500     ELSE
+166600         ADD 1 TO SUCCESSES;
+166700     END-IF.
+166800
+166900**************************************************************
+167000* 34406310 Context: COMPUTE identifier = function-ref
+167100* 11304114 Argument:  Fixed-length table with literal subscript
+167200*                         where Subscript = length/2 & > 1
+167300**************************************************************
+167400     INITIALIZE fixed-length-table-A
+167500         REPLACING NUMERIC DATA BY 0
+167600     MOVE 6 TO fix-len-tab-item-a(3)
+167700     COMPUTE sample  = FUNCTION RANDOM   ( fix-len-tab-item-a(3) )
+167800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+167900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+168000         MOVE "34406310,11313100,11313310,11304114" TO test-number
+168100         PERFORM test-failed
+168200         DISPLAY "Argument:  fix-len-tab-item-a(3)= 6"
+168300         DISPLAY "Expected result:  0 <= sample < 1. "
+168400         DISPLAY "Actual result:   " sample
+168500     ELSE
+168600         ADD 1 TO SUCCESSES;
+168700     END-IF.
+168800
+168900**************************************************************
+169000* 34406310 Context: COMPUTE identifier = function-ref
+169100* 11304115 Argument:  Fixed-length table with literal subscript
+169200*                         where Subscript = length - 1
+169300**************************************************************
+169400     INITIALIZE fixed-length-table-A
+169500         REPLACING NUMERIC DATA BY 0
+169600     MOVE 6 TO fix-len-tab-item-a(4)
+169700     COMPUTE sample  = FUNCTION RANDOM   ( fix-len-tab-item-a(4) )
+169800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+169900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+170000         MOVE "34406310,11313100,11313310,11304115" TO test-number
+170100         PERFORM test-failed
+170200         DISPLAY "Argument:  fix-len-tab-item-a(4)= 6"
+170300         DISPLAY "Expected result:  0 <= sample < 1. "
+170400         DISPLAY "Actual result:   " sample
+170500     ELSE
+170600         ADD 1 TO SUCCESSES;
+170700     END-IF.
+170800
+170900**************************************************************
+171000* 34406310 Context: COMPUTE identifier = function-ref
+171100* 11304116 Argument:  Fixed-length table with literal subscript
+171200*                         where Subscript = length
+171300**************************************************************
+171400     INITIALIZE fixed-length-table-A
+171500         REPLACING NUMERIC DATA BY 0
+171600     MOVE 6 TO fix-len-tab-item-a(5)
+171700     COMPUTE sample  = FUNCTION RANDOM   ( fix-len-tab-item-a(5) )
+171800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+171900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+172000         MOVE "34406310,11313100,11313310,11304116" TO test-number
+172100         PERFORM test-failed
+172200         DISPLAY "Argument:  fix-len-tab-item-a(5)= 6"
+172300         DISPLAY "Expected result:  0 <= sample < 1. "
+172400         DISPLAY "Actual result:   " sample
+172500     ELSE
+172600         ADD 1 TO SUCCESSES;
+172700     END-IF.
+172800
+172900**************************************************************
+173000* 34406310 Context: COMPUTE identifier = function-ref
+173100* 11304123 Argument:  Fixed-length table with
+173200*                       data-name {+|-} integerÙ subscript
+173300*                         where Subscript = 1
+173400**************************************************************
+173500     INITIALIZE fixed-length-table-B
+173600         REPLACING NUMERIC DATA BY 0
+173700     MOVE 6 TO fix-len-tab-item-b(one)
+173800     COMPUTE sample = FUNCTION RANDOM ( fix-len-tab-item-b(one))
+173900     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+174000         DISPLAY "*** SAMPLE OUT OF RANGE. "
+174100         MOVE "34406310,11313100,11313310,11304123" TO test-number
+174200         PERFORM test-failed
+174300         DISPLAY "Argument:  fix-len-tab-item-b(one)= 6"
+174400         DISPLAY "Expected result:  0 <= sample < 1. "
+174500         DISPLAY "Actual result:   " sample
+174600     ELSE
+174700         ADD 1 TO SUCCESSES;
+174800     END-IF.
+174900
+175000**************************************************************
+175100* 34406310 Context: COMPUTE identifier = function-ref
+175200* 11304124 Argument:  Fixed-length table with
+175300*                       data-name {+|-} integerÙ subscript
+175400*                         where Subscript = length/2 & > 1
+175500**************************************************************
+175600     INITIALIZE fixed-length-table-B
+175700         REPLACING NUMERIC DATA BY 0
+175800     MOVE 6 TO fix-len-tab-item-b(two + 1)
+175900     COMPUTE sample = FUNCTION RANDOM
+176000                               ( fix-len-tab-item-b(two + 1) )
+176100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+176200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+176300         MOVE "34406310,11313100,11313310,11304124" TO test-number
+176400         PERFORM test-failed
+176500         DISPLAY "Argument:  fix-len-tab-item-b(two + 1)= 6"
+176600         DISPLAY "Expected result:  0 <= sample < 1. "
+176700         DISPLAY "Actual result:   " sample
+176800     ELSE
+176900         ADD 1 TO SUCCESSES;
+177000     END-IF.
+177100
+177200**************************************************************
+177300* 34406310 Context: COMPUTE identifier = function-ref
+177400* 11304125 Argument:  Fixed-length table with
+177500*                       data-name {+|-} integerÙ subscript
+177600*                         where Subscript = length - 1
+177700**************************************************************
+177800     INITIALIZE fixed-length-table-B
+177900         REPLACING NUMERIC DATA BY 0
+178000     MOVE 6 TO fix-len-tab-item-b(five - 1)
+178100     COMPUTE  sample = FUNCTION RANDOM
+178200                       ( fix-len-tab-item-b(five - 1))
+178300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+178400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+178500         MOVE "34406310,11313100,11313310,11304125" TO test-number
+178600         PERFORM test-failed
+178700         DISPLAY "Argument:  fix-len-tab-item-b(five - 1)= 6"
+178800         DISPLAY "Expected result:  0 <= sample < 1. "
+178900         DISPLAY "Actual result:   " sample
+179000     ELSE
+179100         ADD 1 TO SUCCESSES;
+179200     END-IF.
+179300
+179400**************************************************************
+179500* 34406310 Context: COMPUTE identifier = function-ref
+179600* 11304126 Argument:  Fixed-length table with
+179700*                       data-name {+|-} integerÙ subscript
+179800*                         where Subscript = length
+179900**************************************************************
+180000     INITIALIZE fixed-length-table-B
+180100         REPLACING NUMERIC DATA BY 0
+180200     MOVE 6 TO fix-len-tab-item-b(five)
+180300     COMPUTE sample = FUNCTION RANDOM
+180400                               ( fix-len-tab-item-b(five) )
+180500     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+180600         DISPLAY "*** SAMPLE OUT OF RANGE. "
+180700         MOVE "34406310,11313100,11313310,11304126" TO test-number
+180800         PERFORM test-failed
+180900         DISPLAY "Argument:  fix-len-tab-item-b(five)= 6"
+181000         DISPLAY "Expected result:  0 <= sample < 1. "
+181100         DISPLAY "Actual result:   " sample
+181200     ELSE
+181300         ADD 1 TO SUCCESSES;
+181400     END-IF.
+181500
+181600
+181700 SUBSCRIPTED-VAR-LEN-TAB-ARGS.
+181800*
+181900**************************************************************
+182000* 11304000      Subscripting:
+182100* 11304100        Subscripted:
+182200* 11304200          Variable-length table:
+182300* 11304210            literal:
+182400* 11304213              Subscript = 1
+182500* 11304214              Subscript = length/2 & > 1
+182600* 11304215              Subscript = length - 1
+182700* 11304216              Subscript = length
+182800* 11304220            data-name {+|-} integerÙ:
+182900* 11304223              Subscript = 1
+183000* 11304224              Subscript = length/2 & > 1
+183100* 11304225              Subscript = length - 1
+183200* 11304226              Subscript = length
+183300* 11313310 Argument: Table size Under 64K
+183400
+183500* 34406310 Context: COMPUTE identifier = function-ref
+183600* 11304213 Argument:  Variable-length table with
+183700*                       literal subscript
+183800*                         where Subscript = 1
+183900**************************************************************
+184000     MOVE 6 TO var-len-tab-item-a(1)
+184100     COMPUTE sample = FUNCTION RANDOM   ( var-len-tab-item-a(1) )
+184200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+184300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+184400         MOVE "34406310,11313212,11313310,11304213" TO test-number
+184500         PERFORM test-failed
+184600         DISPLAY "Argument:  var-len-tab-item-a(1)= 6"
+184700         DISPLAY "Expected result:  0 <= sample < 1. "
+184800         DISPLAY "Actual result:   " sample
+184900     ELSE
+185000         ADD 1 TO SUCCESSES;
+185100     END-IF.
+185200
+185300**************************************************************
+185400* 34406310 Context: COMPUTE identifier = function-ref
+185500* 11304214 Argument:  Variable-length table with
+185600*                       literal subscript
+185700*                         where Subscript = length/2 & > 1
+185800**************************************************************
+185900     MOVE 6 TO var-len-tab-item-a(3)
+186000     COMPUTE sample = FUNCTION RANDOM   ( var-len-tab-item-a(3) )
+186100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+186200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+186300         MOVE "34406310,11313212,11313310,11304214" TO test-number
+186400         PERFORM test-failed
+186500         DISPLAY "Argument:  var-len-tab-item-a(3)= 6"
+186600         DISPLAY "Expected result:  0 <= sample < 1. "
+186700         DISPLAY "Actual result:   " sample
+186800     ELSE
+186900         ADD 1 TO SUCCESSES;
+187000     END-IF.
+187100
+187200**************************************************************
+187300* 34406310 Context: COMPUTE identifier = function-ref
+187400* 11304215 Argument:  Variable-length table with
+187500*                       literal subscript
+187600*                         where Subscript = length - 1
+187700**************************************************************
+187800     MOVE 6 TO var-len-tab-item-a(4)
+187900     COMPUTE sample = FUNCTION RANDOM   ( var-len-tab-item-a(4) )
+188000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+188100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+188200         MOVE "34406310,11313212,11313310,11304215" TO test-number
+188300         PERFORM test-failed
+188400         DISPLAY "Argument:  var-len-tab-item-a(4)= 6"
+188500         DISPLAY "Expected result:  0 <= sample < 1. "
+188600         DISPLAY "Actual result:   " sample
+188700     ELSE
+188800         ADD 1 TO SUCCESSES;
+188900     END-IF.
+189000
+189100**************************************************************
+189200* 34406310 Context: COMPUTE identifier = function-ref
+189300* 11304216 Argument:  Variable-length table with
+189400*                       literal subscript
+189500*                       where Subscript = length
+189600**************************************************************
+189700     MOVE 6 TO var-len-tab-item-a(6)
+189800     COMPUTE sample = FUNCTION RANDOM   ( var-len-tab-item-a(6) )
+189900     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+190000         DISPLAY "*** SAMPLE OUT OF RANGE. "
+190100         MOVE "34406310,11313212,11313310,11304216" TO test-number
+190200         PERFORM test-failed
+190300         DISPLAY "Argument:  var-len-tab-item-a(6)= 6"
+190400         DISPLAY "Expected result:  0 <= sample < 1. "
+190500         DISPLAY "Actual result:   " sample
+190600     ELSE
+190700         ADD 1 TO SUCCESSES;
+190800     END-IF.
+190900
+191000**************************************************************
+191100* 34406310 Context: COMPUTE identifier = function-ref
+191200* 11304223 Argument:  Variable-length table with
+191300*                       data-name {+|-} integerÙ subscript
+191400*                         where Subscript = 1
+191500**************************************************************
+191600     MOVE 6 TO var-len-tab-item-b(one)
+191700     COMPUTE sample = FUNCTION RANDOM  (var-len-tab-item-b(one))
+191800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+191900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+192000         MOVE "34406310,11313212,11313310,11304223" TO test-number
+192100         PERFORM test-failed
+192200         DISPLAY "Argument:  var-len-tab-item-b(one)= 6"
+192300         DISPLAY "Expected result:  0 <= sample < 1. "
+192400         DISPLAY "Actual result:   " sample
+192500     ELSE
+192600         ADD 1 TO SUCCESSES;
+192700     END-IF.
+192800
+192900**************************************************************
+193000* 34406310 Context: COMPUTE identifier = function-ref
+193100* 11304224 Argument:  Variable-length table with
+193200*                       data-name {+|-} integerÙ subscript
+193300*                         where Subscript = length/2 & > 1
+193400**************************************************************
+193500     MOVE 6 TO var-len-tab-item-b(two + 1)
+193600     COMPUTE sample = FUNCTION RANDOM   ( var-len-tab-item-b(
+193700         two + 1) )
+193800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+193900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+194000         MOVE "34406310,11313212,11313310,11304224" TO test-number
+194100         PERFORM test-failed
+194200         DISPLAY "Argument:  var-len-tab-item-b(two + 1)= 6"
+194300         DISPLAY "Expected result:  0 <= sample < 1. "
+194400         DISPLAY "Actual result:   " sample
+194500     ELSE
+194600         ADD 1 TO SUCCESSES;
+194700     END-IF.
+194800
+194900**************************************************************
+195000* 34406310 Context: COMPUTE identifier = function-ref
+195100* 11304225 Argument:  Variable-length table with
+195200*                       data-name {+|-} integerÙ subscript
+195300*                         where Subscript = length - 1
+195400**************************************************************
+195500     MOVE 6 TO var-len-tab-item-b(five - 1)
+195600     COMPUTE sample = FUNCTION RANDOM   ( var-len-tab-item-b(
+195700         five - 1) )
+195800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+195900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+196000         MOVE "34406310,11313212,11313310,11304225" TO test-number
+196100         PERFORM test-failed
+196200         DISPLAY "Argument:  var-len-tab-item-b(five - 1)= 6"
+196300         DISPLAY "Expected result:  0 <= sample < 1. "
+196400         DISPLAY "Actual result:   " sample
+196500     ELSE
+196600         ADD 1 TO SUCCESSES;
+196700     END-IF.
+196800
+196900**************************************************************
+197000* 34406310 Context: COMPUTE identifier = function-ref
+197100* 11304226 Argument:  Variable-length table with
+197200*                       data-name {+|-} integerÙ subscript
+197300*                         where Subscript = length
+197400**************************************************************
+197500     MOVE 6 TO var-len-tab-item-b(five)
+197600     COMPUTE sample = FUNCTION RANDOM (var-len-tab-item-b(five))
+197700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+197800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+197900         MOVE "34406310,11313212,11313310,11304226" TO test-number
+198000         PERFORM test-failed
+198100         DISPLAY "Argument:  var-len-tab-item-b(five)= 6"
+198200         DISPLAY "Expected result:  0 <= sample < 1. "
+198300         DISPLAY "Actual result:   " sample
+198400     ELSE
+198500         ADD 1 TO SUCCESSES;
+198600     END-IF.
+198700
+198800
+198900
+199000 NESTED-FUNCTION-ARGS.
+199100*
+199200**************************************************************
+199300* 34406310 Context: COMPUTE identifier = function-ref
+199400* 11410800 Argument:  Nested function DATE-OF-INTEGER(literal)
+199500**************************************************************
+199600     COMPUTE sample = FUNCTION RANDOM   (
+199700         FUNCTION DATE-OF-INTEGER(6) - 16010100 )
+199800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+199900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+200000         MOVE "34406310,11410800.lit" TO test-number
+200100         PERFORM test-failed
+200200         COMPUTE fun-temp = FUNCTION DATE-OF-INTEGER(6)
+200300         DISPLAY "Argument: FUNCTION DATE-OF-INTEGER(6)=" fun-temp
+200400         DISPLAY "Expected result:  0 <= sample < 1. "
+200500         DISPLAY "Actual result:   " sample
+200600     ELSE
+200700         ADD 1 TO SUCCESSES;
+200800     END-IF.
+200900
+201000**************************************************************
+201100* 34406310 Context: COMPUTE identifier = function-ref
+201200* 11410800 Argument:  Nested function DATE-OF-INTEGER(identifier)
+201300**************************************************************
+201400     COMPUTE sample = FUNCTION RANDOM   (
+201500         FUNCTION DATE-OF-INTEGER(six) - 16010100 )
+201600     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+201700         DISPLAY "*** SAMPLE OUT OF RANGE. "
+201800         MOVE "34406310,11410800.id" TO test-number
+201900         PERFORM test-failed
+202000         COMPUTE fun-temp = FUNCTION DATE-OF-INTEGER(six)
+202100         DISPLAY "Argument: FUNCTION DATE-OF-INTEGER(six)="
+202200             fun-temp
+202300         DISPLAY "Expected result:  0 <= sample < 1. "
+202400         DISPLAY "Actual result:   " sample
+202500     ELSE
+202600         ADD 1 TO SUCCESSES;
+202700     END-IF.
+202800
+202900**************************************************************
+203000* 34406310 Context: COMPUTE identifier = function-ref
+203100* 11410900 Argument:  Nested function DAY-OF-INTEGER(literal)
+203200**************************************************************
+203300     COMPUTE sample = FUNCTION RANDOM   (
+203400         FUNCTION DAY-OF-INTEGER(6) - 1601000 )
+203500     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+203600         DISPLAY "*** SAMPLE OUT OF RANGE. "
+203700         MOVE "34406310,11410900.lit" TO test-number
+203800         PERFORM test-failed
+203900         COMPUTE fun-temp = FUNCTION DAY-OF-INTEGER(6)
+204000         DISPLAY "Argument: FUNCTION DAY-OF-INTEGER(6)=" fun-temp
+204100         DISPLAY "Expected result:  0 <= sample < 1. "
+204200         DISPLAY "Actual result:   " sample
+204300     ELSE
+204400         ADD 1 TO SUCCESSES;
+204500     END-IF.
+204600
+204700**************************************************************
+204800* 34406310 Context: COMPUTE identifier = function-ref
+204900* 11410900 Argument:  Nested function DAY-OF-INTEGER(identifier)
+205000**************************************************************
+205100     COMPUTE sample = FUNCTION RANDOM   (
+205200         FUNCTION DAY-OF-INTEGER(six) - 1601000 )
+205300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+205400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+205500         MOVE "34406310,11410900.id" TO test-number
+205600         PERFORM test-failed
+205700         COMPUTE fun-temp = FUNCTION DAY-OF-INTEGER(six)
+205800         DISPLAY "Argument: FUNCTION DAY-OF-INTEGER(six)="
+205900             fun-temp
+206000         DISPLAY "Expected result:  0 <= sample < 1. "
+206100         DISPLAY "Actual result:   " sample
+206200     ELSE
+206300         ADD 1 TO SUCCESSES;
+206400     END-IF.
+206500
+206600**************************************************************
+206700* 34406310 Context: COMPUTE identifier = function-ref
+206800* 11411100 Argument:  Nested function INTEGER(literal)
+206900**************************************************************
+207000     COMPUTE sample = FUNCTION RANDOM   (
+207100         FUNCTION INTEGER(6) )
+207200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+207300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+207400         MOVE "34406310,11411100.lit" TO test-number
+207500         PERFORM test-failed
+207600         COMPUTE fun-temp = FUNCTION INTEGER(6)
+207700         DISPLAY "Argument: FUNCTION INTEGER(6)=" fun-temp
+207800         DISPLAY "Expected result:  0 <= sample < 1. "
+207900         DISPLAY "Actual result:   " sample
+208000     ELSE
+208100         ADD 1 TO SUCCESSES;
+208200     END-IF.
+208300
+208400**************************************************************
+208500* 34406310 Context: COMPUTE identifier = function-ref
+208600* 11411100 Argument:  Nested function INTEGER(identifier)
+208700**************************************************************
+208800     COMPUTE sample = FUNCTION RANDOM   (
+208900         FUNCTION INTEGER(six) )
+209000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+209100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+209200         MOVE "34406310,11411100.id" TO test-number
+209300         PERFORM test-failed
+209400         COMPUTE fun-temp = FUNCTION INTEGER(six)
+209500         DISPLAY "Argument: FUNCTION INTEGER(six)=" fun-temp
+209600         DISPLAY "Expected result:  0 <= sample < 1. "
+209700         DISPLAY "Actual result:   " sample
+209800     ELSE
+209900         ADD 1 TO SUCCESSES;
+210000     END-IF.
+210100
+210200**************************************************************
+210300* 34406310 Context: COMPUTE identifier = function-ref
+210400* 11411200 Argument:  Nested function INTEGER-OF-DAY(literal)
+210500**************************************************************
+210600     COMPUTE sample = FUNCTION RANDOM   (
+210700         FUNCTION INTEGER-OF-DAY(1601006) )
+210800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+210900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+211000         MOVE "34406310,11411200.lit" TO test-number
+211100         PERFORM test-failed
+211200         COMPUTE fun-temp = FUNCTION INTEGER-OF-DAY(1601006)
+211300         DISPLAY "Argument: FUNCTION INTEGER-OF-DAY(1601006)="
+211400             fun-temp
+211500         DISPLAY "Expected result:  0 <= sample < 1. "
+211600         DISPLAY "Actual result:   " sample
+211700     ELSE
+211800         ADD 1 TO SUCCESSES;
+211900     END-IF.
+212000
+212100**************************************************************
+212200* 34406310 Context: COMPUTE identifier = function-ref
+212300* 11411200 Argument:  Nested function INTEGER-OF-DAY(identifier)
+212400**************************************************************
+212500     MOVE 1601006 TO julian-day
+212600     COMPUTE sample = FUNCTION RANDOM   (
+212700         FUNCTION INTEGER-OF-DAY(julian-day) )
+212800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+212900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+213000         MOVE "34406310,11411200.id" TO test-number
+213100         PERFORM test-failed
+213200         COMPUTE fun-temp = FUNCTION INTEGER-OF-DAY(julian-day)
+213300         DISPLAY "Argument: FUNCTION INTEGER-OF-DAY(julian-day)="
+213400             fun-temp
+213500         DISPLAY "Expected result:  0 <= sample < 1. "
+213600         DISPLAY "Actual result:   " sample
+213700     ELSE
+213800         ADD 1 TO SUCCESSES;
+213900     END-IF.
+214000
+214100**************************************************************
+214200* 34406310 Context: COMPUTE identifier = function-ref
+214300* 11411300 Argument:  Nested function INTEGER-OF-DATE(literal)
+214400**************************************************************
+214500     COMPUTE sample = FUNCTION RANDOM   (
+214600         FUNCTION INTEGER-OF-DATE(16010106) )
+214700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+214800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+214900         MOVE "34406310,11411300.lit" TO test-number
+215000         PERFORM test-failed
+215100         COMPUTE fun-temp = FUNCTION INTEGER-OF-DATE(16010106)
+215200         DISPLAY "Argument: FUNCTION INTEGER-OF-DATE(16010106)="
+215300             fun-temp
+215400         DISPLAY "Expected result:  0 <= sample < 1. "
+215500         DISPLAY "Actual result:   " sample
+215600     ELSE
+215700         ADD 1 TO SUCCESSES;
+215800     END-IF.
+215900
+216000**************************************************************
+216100* 34406310 Context: COMPUTE identifier = function-ref
+216200* 11411300 Argument:  Nested function INTEGER-OF-DATE(identifier)
+216300**************************************************************
+216400     MOVE 16010106 TO gregorian-date
+216500     COMPUTE sample = FUNCTION RANDOM   (
+216600         FUNCTION INTEGER-OF-DATE(gregorian-date) )
+216700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+216800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+216900         MOVE "34406310,11411300.id" TO test-number
+217000         PERFORM test-failed
+217100         COMPUTE fun-temp =
+217200             FUNCTION INTEGER-OF-DATE(gregorian-date)
+217300         DISPLAY "Argument: FUNCTION INTEGER-OF-DATE("
+217400             "gregorian-date)=" fun-temp
+217500         DISPLAY "Expected result:  0 <= sample < 1. "
+217600         DISPLAY "Actual result:   " sample
+217700     ELSE
+217800         ADD 1 TO SUCCESSES;
+217900     END-IF.
+218000
+218100**************************************************************
+218200* 34406310 Context: COMPUTE identifier = function-ref
+218300* 11411400 Argument:  Nested function INTEGER-PART(literal)
+218400**************************************************************
+218500     COMPUTE sample = FUNCTION RANDOM   (
+218600         FUNCTION INTEGER-PART(6.5) )
+218700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+218800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+218900         MOVE "34406310,11411400.lit" TO test-number
+219000         PERFORM test-failed
+219100         COMPUTE fun-temp = FUNCTION INTEGER-PART(6.5)
+219200         DISPLAY "Argument: FUNCTION INTEGER-PART(6.5)=" fun-temp
+219300         DISPLAY "Expected result:  0 <= sample < 1. "
+219400         DISPLAY "Actual result:   " sample
+219500     ELSE
+219600         ADD 1 TO SUCCESSES;
+219700     END-IF.
+219800
+219900**************************************************************
+220000* 34406310 Context: COMPUTE identifier = function-ref
+220100* 11411400 Argument:  Nested function INTEGER-PART(identifier)
+220200**************************************************************
+220300     MOVE 6.51 TO dollars-and-cents
+220400     COMPUTE sample = FUNCTION RANDOM   (
+220500         FUNCTION INTEGER-PART(dollars-and-cents) )
+220600     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+220700         DISPLAY "*** SAMPLE OUT OF RANGE. "
+220800         MOVE "34406310,11411400.id" TO test-number
+220900         PERFORM test-failed
+221000         COMPUTE fun-temp =
+221100             FUNCTION INTEGER-PART(dollars-and-cents)
+221200         DISPLAY "Argument: FUNCTION INTEGER-PART("
+221300             "dollars-and-cents)=" fun-temp
+221400         DISPLAY "Expected result:  0 <= sample < 1. "
+221500         DISPLAY "Actual result:   " sample
+221600     ELSE
+221700         ADD 1 TO SUCCESSES;
+221800     END-IF.
+221900
+222000**************************************************************
+222100* 34406310 Context: COMPUTE identifier = function-ref
+222200* 11411500 Argument:  Nested function LENGTH(literal)
+222300**************************************************************
+222400     COMPUTE sample = FUNCTION RANDOM   (
+222500         FUNCTION LENGTH("AbCdEf") )
+222600     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+222700         DISPLAY "*** SAMPLE OUT OF RANGE. "
+222800         MOVE "34406310,11411500.lit" TO test-number
+222900         PERFORM test-failed
+223000         COMPUTE fun-temp = FUNCTION LENGTH("AbCdEf")
+223100         DISPLAY "Argument: FUNCTION LENGTH('AbCdEf')=" fun-temp
+223200         DISPLAY "Expected result:  0 <= sample < 1. "
+223300         DISPLAY "Actual result:   " sample
+223400     ELSE
+223500         ADD 1 TO SUCCESSES;
+223600     END-IF.
+223700
+223800**************************************************************
+223900* 34406310 Context: COMPUTE identifier = function-ref
+224000* 11411500 Argument:  Nested function LENGTH(identifier)
+224100**************************************************************
+224200     MOVE "AbCdEf" TO six-characters
+224300     COMPUTE sample = FUNCTION RANDOM   (
+224400         FUNCTION LENGTH(six-characters) )
+224500     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+224600         DISPLAY "*** SAMPLE OUT OF RANGE. "
+224700         MOVE "34406310,11411500.id" TO test-number
+224800         PERFORM test-failed
+224900         COMPUTE fun-temp = FUNCTION LENGTH(six-characters)
+225000         DISPLAY "Argument: FUNCTION LENGTH("
+225100             "six-characters)=" fun-temp
+225200         DISPLAY "Expected result:  0 <= sample < 1. "
+225300         DISPLAY "Actual result:   " sample
+225400     ELSE
+225500         ADD 1 TO SUCCESSES;
+225600     END-IF.
+225700
+225800**************************************************************
+225900* 34406310 Context: COMPUTE identifier = function-ref
+226000* 11411920 Argument:  Nested function MAX(all integer litrl args)
+226100**************************************************************
+226200     COMPUTE sample = FUNCTION RANDOM   (
+226300         FUNCTION MAX(1 3 -2 6 -8) )
+226400     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+226500         DISPLAY "*** SAMPLE OUT OF RANGE. "
+226600         MOVE "34406310,11411920.lit" TO test-number
+226700         PERFORM test-failed
+226800         COMPUTE fun-temp = FUNCTION MAX(1 3 -2 6 -8)
+226900         DISPLAY "Argument: FUNCTION MAX(1 3 -2 6 -8)=" fun-temp
+227000         DISPLAY "Expected result:  0 <= sample < 1. "
+227100         DISPLAY "Actual result:   " sample
+227200     ELSE
+227300         ADD 1 TO SUCCESSES;
+227400     END-IF.
+227500
+227600**************************************************************
+227700* 34406310 Context: COMPUTE identifier = function-ref
+227800* 11411920 Argument:  Nested function MAX(all integer ident args)
+227900**************************************************************
+228000     COMPUTE sample = FUNCTION RANDOM   (
+228100         FUNCTION MAX(one three negative-two six negative-eight) )
+228200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+228300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+228400         MOVE "34406310,11411920.id" TO test-number
+228500         PERFORM test-failed
+228600         COMPUTE fun-temp =
+228700           FUNCTION MAX(one three negative-two six negative-eight)
+228800         DISPLAY "Argument: FUNCTION MAX("
+228900             "one three negative-two six negative-eight)="
+229000             fun-temp
+229100         DISPLAY "Expected result:  0 <= sample < 1. "
+229200         DISPLAY "Actual result:   " sample
+229300     ELSE
+229400         ADD 1 TO SUCCESSES;
+229500     END-IF.
+229600
+229700**************************************************************
+229800* 34406310 Context: COMPUTE identifier = function-ref
+229900* 11412320 Argument:  Nested function MIN(all integer litrl args)
+230000**************************************************************
+230100     COMPUTE sample = FUNCTION RANDOM   (
+230200         FUNCTION MIN(8 6 16 23 11) )
+230300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+230400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+230500         MOVE "34406310,11412320.lit" TO test-number
+230600         PERFORM test-failed
+230700         COMPUTE fun-temp = FUNCTION MIN(8 6 16 23 11)
+230800         DISPLAY "Argument: FUNCTION MIN(8 6 16 23 11)=" fun-temp
+230900         DISPLAY "Expected result:  0 <= sample < 1. "
+231000         DISPLAY "Actual result:   " sample
+231100     ELSE
+231200         ADD 1 TO SUCCESSES;
+231300     END-IF.
+231400
+231500**************************************************************
+231600* 34406310 Context: COMPUTE identifier = function-ref
+231700* 11412320 Argument:  Nested function MIN(all integer ident args)
+231800**************************************************************
+231900     COMPUTE sample = FUNCTION RANDOM   (
+232000         FUNCTION MIN(eight six sixteen eleven) )
+232100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+232200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+232300         MOVE "34406310,11412320.id" TO test-number
+232400         PERFORM test-failed
+232500         COMPUTE fun-temp = FUNCTION MIN(eight six sixteen eleven)
+232600         DISPLAY "Argument: FUNCTION MIN("
+232700             "eight six sixteen eleven)=" fun-temp
+232800         DISPLAY "Expected result:  0 <= sample < 1. "
+232900         DISPLAY "Actual result:   " sample
+233000     ELSE
+233100         ADD 1 TO SUCCESSES;
+233200     END-IF.
+233300
+233400**************************************************************
+233500* 34406310 Context: COMPUTE identifier = function-ref
+233600* 11412400 Argument:  Nested function MOD(literals)
+233700**************************************************************
+233800     COMPUTE sample = FUNCTION RANDOM   (
+233900         FUNCTION MOD(16, 10) )
+234000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+234100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+234200         MOVE "34406310,11412400.lit" TO test-number
+234300         PERFORM test-failed
+234400         COMPUTE fun-temp = FUNCTION MOD(16, 10)
+234500         DISPLAY "Argument: FUNCTION MOD(16, 10)=" fun-temp
+234600         DISPLAY "Expected result:  0 <= sample < 1. "
+234700         DISPLAY "Actual result:   " sample
+234800     ELSE
+234900         ADD 1 TO SUCCESSES;
+235000     END-IF.
+235100
+235200**************************************************************
+235300* 34406310 Context: COMPUTE identifier = function-ref
+235400* 11412400 Argument:  Nested function MOD(identifier)
+235500**************************************************************
+235600     COMPUTE sample = FUNCTION RANDOM   (
+235700         FUNCTION MOD(sixteen, ten) )
+235800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+235900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+236000         MOVE "34406310,11412400.id" TO test-number
+236100         PERFORM test-failed
+236200         COMPUTE fun-temp = FUNCTION MOD(sixteen, ten)
+236300         DISPLAY "Argument: FUNCTION MOD(sixteen, ten)=" fun-temp
+236400         DISPLAY "Expected result:  0 <= sample < 1. "
+236500         DISPLAY "Actual result:   " sample
+236600     ELSE
+236700         ADD 1 TO SUCCESSES;
+236800     END-IF.
+236900
+237000**************************************************************
+237100* 34406310 Context: COMPUTE identifier = function-ref
+237200* 11412700 Argument:  Nested function ORD(literal)
+237300**************************************************************
+237400     COMPUTE sample = FUNCTION RANDOM   (
+237500         FUNCTION ORD(X"05") )
+237600     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+237700         DISPLAY "*** SAMPLE OUT OF RANGE. "
+237800         MOVE "34406310,11412700.lit" TO test-number
+237900         PERFORM test-failed
+238000         COMPUTE fun-temp = FUNCTION ORD(X"05")
+238100         DISPLAY "Argument: FUNCTION ORD(X'05')= " fun-temp
+238200         DISPLAY "Expected result:  0 <= sample < 1. "
+238300         DISPLAY "Actual result:   " sample
+238400     ELSE
+238500         ADD 1 TO SUCCESSES;
+238600     END-IF.
+238700
+238800**************************************************************
+238900* 34406310 Context: COMPUTE identifier = function-ref
+239000* 11412700 Argument:  Nested function ORD(identifier)
+239100**************************************************************
+239200     COMPUTE sample = FUNCTION RANDOM   (
+239300         FUNCTION ORD(ht) )
+239400     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+239500         DISPLAY "*** SAMPLE OUT OF RANGE. "
+239600         MOVE "34406310,11412700.id" TO test-number
+239700         PERFORM test-failed
+239800         COMPUTE fun-temp = FUNCTION ORD(ht)
+239900         DISPLAY "Argument: FUNCTION ORD(ht)=" fun-temp
+240000         DISPLAY "Expected result:  0 <= sample < 1. "
+240100         DISPLAY "Actual result:   " sample
+240200     ELSE
+240300         ADD 1 TO SUCCESSES;
+240400     END-IF.
+240500
+240600**************************************************************
+240700* 34406310 Context: COMPUTE identifier = function-ref
+240800* 11412800 Argument:  Nested function ORD-MAX(literals)
+240900**************************************************************
+241000     COMPUTE sample = FUNCTION RANDOM   (
+241100         FUNCTION ORD-MAX(0 -2 4 -16 3 6 1) )
+241200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+241300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+241400         MOVE "34406310,11412800.lit" TO test-number
+241500         PERFORM test-failed
+241600         COMPUTE fun-temp = FUNCTION ORD-MAX(0 -2 4 -16 3 6 1)
+241700         DISPLAY "Argument: FUNCTION ORD-MAX(0 -2 4 -16 3 6 1)="
+241800             fun-temp
+241900         DISPLAY "Expected result:  0 <= sample < 1. "
+242000         DISPLAY "Actual result:   " sample
+242100     ELSE
+242200         ADD 1 TO SUCCESSES;
+242300     END-IF.
+242400
+242500**************************************************************
+242600* 34406310 Context: COMPUTE identifier = function-ref
+242700* 11412800 Argument:  Nested function ORD-MAX(identifiers)
+242800**************************************************************
+242900     COMPUTE sample = FUNCTION RANDOM   (
+243000         FUNCTION ORD-MAX(0 negative-two four
+243100             negative-five three six one) )
+243200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+243300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+243400         MOVE "34406310,11412800.id" TO test-number
+243500         PERFORM test-failed
+243600         DISPLAY "Argument: FUNCTION ORD-MAX(0 negative-two"
+243700             " four negative-five three six one )= 6"
+243800         DISPLAY "Expected result:  0 <= sample < 1. "
+243900         DISPLAY "Actual result:   " sample
+244000     ELSE
+244100         ADD 1 TO SUCCESSES;
+244200     END-IF.
+244300
+244400**************************************************************
+244500* 34406310 Context: COMPUTE identifier = function-ref
+244600* 11412900 Argument:  Nested function ORD-MIN(literal)
+244700**************************************************************
+244800     COMPUTE sample = FUNCTION RANDOM   (
+244900         FUNCTION ORD-MIN(0 -2 4 3 6 -16 1) )
+245000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+245100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+245200         MOVE "34406310,11412900.lit" TO test-number
+245300         PERFORM test-failed
+245400         COMPUTE fun-temp = FUNCTION ORD-MIN(0 -2 4 3 6 -16 1)
+245500         DISPLAY "Argument: FUNCTION ORD-MIN(0 -2 4 3 6 -16 1)= "
+245600             fun-temp
+245700         DISPLAY "Expected result:  0 <= sample < 1. "
+245800         DISPLAY "Actual result:   " sample
+245900     ELSE
+246000         ADD 1 TO SUCCESSES;
+246100     END-IF.
+246200
+246300**************************************************************
+246400* 34406310 Context: COMPUTE identifier = function-ref
+246500* 11412900 Argument:  Nested function ORD-MIN(identifier)
+246600**************************************************************
+246700     COMPUTE sample = FUNCTION RANDOM   (
+246800         FUNCTION ORD-MIN(0 negative-two four three six
+246900             negative-five one) )
+247000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+247100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+247200         MOVE "34406310,11412900.id" TO test-number
+247300         PERFORM test-failed
+247400         COMPUTE fun-temp = FUNCTION ORD-MIN(0 negative-two
+247500             four three six negative-five one)
+247600         DISPLAY "Argument: FUNCTION ORD-MIN(0 negative-two"
+247700             " four three six negative-five one )= " fun-temp
+247800         DISPLAY "Expected result:  0 <= sample < 1. "
+247900         DISPLAY "Actual result:   " sample
+248000     ELSE
+248100         ADD 1 TO SUCCESSES;
+248200     END-IF.
+248300
+248400**************************************************************
+248500* 34406310 Context: COMPUTE identifier = function-ref
+248600* 11413210 Argument:  Nested function RANGE(all integer args)
+248700**************************************************************
+248800     COMPUTE sample = FUNCTION RANDOM   (
+248900         FUNCTION RANGE(0, -2, 4, 3, 1) )
+249000     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+249100         DISPLAY "*** SAMPLE OUT OF RANGE. "
+249200         MOVE "34406310,11413210.lit" TO test-number
+249300         PERFORM test-failed
+249400         COMPUTE fun-temp = FUNCTION RANGE(0, -2, 4, 3, 1)
+249500         DISPLAY "Argument: FUNCTION RANGE(0, -2, 4, 3, 1)= "
+249600             fun-temp
+249700         DISPLAY "Expected result:  0 <= sample < 1. "
+249800         DISPLAY "Actual result:   " sample
+249900     ELSE
+250000         ADD 1 TO SUCCESSES;
+250100     END-IF.
+250200
+250300**************************************************************
+250400* 34406310 Context: COMPUTE identifier = function-ref
+250500* 11413210 Argument:  Nested function RANGE(identifier)
+250600**************************************************************
+250700     COMPUTE sample = FUNCTION RANDOM   (
+250800         FUNCTION RANGE(0, negative-two, four, three, one) )
+250900     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+251000         DISPLAY "*** SAMPLE OUT OF RANGE. "
+251100         MOVE "34406310,11413210.id" TO test-number
+251200         PERFORM test-failed
+251300         COMPUTE fun-temp = FUNCTION RANGE(
+251400             0, negative-two, four, three, one)
+251500         DISPLAY "Argument: FUNCTION RANGE("
+251600             "0, negative-two, four, three, one)= " fun-temp
+251700         DISPLAY "Expected result:  0 <= sample < 1. "
+251800         DISPLAY "Actual result:   " sample
+251900     ELSE
+252000         ADD 1 TO SUCCESSES;
+252100     END-IF.
+252200
+252300**************************************************************
+252400* 34406310 Context: COMPUTE identifier = function-ref
+252500* 11413810 Argument:  Nested function SUM(all integer litrl args)
+252600**************************************************************
+252700     COMPUTE sample = FUNCTION RANDOM   (
+252800         FUNCTION SUM(0, -2, 4, 3, 1) )
+252900     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+253000         DISPLAY "*** SAMPLE OUT OF RANGE. "
+253100         MOVE "34406310,11413810.lit" TO test-number
+253200         PERFORM test-failed
+253300         COMPUTE fun-temp = FUNCTION SUM(0, -2, 4, 3, 1)
+253400         DISPLAY "Argument: FUNCTION SUM(0, -2, 4, 3, 1)= "
+253500             fun-temp
+253600         DISPLAY "Expected result:  0 <= sample < 1. "
+253700         DISPLAY "Actual result:   " sample
+253800     ELSE
+253900         ADD 1 TO SUCCESSES;
+254000     END-IF.
+254100
+254200**************************************************************
+254300* 34406310 Context: COMPUTE identifier = function-ref
+254400* 11413810 Argument:  Nested function SUM(identifier)
+254500**************************************************************
+254600     COMPUTE sample = FUNCTION RANDOM   (
+254700         FUNCTION SUM(0, negative-two, four, three, one) )
+254800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+254900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+255000         MOVE "34406310,11413810.id" TO test-number
+255100         PERFORM test-failed
+255200         COMPUTE fun-temp = FUNCTION SUM(
+255300             0, negative-two, four, three, one)
+255400         DISPLAY "Argument: FUNCTION SUM("
+255500             "0, negative-two, four, three, one)= " fun-temp
+255600         DISPLAY "Expected result:  0 <= sample < 1. "
+255700         DISPLAY "Actual result:   " sample
+255800     ELSE
+255900         ADD 1 TO SUCCESSES;
+256000     END-IF.
+256100
+256200
+256300
+256400 ARITHMETIC-OPERATIONS-AS-ARGS.
+256500*
+256600**************************************************************
+256700* 34406310 Context: COMPUTE identifier = function-ref
+256800* 11421100 Argument:  Addition of Integer literal operands
+256900**************************************************************
+257000     COMPUTE sample = FUNCTION RANDOM   ( 1 + 3 + 2 )
+257100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+257200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+257300         MOVE "34406310,11421100.lit" TO test-number
+257400         PERFORM test-failed
+257500         DISPLAY "Argument: ( 1 + 3 + 2 )= 6"
+257600         DISPLAY "Expected result:  0 <= sample < 1. "
+257700         DISPLAY "Actual result:   " sample
+257800     ELSE
+257900         ADD 1 TO SUCCESSES;
+258000     END-IF.
+258100
+258200**************************************************************
+258300* 34406310 Context: COMPUTE identifier = function-ref
+258400* 11421100 Argument:  Addition of Integer identifier operands
+258500**************************************************************
+258600     COMPUTE sample = FUNCTION RANDOM   ( one + three + two )
+258700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+258800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+258900         MOVE "34406310,11421100.id" TO test-number
+259000         PERFORM test-failed
+259100         DISPLAY "Argument: ( one + three + two )= 6"
+259200         DISPLAY "Expected result:  0 <= sample < 1. "
+259300         DISPLAY "Actual result:   " sample
+259400     ELSE
+259500         ADD 1 TO SUCCESSES;
+259600     END-IF.
+259700
+259800**************************************************************
+259900* 34406310 Context: COMPUTE identifier = function-ref
+260000* 11422100 Argument:  Subtraction of Integer literal operands
+260100**************************************************************
+260200     COMPUTE sample = FUNCTION RANDOM   ( 8 - 2 )
+260300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+260400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+260500         MOVE "34406310,11422100.lit" TO test-number
+260600         PERFORM test-failed
+260700         DISPLAY "Argument: ( 8 - 2 )= 6"
+260800         DISPLAY "Expected result:  0 <= sample < 1. "
+260900         DISPLAY "Actual result:   " sample
+261000     ELSE
+261100         ADD 1 TO SUCCESSES;
+261200     END-IF.
+261300
+261400**************************************************************
+261500* 34406310 Context: COMPUTE identifier = function-ref
+261600* 11422100 Argument:  Subtraction of Integer identifier operands
+261700**************************************************************
+261800     COMPUTE sample = FUNCTION RANDOM   ( eight - two )
+261900     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+262000         DISPLAY "*** SAMPLE OUT OF RANGE. "
+262100         MOVE "34406310,11422100.id" TO test-number
+262200         PERFORM test-failed
+262300         DISPLAY "Argument: ( eight - two )= 6"
+262400         DISPLAY "Expected result:  0 <= sample < 1. "
+262500         DISPLAY "Actual result:   " sample
+262600     ELSE
+262700         ADD 1 TO SUCCESSES;
+262800     END-IF.
+262900
+263000**************************************************************
+263100* 34406310 Context: COMPUTE identifier = function-ref
+263200* 11423100 Argument:  Multiplication of Integer literal operands
+263300**************************************************************
+263400     COMPUTE sample = FUNCTION RANDOM   ( 3 * 2 )
+263500     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+263600         DISPLAY "*** SAMPLE OUT OF RANGE. "
+263700         MOVE "34406310,11423100.lit" TO test-number
+263800         PERFORM test-failed
+263900         DISPLAY "Argument: ( 3 * 2 )= 6"
+264000         DISPLAY "Expected result:  0 <= sample < 1. "
+264100         DISPLAY "Actual result:   " sample
+264200     ELSE
+264300         ADD 1 TO SUCCESSES;
+264400     END-IF.
+264500
+264600**************************************************************
+264700* 34406310 Context: COMPUTE identifier = function-ref
+264800* 11423100 Argument:  Multiplication of Integer ident operands
+264900**************************************************************
+265000     COMPUTE sample = FUNCTION RANDOM   ( three * two )
+265100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+265200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+265300         MOVE "34406310,11423100.id" TO test-number
+265400         PERFORM test-failed
+265500         DISPLAY "Argument: ( three * two )= 6"
+265600         DISPLAY "Expected result:  0 <= sample < 1. "
+265700         DISPLAY "Actual result:   " sample
+265800     ELSE
+265900         ADD 1 TO SUCCESSES;
+266000     END-IF.
+266100
+266200**************************************************************
+266300* 34406310 Context: COMPUTE identifier = function-ref
+266400* 11424100 Argument:  Division of Integer literal operands
+266500**************************************************************
+266600*    COMPUTE sample = FUNCTION RANDOM   ( 12 / 2 )
+266700*    IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+266800*        DISPLAY "*** SAMPLE OUT OF RANGE. "
+266900*        MOVE "34406310,11424100.lit" TO test-number
+267000*        PERFORM test-failed
+267100*        DISPLAY "Argument: ( 12 / 2 )= 6"
+267200*        DISPLAY "Expected result:  0 <= sample < 1. "
+267300*        DISPLAY "Actual result:   " sample
+267400*    ELSE
+267500*        ADD 1 TO SUCCESSES;
+267600*    END-IF.
+267700*
+267800**************************************************************
+267900* 34406310 Context: COMPUTE identifier = function-ref
+268000* 11424100 Argument:  Division of Integer identifier operands
+268100**************************************************************
+268200*    COMPUTE sample = FUNCTION RANDOM   ( twelve / two )
+268300*    IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+268400*        DISPLAY "*** SAMPLE OUT OF RANGE. "
+268500*        MOVE "34406310,11424100.id" TO test-number
+268600*        PERFORM test-failed
+268700*        DISPLAY "Argument: ( twelve / two )= 6"
+268800*        DISPLAY "Expected result:  0 <= sample < 1. "
+268900*        DISPLAY "Actual result:   " sample
+269000*    ELSE
+269100*        ADD 1 TO SUCCESSES;
+269200*    END-IF.
+269300
+269400**************************************************************
+269500* 34406310 Context: COMPUTE identifier = function-ref
+269600* 11425100 Argument:  Exponentiation of Integer literal operands
+269700**************************************************************
+269800*    COMPUTE sample = FUNCTION RANDOM   ( 2 ** 3 )
+269900*    IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+270000*        DISPLAY "*** SAMPLE OUT OF RANGE. "
+270100*        MOVE "34406310,11425100.lit" TO test-number
+270200*        PERFORM test-failed
+270300*        DISPLAY "Argument: ( 2 ** 3 )= 8"
+270400*        DISPLAY "Expected result:  0 <= sample < 1. "
+270500*        DISPLAY "Actual result:   " sample
+270600*    ELSE
+270700*        ADD 1 TO SUCCESSES;
+270800*    END-IF.
+270900
+271000**************************************************************
+271100* 34406310 Context: COMPUTE identifier = function-ref
+271200* 11425100 Argument:  Exponentiation of Integer ident operands
+271300**************************************************************
+271400*    COMPUTE sample = FUNCTION RANDOM   ( two ** third )
+271500*    IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+271600*        DISPLAY "*** SAMPLE OUT OF RANGE. "
+271700*        MOVE "34406310,11425100.id" TO test-number
+271800*        PERFORM test-failed
+271900*        DISPLAY "Argument: ( two ** third )= 8"
+272000*        DISPLAY "Expected result:  0 <= sample < 1. "
+272100*        DISPLAY "Actual result:   " sample
+272200*    ELSE
+272300*        ADD 1 TO SUCCESSES;
+272400*    END-IF.
+272500
+272600**************************************************************
+272700* 34406310 Context: COMPUTE identifier = function-ref
+272800* 11426100 Argument:  Identity (prefix +) of Integer operand
+272900**************************************************************
+273000     COMPUTE sample = FUNCTION RANDOM   ( + 6 )
+273100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+273200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+273300         MOVE "34406310,11426100.lit" TO test-number
+273400         PERFORM test-failed
+273500         DISPLAY "Argument: ( + 6 )= 6"
+273600         DISPLAY "Expected result:  0 <= sample < 1. "
+273700         DISPLAY "Actual result:   " sample
+273800     ELSE
+273900         ADD 1 TO SUCCESSES;
+274000     END-IF.
+274100
+274200**************************************************************
+274300* 34406310 Context: COMPUTE identifier = function-ref
+274400* 11426100 Argument:  Identity (prefix +) of Int ident operands
+274500**************************************************************
+274600     COMPUTE sample = FUNCTION RANDOM   ( + six )
+274700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+274800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+274900         MOVE "34406310,11426100.id" TO test-number
+275000         PERFORM test-failed
+275100         DISPLAY "Argument: ( + six )= 6"
+275200         DISPLAY "Expected result:  0 <= sample < 1. "
+275300         DISPLAY "Actual result:   " sample
+275400     ELSE
+275500         ADD 1 TO SUCCESSES;
+275600     END-IF.
+275700
+275800**************************************************************
+275900* 34406310 Context: COMPUTE identifier = function-ref
+276000* 11427100 Argument:  Negation (prefix -) of Integer operand
+276100**************************************************************
+276200     COMPUTE sample = FUNCTION RANDOM   ( - -6 )
+276300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+276400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+276500         MOVE "34406310,11426100.lit" TO test-number
+276600         PERFORM test-failed
+276700         DISPLAY "Argument: ( - -6 )= 6"
+276800         DISPLAY "Expected result:  0 <= sample < 1. "
+276900         DISPLAY "Actual result:   " sample
+277000     ELSE
+277100         ADD 1 TO SUCCESSES;
+277200     END-IF.
+277300
+277400**************************************************************
+277500* 34406310 Context: COMPUTE identifier = function-ref
+277600* 11426100 Argument:  Negation (prefix -) of Int ident operands
+277700**************************************************************
+277800     COMPUTE sample = FUNCTION RANDOM   ( - negative-six )
+277900     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+278000         DISPLAY "*** SAMPLE OUT OF RANGE. "
+278100         MOVE "34406310,11426100.id" TO test-number
+278200         PERFORM test-failed
+278300         DISPLAY "Argument: ( - negative-six )= 6"
+278400         DISPLAY "Expected result:  0 <= sample < 1. "
+278500         DISPLAY "Actual result:   " sample
+278600     ELSE
+278700         ADD 1 TO SUCCESSES;
+278800     END-IF.
+278900
+279000
+279100
+279200 COMBINED-FUNCTIONS-AS-ARGS.
+279300*
+279400**************************************************************
+279500* 34406310 Context: COMPUTE identifier = function-ref
+279600* 11431000 Argument:  Expression combining 2 integer functions
+279700*                        (with literal arguments)
+279800**************************************************************
+279900     COMPUTE sample = FUNCTION RANDOM   (
+280000         FUNCTION INTEGER-PART(2.7) * FUNCTION LENGTH("AbC") )
+280100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+280200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+280300         MOVE "34406310,11431000.lit" TO test-number
+280400         PERFORM test-failed
+280500         COMPUTE fun-temp = FUNCTION INTEGER-PART(2.7)
+280600             * FUNCTION LENGTH("AbC")
+280700         DISPLAY "Argument: FUNCTION INTEGER-PART(2.7) "
+280800             "* FUNCTION LENGTH('AbC')= " fun-temp
+280900         DISPLAY "Expected result:  0 <= sample < 1. "
+281000         DISPLAY "Actual result:   " sample
+281100     ELSE
+281200         ADD 1 TO SUCCESSES;
+281300     END-IF.
+281400
+281500**************************************************************
+281600* 34406310 Context: COMPUTE identifier = function-ref
+281700* 11431000 Argument:  Expression combining 2 integer functions
+281800*                        (with identifier arguments)
+281900**************************************************************
+282000     COMPUTE sample = FUNCTION RANDOM   (
+282100         FUNCTION INTEGER-PART(two-point-seven)
+282200         * FUNCTION LENGTH(three-characters) )
+282300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+282400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+282500         MOVE "34406310,11431000.id" TO test-number
+282600         PERFORM test-failed
+282700         COMPUTE fun-temp = FUNCTION INTEGER-PART(two-point-seven)
+282800             * FUNCTION LENGTH(three-characters)
+282900         DISPLAY "Argument:  "
+283000             "FUNCTION INTEGER-PART(two-point-seven) "
+283100             "* FUNCTION LENGTH(three-characters) = " fun-temp
+283200         DISPLAY "Expected result:  0 <= sample < 1. "
+283300         DISPLAY "Actual result:   " sample
+283400     ELSE
+283500         ADD 1 TO SUCCESSES;
+283600     END-IF.
+283700
+283800
+283900
+284000 LITERAL-ARGUMENTS.
+284100*
+284200**************************************************************
+284300* 34406310 Context: COMPUTE identifier = function-ref
+284400* 11121100 Argument:  Fixed-point Integer Numeric Literal
+284500* 11512100 Argument:  Literal with value Zero
+284600**************************************************************
+284700     COMPUTE sample = FUNCTION RANDOM   ( 0 )
+284800     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+284900         DISPLAY "*** SAMPLE OUT OF RANGE. "
+285000         MOVE "34406310,11211000,11512100.0" TO test-number
+285100         PERFORM test-failed
+285200         DISPLAY "Argument:  0"
+285300         DISPLAY "Expected result:  0 <= sample < 1. "
+285400         DISPLAY "Actual result:   " sample
+285500     ELSE
+285600         ADD 1 TO SUCCESSES;
+285700     END-IF.
+285800
+285900**************************************************************
+286000* 34406310 Context: COMPUTE identifier = function-ref
+286100* 11121100 Argument:  Fixed-point Integer Numeric Literal
+286200* 11512110 Argument:  Literal with positive values 1 through 5
+286300**************************************************************
+286400     COMPUTE sample = FUNCTION RANDOM   ( 1 )
+286500     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+286600         DISPLAY "*** SAMPLE OUT OF RANGE. "
+286700         MOVE "34406310,11211000,11512100.1" TO test-number
+286800         PERFORM test-failed
+286900         DISPLAY "Argument:  1"
+287000         DISPLAY "Expected result:  0 <= sample < 1. "
+287100         DISPLAY "Actual result:   " sample
+287200     ELSE
+287300         ADD 1 TO SUCCESSES;
+287400     END-IF.
+287500
+287600     COMPUTE sample = FUNCTION RANDOM   ( 2 )
+287700     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+287800         DISPLAY "*** SAMPLE OUT OF RANGE. "
+287900         MOVE "34406310,11211000,11512100.1" TO test-number
+288000         PERFORM test-failed
+288100         DISPLAY "Argument:  2"
+288200         DISPLAY "Expected result:  0 <= sample < 1. "
+288300         DISPLAY "Actual result:   " sample
+288400     ELSE
+288500         ADD 1 TO SUCCESSES;
+288600     END-IF.
+288700
+288800     COMPUTE sample = FUNCTION RANDOM   ( 3 )
+288900     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+289000         DISPLAY "*** SAMPLE OUT OF RANGE. "
+289100         MOVE "34406310,11211000,11512100.3" TO test-number
+289200         PERFORM test-failed
+289300         DISPLAY "Argument:  3"
+289400         DISPLAY "Expected result:  0 <= sample < 1. "
+289500         DISPLAY "Actual result:   " sample
+289600     ELSE
+289700         ADD 1 TO SUCCESSES;
+289800     END-IF.
+289900
+290000     COMPUTE sample = FUNCTION RANDOM   ( 4 )
+290100     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+290200         DISPLAY "*** SAMPLE OUT OF RANGE. "
+290300         MOVE "34406310,11211000,11512100.4" TO test-number
+290400         PERFORM test-failed
+290500         DISPLAY "Argument:  4"
+290600         DISPLAY "Expected result:  0 <= sample < 1. "
+290700         DISPLAY "Actual result:   " sample
+290800     ELSE
+290900         ADD 1 TO SUCCESSES;
+291000     END-IF.
+291100
+291200     COMPUTE sample = FUNCTION RANDOM   ( 4 )
+291300     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+291400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+291500         MOVE "34406310,11211000,11512100.4" TO test-number
+291600         PERFORM test-failed
+291700         DISPLAY "Argument:  4"
+291800         DISPLAY "Expected result:  0 <= sample < 1. "
+291900         DISPLAY "Actual result:   " sample
+292000     ELSE
+292100         ADD 1 TO SUCCESSES;
+292200     END-IF.
+292300
+292400     COMPUTE sample = FUNCTION RANDOM   ( 5 )
+292500     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+292600         DISPLAY "*** SAMPLE OUT OF RANGE. "
+292700         MOVE "34406310,11211000,11512100.5" TO test-number
+292800         PERFORM test-failed
+292900         DISPLAY "Argument:  5"
+293000         DISPLAY "Expected result:  0 <= sample < 1. "
+293100         DISPLAY "Actual result:   " sample
+293200     ELSE
+293300         ADD 1 TO SUCCESSES;
+293400     END-IF.
+293500
+293600**************************************************************
+293700* 34406310 Context: COMPUTE identifier = function-ref
+293800* 11121100 Argument:  Fixed-point Integer Numeric Literal
+293900* 11512110 Argument:  Literal with positive values 2,147,483,645
+294000**************************************************************
+294100     COMPUTE sample = FUNCTION RANDOM   ( 2147483645 )
+294200     IF  sample < +0.0E+00 OR sample >= +1.0E+00  THEN
+294300         DISPLAY "*** SAMPLE OUT OF RANGE. "
+294400         MOVE "34406310,11211000,11512100.2147483645"
+294500         TO test-number
+294600         PERFORM test-failed
+294700         DISPLAY "Argument:  2,147,483,645"
+294800         DISPLAY "Expected result:  0 <= sample < 1. "
+294900         DISPLAY "Actual result:   " sample
+295000     ELSE
+295100         ADD 1 TO SUCCESSES;
+295200     END-IF.
+295300
+295301*============================================================
+295302*
+295303*    The following code was disabled on 6/1/95 by RACRUZ (with
+295304*    concurrance from MZSMITH) because it is implementation-
+295305*    dependent.  It does *NOT* test (in the general case) the
+295306*    statement in the COBOL Language Reference which states:
+295307*
+295309*       "If argument-1 is specified, it must be zero or a positive
+295310*        integer, up to an including (10**18)-1, which is the
+295311*        maximum value that can be specified in a PIC 9(18) fixed
+295312*        item; however, only those in the range from zero up to
+295313*        including 2,147,483,645 will yield a distinct sequence of
+295314*        pseudo-random numbers."
+295315*
+295316*    This statement does not require that the pseudo-random
+295317*    sequence for 2,147,483,646 be the same as that for 0, only
+295318*    that it will be the same as *some* one of the sequences
+295319*    generated for argument-1 values in the range 0 to
+295320*    2,147,483,645.  Since it is impossible to know which one of
+295321*    these sequences will be duplicated, and it is impractical to
+295322*    check them all this test item is disabled.
+295323*
+295400**************************************************************
+295500* 34406310 Context: COMPUTE identifier = function-ref
+295600* 11121100 Argument:  Fixed-point Integer Numeric Literal
+295700* 11512110 Argument:  a wrap around test of function RANDOM (0)
+295800*                     with positive values 2,147,483,646
+295900**************************************************************
+296000*    COMPUTE sample = FUNCTION RANDOM   ( 2147483646 )
+296100*    IF  sample NOT = FUNCTION RANDOM ( 0 )  THEN
+296200*        DISPLAY "*** SAMPLE OUT OF RANGE. "
+296300*        MOVE "34406310,11211000,11512100.2147483646"
+296400*        TO test-number
+296500*        PERFORM test-failed
+296600*        DISPLAY "Argument:  2,147,483,646"
+296700*        DISPLAY "Expected :  RANDOM (0) =  RANDOM (2147483646)."
+296800*        DISPLAY "Actual result: RANDOM (0) = " sample
+296900*        DISPLAY "Actual result: RANDOM (2147483646) = " sample
+297000*    ELSE
+297100*        ADD 1 TO SUCCESSES;
+297200*    END-IF.
+297300*
+297400*============(end of code disabled 6/1/95 RAC)===================
+297500
+297600 E15-SORT-Input SECTION.
+297700
+297800 SD-ARGUMENTS-Setup.
+297900*
+298000**************************************************************
+298100* 11314200 Argument:  Located in SD
+298200**************************************************************
+298300     MOVE +3 TO SD-sending-item
+298400     RELEASE dummy-sort-record.
+298500
+298600
+298700
+298800 E35-SORT-Output SECTION.
+298900
+299000 SD-ARGUMENTS-Checkup.
+299100*
+299200**************************************************************
+299300* 11314200 Argument:  Located in SD
+299400**************************************************************
+299500     RETURN dummy-sort-file
+299600       AT END
+299700         DISPLAY "*** No records sorted ***"
+299800         MOVE "11314200" TO test-number
+299900         PERFORM test-failed
+300000     END-RETURN.
+300100
+300200     COMPUTE temp = FUNCTION RANDOM   ( SD-sending-item )
+300300     IF  temp < +0.0E+00 OR sample >= +1.0E+00  THEN
+300400         DISPLAY "*** SAMPLE OUT OF RANGE. "
+300500         MOVE "11314200" TO test-number
+300600         PERFORM test-failed
+300700         DISPLAY "Argument Value =" SD-sending-item
+300800         DISPLAY "Expected result = 6"
+300900         DISPLAY "Actual result   =" temp
+301000     ELSE
+301100         ADD 1 TO SUCCESSES;
+301200     END-IF.
+301300
+301400     RETURN dummy-sort-file
+301500       AT END
+301600         CONTINUE
+301700       NOT AT END
+301800         DISPLAY "*** Too many records sorted ***"
+301900         MOVE "11314200" TO test-number
+302000         PERFORM test-failed
+302100     END-RETURN.
+302200
+302300
+302400/
+302500 TEST-FAILED SECTION.
+302600
+302700 ISSUE-FAILURE-NOTICE.
+302800     DISPLAY " ".
+302900     DISPLAY "Test-Failed".
+303000     ADD 1 TO failures.
+303100     DISPLAY "An error occurred in test " test-number.
+303200
+303300 TEST-FAILED-EXIT.
+303400     EXIT.
+303500
+303600
+303700
+303800 DISPLAY-STATISTICS SECTION.
+303900
+304000 DISPLAY-TEST-STATISTICS.
+304100     DISPLAY "Display-Test-Statistics" UPON CONSOLE.
+304200     DISPLAY successes " Tests Completed Normally"
+304300     DISPLAY successes " Tests Completed Normally" UPON CONSOLE.
+304400     DISPLAY  failures " Errors Detected"
+304500     DISPLAY  failures " Errors Detected" UPON CONSOLE.
+304600     IF  failures = 0  THEN
+               MOVE "P" TO PGM-STS
+304700         DISPLAY "==> Test Case FNRND01 SUCCESSFUL <=="
+304800         DISPLAY "==> Test Case FNRND01 SUCCESSFUL <=="
+304900             UPON CONSOLE
+305000     ELSE
+305100         DISPLAY "==> Test Case FNRND01 FAILED <=="
+305200         DISPLAY "==> Test Case FNRND01 FAILED <=="
+305300             UPON CONSOLE
+305400     END-IF.
+305500     MOVE  failures TO RETURN-CODE.
+305600 DISPLAY-STATISTICS-EXIT.
+305700     EXIT.
+

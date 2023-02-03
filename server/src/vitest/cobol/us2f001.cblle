@@ -1,0 +1,384 @@
+       PROCESS OPTIONS NATIONAL NTLCCSID(1200).
+
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.     US2F001.
+       AUTHOR.         Winston Lau.
+       INSTALLATION.   IBM Toronto Lab.
+       DATE-WRITTEN.   April 27, 1999.
+
+      *************************************************************************
+      *  4/15/99                    Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: US2F001      Library: NC0C440      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   EVALUATE statement - Test NATIONAL data item in conditional         *
+      *   expression of EVALUATE statement. Data item for comparison can      *
+      *   be DBCS, NATIONAL, mixed literal or non-numeric literal. CCSID      *
+      *   conversion is tested.                                               *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: RUNATEST       Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *   A) Conditional expressions                                          *
+      *      - relation condition                                             *
+      *      - CCSID conversion                                               *
+      *      - test statements:                                               *
+      *        - EVALUATE statement                                           *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *   - Update ITRAP with SUCC.                                           *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      *                                                                       *
+      *************************************************************************
+
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+
+       DATA DIVISION.
+       FILE SECTION.
+       WORKING-STORAGE SECTION.
+
+      *********************************************************************
+      * User Defined Data
+      *********************************************************************
+
+       01  ITRAP-VARS.
+           05  ITRAP100         PIC X(10)      VALUE "ITRAP100".
+           05  PGM-ID           PIC X(10)      VALUE "US2F001 ".
+           05  PGM-STS          PIC X          VALUE "M".
+
+       77  SUCC-FLAG            PIC X.
+           88   VAR-PASS                       VALUE "P".
+           88   VAR-FAIL                       VALUE "F".
+
+       01  ERROR-COUNTER        PIC 9(3)       VALUE 0.
+       01  VARIATION-NO         PIC 9(3)       VALUE 0.
+
+       01  VAR-01               PIC NNN.
+       01  VAR-02               PIC NNN.
+       01  VAR-03               PIC A.
+       01  VAR-04               PIC X.
+       01  VAR-05               PIC N(05).
+       01  VAR-06               PIC X(05).
+       01  VAR-07               PIC N.
+       01  VAR-08               PIC N.
+       01  VAR-09               PIC N.
+
+
+       PROCEDURE DIVISION.
+
+       MAIN-LINE SECTION.
+       MAIN-LINE.
+
+           DISPLAY "****  Start of Testcase " PGM-ID "  ****".
+           PERFORM VARIATION-001 THRU VARIATION-999.
+           IF ERROR-COUNTER = 0
+             DISPLAY "         * TESTCASE " PGM-ID " SUCCESSFUL *"
+             MOVE "P" TO PGM-STS
+           ELSE
+             DISPLAY "         * TESTCASE " PGM-ID " FAILED *"
+             MOVE "F" TO PGM-STS.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           DISPLAY "****   End of Testcase " PGM-ID "   ****".
+           STOP RUN.
+
+       VARIATION-001.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE SPACE       TO VAR-01.
+
+           EVALUATE VAR-01
+             WHEN NX"002000200020"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-002.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE NX"0041"    TO VAR-01.
+           MOVE NX"0042"    TO VAR-02.
+
+           EVALUATE VAR-01 ALSO VAR-02
+             WHEN NX"004130003000" ALSO NX"004230003000"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-003.
+
+           PERFORM START-VARIATION-NNN.
+
+           EVALUATE NX"0035"
+             WHEN NX"0030" THRU NX"0039"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-004.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE NX"004130003000"    TO VAR-02.
+
+           EVALUATE (NX"0041" = VAR-02)
+             WHEN TRUE
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-005.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE X"C1"       TO VAR-01.
+           MOVE "A"         TO VAR-03.
+
+           EVALUATE (VAR-01 = VAR-03)
+             WHEN TRUE
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-006.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE X"C2"       TO VAR-04.
+
+           EVALUATE (VAR-04 = NX"0042")
+             WHEN TRUE
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-007.
+
+           PERFORM START-VARIATION-NNN.
+
+           EVALUATE (NX"3000" = G"")
+             WHEN TRUE
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-008.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE NX"000E0041000F00420043" TO VAR-05.
+           MOVE "ABC"     TO VAR-06.
+
+           EVALUATE (VAR-05 = VAR-06)
+             WHEN TRUE
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-009.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE NX"0043"    TO VAR-07.
+
+           EVALUATE TRUE
+             WHEN (VAR-07 NOT = NX"FFFF")
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-010.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE NX"0044"    TO VAR-08.
+           MOVE NX"0044"    TO VAR-09.
+
+           EVALUATE TRUE ALSO TRUE
+             WHEN ANY ALSO (VAR-08 = VAR-09)
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-011.
+
+           PERFORM START-VARIATION-NNN.
+
+           EVALUATE TRUE
+             WHEN (X"C5" = NX"0045")
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-012.
+
+           PERFORM START-VARIATION-NNN.
+
+           EVALUATE TRUE
+             WHEN (G"" = NX"3000")
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-013.
+
+           PERFORM START-VARIATION-NNN.
+
+           EVALUATE NX"0041"
+             WHEN "A"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-014.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE NX"0041"    TO VAR-07.
+
+           EVALUATE VAR-07
+             WHEN "A"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-015.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE NX"0041"    TO VAR-07.
+
+           EVALUATE VAR-07
+             WHEN X"C1" THRU X"E9"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-016.
+
+           PERFORM START-VARIATION-NNN.
+
+           EVALUATE "A"
+             WHEN NX"0041"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-017.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE "A"         TO VAR-03.
+
+           EVALUATE VAR-03
+             WHEN NX"0041"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-018.
+
+           PERFORM START-VARIATION-NNN.
+
+           MOVE X"C1"       TO VAR-04.
+
+           EVALUATE VAR-04
+             WHEN NX"0041" THRU NX"005A"
+               SET VAR-PASS TO TRUE
+             WHEN OTHER
+               SET VAR-FAIL TO TRUE
+           END-EVALUATE.
+
+           PERFORM END-VARIATION-NNN.
+
+       VARIATION-999.
+           EXIT.
+
+       START-VARIATION-NNN.
+           ADD 1 TO VARIATION-NO.
+           DISPLAY "=====> Start of test Variation-" VARIATION-NO.
+           SET VAR-PASS TO TRUE.
+
+       END-VARIATION-NNN.
+           IF VAR-PASS
+              DISPLAY "=====> Variation ", VARIATION-NO, " PASSES"
+           ELSE
+              ADD 1 TO ERROR-COUNTER
+              DISPLAY "=====> Variation ", VARIATION-NO, " FAILS".
+

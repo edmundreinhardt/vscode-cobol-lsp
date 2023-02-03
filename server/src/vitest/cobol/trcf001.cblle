@@ -1,0 +1,243 @@
+       PROCESS NOSTDTRUNC.
+       IDENTIFICATION DIVISION.
+      *************************************************************************
+      *  6/03/94                    Testcase Documentation                    *
+      *                                                                       *
+      * Testcase Name: TRCF001      Library: NC0C235      Product: NCBL       *
+      *                                                                       *
+      * Description:                                                          *
+      *                                                                       *
+      *   This testcase is testing the comp-5 receiving and sending items     *
+      *   in the ADD stmt.All 2, 4 and 8 bytes fields will be tested.         *
+      *   Variation of Giving clause will also be tested. Try single and      *
+      *   multiple receivers in one statement. Test with ON SIZE ERROR and    *
+      *   NOT ON SIZE ERROR clause. Test ROUNDED clause also.                 *
+      *                                                                       *
+      * Analysis Method:     SLFCHK         Functional: X      Operator Setup *
+      * System View:         NAT            Compile:           Tape:          *
+      * Environment:         BTH            Run Time:          Diskette:      *
+      * Testcase Initiation: CALL           Syntax:            Message:       *
+      *                                                                       *
+      * Features:                                                             *
+      *                                                                       *
+      * NOTRUNC       No truncation on comp-5 data                            *
+      *                                                                       *
+      * Sub Features:                                                         *
+      *                                                                       *
+      *   ADD                                                                 *
+      *   VALUE                                                               *
+      *                                                                       *
+      * Special Instructions:                                                 *
+      *                                                                       *
+      *   N/A                                                                 *
+      *                                                                       *
+      * Expected Results:                                                     *
+      *                                                                       *
+      *   comp-5 truncation should be done.                                   *
+      *                                                                       *
+      *     Required Source                 Dependent          Dependent      *
+      * Member Name  Source File            Testcases          Objects        *
+      *                                                                       *
+      * TRCF001       QCBLLESRC                                               *
+      * TRCF001       QCLSRC                                                  *
+      *                                                                       *
+      *************************************************************************
+        PROGRAM-ID.      TRCF001.
+        AUTHOR.          CINDERELLA LEE.
+
+       ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+         SOURCE-COMPUTER.  IBM-AS400.
+         OBJECT-COMPUTER.  IBM-AS400.
+
+       DATA DIVISION.
+        WORKING-STORAGE SECTION.
+      *  4 OR LESS 9'S OCCUPIED 2 BYTES
+      *  5 TO 9    9'S OCCUPIED 4 BYTES
+      * 10 TO 19   9'S OCCUPIED 8 BYTES
+        01  VAR1-2BYTES        PIC S9(4)  comp-5.
+        01  VAR2-2BYTES        LIKE VAR1-2BYTES.
+        01  VAR3-2BYTES        PIC S9(1)  comp-5 VALUE 0.
+        01  VAR4-2BYTES-3P     PIC S9(1)P(3) comp-5.
+        01  VAR1-4BYTES        PIC S9(9)  comp-5.
+        01  VAR2-4BYTES        LIKE VAR1-4BYTES.
+        01  VAR3-4BYTES        PIC S9(5)  comp-5 VALUE 0.
+        01  VAR1-8BYTES        PIC S9(18) comp-5.
+        01  VAR2-8BYTES        LIKE VAR1-8BYTES.
+        01  VAR3-8BYTES        PIC S9(10) comp-5 VALUE 0.
+        01  MAX-8BYTES         PIC S9(18) comp-5.
+        01  MIN-8BYTES         PIC S9(18) comp-5.
+        01  VAR1-2BYTES-RD     PIC S9(4)  comp-5.
+        01  VAR1-4BYTES-RD     PIC S9(9)  comp-5.
+        01  VAR1-8BYTES-RD     PIC S9(15)  comp-5.
+
+      *  SETTING UP ITRAP VARS.....
+        01 ITRAP-VARS.
+           05 ITRAP100         PIC X(10)     VALUE "ITRAP100".
+           05  PGM-ID          PIC X(10)     VALUE "TRCF001".
+           05  PGM-STS         PIC X         VALUE "M".
+
+       PROCEDURE DIVISION.
+       SETUP.
+           DISPLAY "PROGRAM NAME ==> " PGM-ID.
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+
+       TEST1.
+      * TEST THE OVERFLOW SITUATION.
+           MOVE 32767 TO VAR1-2BYTES.
+           MOVE 2147483647 TO VAR1-4BYTES.
+           COMPUTE MAX-8BYTES = 1844674407370954 * 5000 + 5807.
+           COMPUTE MIN-8BYTES = -1844674407370954 * 5000 - 5808.
+           MOVE MAX-8BYTES TO VAR1-8BYTES.
+           ADD 1 TO VAR1-2BYTES.
+           ADD 1 TO VAR1-4BYTES.
+           ADD 1 TO VAR1-8BYTES.
+           IF VAR1-2BYTES = -32768 AND VAR1-4BYTES = -2147483648
+           AND VAR1-8BYTES = MIN-8BYTES THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              MOVE "F" TO PGM-STS
+              DISPLAY "TEST 1 FAILED"
+              DISPLAY "VAR1-2BYTES ==> " VAR1-2BYTES
+              DISPLAY "VAR1-4BYTES ==> " VAR1-4BYTES
+              DISPLAY "VAR1-8BYTES ==> " VAR1-8BYTES
+              GO TO END-PGM.
+           MOVE 32767000 TO VAR4-2BYTES-3P.
+           ADD  1000 TO VAR4-2BYTES-3P.
+           IF VAR4-2BYTES-3P = -32768000 THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              MOVE "F" TO PGM-STS
+              DISPLAY "TEST 1B FAILED"
+              GO TO END-PGM.
+
+       TEST2.
+      * TEST THE UNDERFLOW SITUATION.
+           MOVE -32768 TO VAR1-2BYTES.
+           MOVE -2147483648 TO VAR1-4BYTES.
+           MOVE MIN-8BYTES TO VAR1-8BYTES.
+           ADD -1 TO VAR1-2BYTES.
+           ADD -1 TO VAR1-4BYTES.
+           ADD -1 TO VAR1-8BYTES.
+           IF VAR1-2BYTES = 32767 AND VAR1-4BYTES = 2147483647
+           AND VAR1-8BYTES = MAX-8BYTES THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              MOVE "F" TO PGM-STS
+              DISPLAY "TEST 2 FAILED"
+              DISPLAY "VAR1-2BYTES ==> " VAR1-2BYTES
+              DISPLAY "VAR1-4BYTES ==> " VAR1-4BYTES
+              DISPLAY "VAR1-8BYTES ==> " VAR1-8BYTES
+              GO TO END-PGM.
+
+       TEST3.
+      * TEST THE GIVING CLAUSE
+           MOVE 32767 TO VAR1-2BYTES.
+           MOVE 2147483647 TO VAR1-4BYTES.
+           MOVE MAX-8BYTES TO VAR1-8BYTES.
+           ADD 1 TO VAR1-2BYTES GIVING VAR2-2BYTES.
+           ADD 1 TO VAR1-2BYTES GIVING VAR2-4BYTES.
+           IF VAR2-2BYTES = -32768 AND VAR2-4BYTES = 32768
+           THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              MOVE "F" TO PGM-STS
+              DISPLAY "TEST 3 FAILED"
+              DISPLAY "VAR2-2BYTES ==> " VAR2-2BYTES
+              DISPLAY "VAR2-4BYTES ==> " VAR2-4BYTES
+              GO TO END-PGM.
+           ADD 1 TO VAR1-4BYTES GIVING VAR2-4BYTES.
+           ADD 1 TO VAR1-4BYTES GIVING VAR2-8BYTES.
+           IF VAR2-4BYTES = -2147483648 AND VAR2-8BYTES = 2147483648
+           THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              MOVE "F" TO PGM-STS
+              DISPLAY "TEST 3 FAILED"
+              DISPLAY "VAR2-4BYTES ==> " VAR2-4BYTES
+              DISPLAY "VAR2-8BYTES ==> " VAR2-8BYTES
+              GO TO END-PGM.
+
+       TEST4.
+      * TEST THE ON SIZE ERROR CLAUSE
+           MOVE 3 TO VAR1-2BYTES.
+           MOVE 21474 TO VAR1-4BYTES.
+           MOVE 9223372034 TO VAR1-8BYTES.
+           ADD 1 TO VAR1-2BYTES GIVING VAR3-2BYTES
+                 ON SIZE ERROR MOVE "F" TO PGM-STS
+                                   DISPLAY "TEST 4 FAILED"
+                                   DISPLAY "VAR3-2BYTES " VAR3-2BYTES
+                                   GO TO END-PGM
+                 NOT ON SIZE ERROR MOVE "P" TO PGM-STS.
+           ADD 9 TO VAR1-2BYTES GIVING VAR3-2BYTES VAR2-4BYTES
+                 ON SIZE ERROR MOVE "P" TO PGM-STS
+                 NOT ON SIZE ERROR MOVE "F" TO PGM-STS
+                                   DISPLAY "TEST 4 FAILED"
+                                   DISPLAY "VAR3-2BYTES " VAR3-2BYTES
+                                   GO TO END-PGM.
+           IF VAR3-2BYTES = 4 AND VAR2-4BYTES = 12
+           THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              DISPLAY "TEST 4A FAILED"
+              DISPLAY "VAR3-2BYTES " VAR3-2BYTES
+              DISPLAY "VAR2-4BYTES " VAR2-4BYTES
+              MOVE "F" TO PGM-STS
+              GO TO END-PGM.
+           ADD 1 TO VAR1-4BYTES GIVING VAR3-4BYTES
+                 ON SIZE ERROR MOVE "F" TO PGM-STS
+                                   DISPLAY "TEST 4 FAILED"
+                                   DISPLAY "VAR3-4BYTES " VAR3-4BYTES
+                                   GO TO END-PGM
+                 NOT ON SIZE ERROR MOVE "P" TO PGM-STS.
+           ADD 100000 TO VAR1-4BYTES GIVING VAR3-4BYTES VAR2-8BYTES
+                 ON SIZE ERROR MOVE "P" TO PGM-STS
+                 NOT ON SIZE ERROR MOVE "F" TO PGM-STS
+                                   DISPLAY "TEST 4 FAILED"
+                                   DISPLAY "VAR3-4BYTES " VAR3-4BYTES
+                                   GO TO END-PGM.
+           IF VAR3-4BYTES = 21475 AND VAR2-8BYTES = 121474
+           THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              DISPLAY "TEST 4B FAILED"
+              DISPLAY "VAR3-4BYTES " VAR3-4BYTES
+              DISPLAY "VAR2-8BYTES " VAR2-8BYTES
+              MOVE "F" TO PGM-STS
+              GO TO END-PGM.
+           ADD 1 TO VAR1-8BYTES GIVING VAR3-8BYTES
+                 ON SIZE ERROR MOVE "F" TO PGM-STS
+                                   DISPLAY "TEST 4 FAILED"
+                                   DISPLAY "VAR3-8BYTES " VAR3-8BYTES
+                                   GO TO END-PGM
+                 NOT ON SIZE ERROR MOVE "P" TO PGM-STS.
+           ADD 100000000000 TO VAR1-8BYTES GIVING VAR3-8BYTES
+                 ON SIZE ERROR MOVE "P" TO PGM-STS
+                 NOT ON SIZE ERROR MOVE "F" TO PGM-STS
+                                   DISPLAY "TEST 4 FAILED"
+                                   DISPLAY "VAR3-8BYTES " VAR3-8BYTES
+                                   GO TO END-PGM.
+       TEST5.
+      * TEST ROUNDED CLAUSE.
+           MOVE 32766 TO VAR1-2BYTES-RD.
+           MOVE 2147483646 TO VAR1-4BYTES-RD.
+           COMPUTE MAX-8BYTES = 1844674407370954 * 5000 + 5806.
+           COMPUTE MIN-8BYTES = -1844674407370954 * 5000 - 5808.
+           MOVE MAX-8BYTES TO VAR1-8BYTES-RD.
+           ADD 1.9 TO VAR1-2BYTES-RD ROUNDED.
+           ADD 1.9 TO VAR1-4BYTES-RD ROUNDED.
+           ADD 1.9 TO VAR1-8BYTES-RD ROUNDED.
+           IF VAR1-2BYTES-RD = -32768 AND VAR1-4BYTES-RD = -2147483648
+           AND VAR1-8BYTES-RD = MIN-8BYTES THEN
+              MOVE "P" TO PGM-STS
+           ELSE
+              MOVE "F" TO PGM-STS
+              DISPLAY "TEST 5 FAILED"
+              DISPLAY "VAR1-2BYTES-RD ==> " VAR1-2BYTES-RD
+              DISPLAY "VAR1-4BYTES-RD ==> " VAR1-4BYTES-RD
+              DISPLAY "VAR1-8BYTES-RD ==> " VAR1-8BYTES-RD
+              GO TO END-PGM.
+       END-PGM.
+           IF PGM-STS = "P" DISPLAY "TESTCASE PASS".
+           CALL ITRAP100 USING PGM-ID PGM-STS.
+           STOP RUN.

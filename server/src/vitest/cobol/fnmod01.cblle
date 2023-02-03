@@ -1,0 +1,1756 @@
+      *CBL   QUOTE
+       Identification Division.
+
+       PROGRAM-ID.    FNMOD01.
+
+       Author.        Bakulesh C. Hazari.
+       Installation.  IBM - Santa Teresa Laboratory.
+       DATE-WRITTEN.  September 20, 1990.
+       Date-compiled.
+       Security.      Property of IBM Corporation.
+      *LANGUAGE.      VS COBOL II VERSION 2 RELEASE 1.
+
+      ******************************************************************
+      ***                                                            ***
+      *** Function:  This testcase is a functional testcase for the  ***
+      ***            MOD Intrinsic Function.  MOD Intrinsic Function ***
+      ***            returns an integer value that is argument-1     ***
+      ***            modulo argument-2.  MOD is an integer type      ***
+      ***            function.                                       ***
+      ***                                                            ***
+      *** Restrictions:  Functional Testcase                         ***
+      ***                                                            ***
+      *** Expected Results:                                          ***
+      ***    " FNMOD01   STARTED"                                    ***
+      ***    " FNMOD01   SUCCESSFUL"                                 ***
+      ***                                                            ***
+      ***    " FNMOD01   STARTED"                                    ***
+      ***    ( ANY HELPFUL DEBUGGING MESSAGE)                        ***
+      ***    " FNMOD01   FAILED"                                     ***
+      ***                                                            ***
+      *** Include code:  No COPY libraries nor copy members here.    ***
+      ***                                                            ***
+      *** Files used:  None.                                         ***
+      ***                                                            ***
+      *** Matrix:  FNMOD    MATRIX                                   ***
+      ***                                                            ***
+      *** Modified From:                                             ***
+      ***                                                            ***
+      *** Remarks:  All the tests performed in this testcase have    ***
+      ***           given numbers.  The test-numbers correspond to   ***
+      ***           the line numbers shown in the FNMOD matrix.      ***
+      ***                                                            ***
+      *** Structure:                                                 ***
+      ***                                                            ***
+      ***   ___ PROGRAM FNMOD01                                      ***
+      ***  |                                                         ***
+      ***  |___ End Program FNMOD01                                  ***
+      ***                                                            ***
+      *** Change activities:                                         ***
+      ***  Date     Description                      Programmer      ***
+      ***                                                            ***
+      ******************************************************************
+      ******************************************************************
+      *** Pseudo-code:                                               ***
+      ***                                                            ***
+      ******************************************************************
+
+       environment division.
+       configuration section.
+       source-computer. ibm-370 with debugging mode.
+       object-computer. ibm-370.
+
+       input-output  section.
+       file-control.
+
+           select   modfile     assign to    modfile.
+           select   srtfile     assign to    srtfile.
+
+       data division.
+       file section.
+
+       SD  srtfile.
+       01  srtfile-record.
+           05  srtfile-record-1                 pic 99.
+           05  srtfile-record-2                 pic 99.
+
+       working-storage section.
+
+       01 ITRAP-VARS.
+          05 PGM-ID   PIC X(10)  VALUE "FNMOD01".
+          05 PGM-STS  PIC X      VALUE "F".
+
+       01  modfile-record.
+           05  modfile-record-1                  pic 99.
+           05  modfile-record-2                  pic 99.
+
+       01  group-1.
+           05  qualified-id            pic s99.
+
+       01  group-2.
+           05  qualified-id            pic s99.
+
+       01  integer-id                  pic 9999 value is zero.
+       01  sub-script                  pic 9999 value is zero.
+
+       01  original-id-1               pic x value is space.
+       01  redefines-id  redefines     original-id-1 pic x .
+
+       01  original-id-21.
+           05  original-id-2           pic 9.
+       66  renames-id    renames       original-id-2.
+
+       77  level-77-id                 pic  x   value is space.
+       77  level-77-id-n               pic 999.
+
+       01  blank-when-zero-id          pic 9    blank when zero.
+       01  sync-left-id                pic 9999 synchronized left.
+       01  sync-right-id               pic 9999 synchronized right.
+
+
+       01  sign-lead-id                pic s9 sign is leading.
+       01  sign-trail-id               pic s9 sign is trailing.
+
+       01  precision-id-1              pic 9(01).
+       01  precision-id-2              pic 9(02).
+       01  precision-id-3              pic 9(03).
+       01  precision-id-4              pic 9(04).
+       01  precision-id-5              pic 9(05).
+       01  precision-id-6              pic 9(06).
+       01  precision-id-7              pic 9(07).
+       01  precision-id-8              pic 9(08).
+       01  precision-id-9              pic 9(09).
+       01  precision-id-10             pic 9(10).
+       01  precision-id-11             pic 9(11).
+       01  precision-id-12             pic 9(12).
+       01  precision-id-13             pic 9(13).
+       01  precision-id-14             pic 9(14).
+       01  precision-id-15             pic 9(15).
+       01  precision-id-16             pic 9(16).
+       01  precision-id-17             pic 9(17).
+       01  precision-id-18             pic 9(18).
+
+       01  int-id                      pic s9999 value is zero.
+       01  odo-1                       pic 9    value is 8   .
+
+       01  int-1                       pic 9 value is zero.
+       01  int-2                       pic 9 value is zero.
+
+       01  all-status.
+
+           05  test-11121100-status    pic 9.
+           05  test-11208000-status    pic 9.
+           05  test-11211000-status    pic 9.
+           05  test-11216000-status    pic 9.
+           05  test-11217000-status    pic 9.
+           05  test-11301111-status    pic 9.
+           05  test-11301121-status    pic 9.
+           05  test-11301131-status    pic 9.
+           05  test-11301401-status    pic 9.
+           05  test-11301510-status    pic 9.
+           05  test-11301951-status    pic 9.
+           05  test-11302300-status    pic 9.
+           05  test-11302500-status    pic 9.
+           05  test-11302600-status    pic 9.
+           05  test-11303000-status    pic 9.
+           05  test-11304113-status    pic 9.
+           05  test-11304115-status    pic 9.
+           05  test-11304116-status    pic 9.
+           05  test-11304123-status    pic 9.
+           05  test-11304125-status    pic 9.
+           05  test-11304126-status    pic 9.
+           05  test-11304213-status    pic 9.
+           05  test-11304215-status    pic 9.
+           05  test-11304223-status    pic 9.
+           05  test-11304225-status    pic 9.
+           05  test-11310000-status    pic 9.
+           05  test-11312000-status    pic 9.
+           05  test-11313410-status    pic 9.
+           05  test-11314100-status    pic 9.
+           05  test-11314200-status    pic 9.
+           05  test-11410800-status    pic 9.
+           05  test-11411000-status    pic 9.
+           05  test-11411300-status    pic 9.
+           05  test-11411400-status    pic 9.
+           05  test-11411920-status    pic 9.
+           05  test-11412320-status    pic 9.
+           05  test-11412400-status    pic 9.
+           05  test-11412700-status    pic 9.
+           05  test-11412800-status    pic 9.
+           05  test-11412900-status    pic 9.
+           05  test-11413210-status    pic 9.
+           05  test-11413810-status    pic 9.
+           05  test-11426100-status    pic 9.
+           05  test-11427100-status    pic 9.
+           05  test-11431000-status    pic 9.
+           05  test-21000000-status    pic 9.
+           05  test-22010001-status    pic 9.
+           05  test-22010002-status    pic 9.
+           05  test-22010003-status    pic 9.
+           05  test-22010004-status    pic 9.
+           05  test-22010005-status    pic 9.
+           05  test-22010006-status    pic 9.
+           05  test-22010007-status    pic 9.
+           05  test-22010008-status    pic 9.
+           05  test-22010009-status    pic 9.
+           05  test-22010010-status    pic 9.
+           05  test-22010011-status    pic 9.
+           05  test-22010012-status    pic 9.
+           05  test-22010013-status    pic 9.
+           05  test-22014100-status    pic 9.
+           05  test-22019400-status    pic 9.
+           05  test-22019500-status    pic 9.
+           05  test-22020000-status    pic 9.
+           05  test-22025000-status    pic 9.
+           05  test-22030000-status    pic 9.
+           05  test-22040000-status    pic 9.
+           05  test-22090000-status    pic 9.
+           05  test-22100000-status    pic 9.
+
+       01  fixed-length-table.
+           05  fixed-table-id  occurs 8 times  pic x value is space.
+
+       01  fixed-length-table9.
+           05  fixed-table-id9 occurs 8 times  pic 99999 value is zero.
+
+       01  variable-length-table.
+           05  variable-table-id occurs 1 to 8 times depending on odo-1
+                   pic x.
+
+       01  variable-length-table9.
+           05  variable-table-id9 occurs 1 to 8 times depending on odo-1
+                   pic 9999.
+
+       01  fixed-length-table-65535.
+           05 fixed-table-id-65535 occurs 13107 pic 99999.
+
+       01  fixed-length-table-65536.
+           05 fixed-table-id-65536 occurs 13108 times pic 99999.
+
+       01  Dimension-7-table.
+           05  level-1-id occurs 5 times.
+               10  level-2-id occurs 5 times.
+                   15  level-3-id occurs 5 times.
+                       20  level-4-id occurs 5 times.
+                           25  level-5-id occurs 5 times.
+                               30  level-6-id occurs 5 times.
+                                   35  level-7-id occurs 5 times.
+                                       40  Dim-7-id pic 9.
+
+
+       01  alphabetic-group.
+           05  alphabetic-id           pic a value is space.
+
+       01  alphanumeric-group.
+           05  alphanumeric-id         pic x value is space.
+
+       01  alphanumeric-id-3-bytes     pic xxx value is "123".
+
+       01  Variables.
+           05  integer-half      pic s99 value 11 USAGE IS COMP.
+           05  integer-full      pic s9(4) value  222 USAGE COMP.
+           05  integer-double    pic s9(8) value 44444444 COMP.
+           05  fix-point-Half pic 9V9 value 1.1 USAGE IS COMP.
+           05  fix-point-Full pic 9(2)V99 value  22.33 USAGE COMP.
+           05  fix-point-Dbl         pic 9(6)V99 value 444444.55 COMP.
+           05  Comp-1-float             USAGE IS COMP-1.
+           05  Comp-2-float             USAGE IS COMP-2.
+           05  Comp-3-integer        pic s9999 USAGE IS COMP-3.
+           05  Comp-3-fix            pic s999v999 USAGE IS COMP-3.
+           05  Comp-4-integer        pic s9999 USAGE IS COMP-4.
+      *    05  DBCS-Display-1           USAGE DISPLAY-1 PICTURE GGGG.
+           05  Alpha-Display            Pic A  value "A".
+           05  Alpha-Numeric            Pic 9AX value "1A7".
+           05  Alphanumeric-Editted     PIC A9X/BB00 VALUE "Q27/".
+           05  Numeric-edited-id        PIC 9.9 .
+           05  Ext-Dec-1                PIC S999V LEADING SEPARATE
+                                           VALUE IS +123 .
+           05  Ext-Dec-2                PIC S9999999 LEADING
+                                           SEPARATE CHARACTER,
+                                           VALUE IS -00067890.
+           05  Ext-Float-1              PIC +99999V99999E+99,
+                                           LEADING SEPARATE CHARACTER.
+           05  Ext-Float-2              PIC +99999.99999E+99, SIGN
+                                           LEADING SEPARATE CHARACTER.
+
+       01  fl-1                         pic +9.9(15)E+99.
+
+       01  Level-01-Test.
+           25  Level-25-test.
+               49  Level-49-id          Pic 999.
+
+       01  Redefines-Test Redefines Level-01-Test Pic 9(3).
+
+
+       01  Table-Test-Table.
+           05  Day-Test-Table
+                      OCCURS 7 TIMES
+                      ASCENDING KEY IS NUM-KEY
+                      INDEXED BY NUM-INDEX.
+               10  NUM-KEY        PIC X(1).
+
+       01  More-Variables.
+           05  Blank-When-Zero-Test     pic 9
+               Blank When Zero.
+           05  Data-Name-1              pic 9   value 0.
+           05  Data-Name-2              pic 9   value 0.
+           05  Alphabetic-Argument      pic XXX value "ABC".
+           05  Alphanumeric-Argument    pic xxx  value "a2z".
+           05  Alphabetic-Item          pic XXX value "ABC".
+           05  Alphanumeric-Item        pic xxx  value "a2z".
+
+       77  SORT-CORE-SIZE  PIC 9(9).
+       77  SORT-FILE-SIZE  PIC 9(9).
+       77  SORT-MODE-SIZE  PIC 9(9).
+       77  SORT-MESSAGE    PIC X(8).
+       77  TALLY           PIC 9(9).
+      *-----------------------------------------------------------------
+       procedure division.
+      *-----------------------------------------------------------------
+
+       Declaratives.
+       Dummy-Section Section.
+
+           use for debugging on dummy-section-1.
+
+           compute int-id = function mod ( debug-sub-1 debug-sub-2 ).
+           compute int-id = function mod ( debug-sub-3 debug-sub-2 ).
+
+       End Declaratives.
+
+       main-section section.
+
+           display " ".
+           display "FNMOD01 Started...".
+           display " ".
+
+           move all "0" to all-status.
+
+           perform test-11121100.
+           perform test-11208000.
+           perform test-11211000.
+           perform test-11216000.
+           perform test-11217000.
+           perform test-11301111.
+           perform test-11301121.
+           perform test-11301131.
+           perform test-11301401.
+           perform test-11301510.
+           perform test-11301951.
+           perform test-11302300.
+           perform test-11302500.
+           perform test-11302600.
+           perform test-11303000.
+           perform test-11304113.
+           perform test-11304115.
+           perform test-11304116.
+           perform test-11304123.
+           perform test-11304125.
+           perform test-11304126.
+           perform test-11304213.
+           perform test-11304215.
+           perform test-11304223.
+           perform test-11304225.
+           perform test-11310000.
+           perform test-11312000.
+           perform test-11313410.
+           perform test-11314100.
+           perform test-11314200.
+           perform test-11410800.
+           perform test-11411000.
+           perform test-11411300.
+           perform test-11411400.
+           perform test-11411920.
+           perform test-11412320.
+           perform test-11412400.
+           perform test-11412700.
+           perform test-11412800.
+           perform test-11412900.
+           perform test-11413210.
+           perform test-11413810.
+           perform test-11426100.
+           perform test-11427100.
+           perform test-11431000.
+           perform test-21000000.
+           perform test-22010001.
+           perform test-22010002.
+           perform test-22010003.
+           perform test-22010004.
+           perform test-22010005.
+           perform test-22010006.
+           perform test-22010007.
+           perform test-22010008.
+           perform test-22010009.
+           perform test-22010010.
+           perform test-22010011.
+           perform test-22010012.
+           perform test-22010013.
+           perform test-22014100-1.
+           perform test-22014100-2.
+           perform test-22014100-3.
+           perform test-22014100-4.
+           perform test-22014100-5.
+           perform test-22014100-6.
+           perform test-22014100-7.
+           perform test-22014100-8.
+           perform test-22014100-9.
+           perform test-22014100-10.
+           perform test-22014100-11.
+           perform test-22014100-12.
+           perform test-22014100-13.
+           perform test-22014100-14.
+           perform test-22014100-15.
+           perform test-22014100-16.
+           perform test-22014100-17.
+           perform test-22014100-18.
+           perform test-22019400.
+           perform test-22019500.
+           perform test-22020000.
+           perform test-22025000.
+           perform test-22030000.
+           perform test-22040000.
+           perform test-22090000.
+           perform test-22100000.
+
+           if all-status = all "1" then display "FNMOD01 successful..."
+                MOVE "P" TO PGM-STS
+           else display "FNMOD01 failed:  see failing messages above."
+                display "All-status = " all-status.
+
+           CALL  "ITRAP100" USING PGM-ID PGM-STS
+           stop run.
+
+       Dummy-Section-1 Section.
+
+           add 0 to int-id.
+
+       all-tests section.
+
+      *----------------------------------------------------------------
+      * Numeric literals are specified as arguments.
+      *----------------------------------------------------------------
+       test-11121100.
+
+           compute int-id = function mod ( 500 45 ).
+
+           if int-id = 5 then add 1 to test-11121100-status
+           else display "Test-11121100 failed."
+              display "The expected result was 5."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * RETURN-CODE    and LENGTH OF special registers are arguments.
+      *----------------------------------------------------------------
+       test-11208000.
+
+           compute int-id = function mod
+              ( return-code length of int-id ).
+
+           if int-id = 0 then add 1 to test-11208000-status
+           else display "Test-11208000 failed."
+              display "The expected result was 0."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * RETURN-CODE and SORT-RETURN are specified as arguments.
+      *----------------------------------------------------------------
+       test-11211000.
+
+           compute return-code = 53.  compute sort-return = 13.
+           compute int-id = function mod
+              ( return-code sort-return ).
+
+           if int-id = 1 then add 1 to test-11211000-status
+           else display "Test-11211000 failed."
+              display "The expected result was 1."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * SORT-CORE-SIZE and SORT-FILE-SIZE are specified as arguments.
+      *----------------------------------------------------------------
+       test-11216000.
+
+           compute sort-core-size = 195453. compute sort-file-size = 25.
+           compute int-id = function mod
+              ( sort-core-size sort-file-size ).
+
+           if int-id = 3 then add 1 to test-11216000-status
+           else display "Test-11216000 failed."
+              display "The expected result was 3."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * SORT-MODE-SIZE and TALLY are specified as arguments.
+      *----------------------------------------------------------------
+       test-11217000.
+
+           compute sort-mode-size = 1119. compute tally = 259.
+           compute int-id = function mod
+              ( sort-mode-size tally ).
+
+           if int-id = 83 then add 1 to test-11217000-status
+           else display "Test-11217000 failed."
+              display "The expected result was 83."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Various USAGE COMP identifiers are used as arguments.
+      *----------------------------------------------------------------
+       test-11301111.
+
+           compute integer-half   = -25. compute integer-full = 7.
+           compute int-id = function mod ( integer-half integer-full ).
+
+           if int-id = 3 then add 1 to test-11301111-status
+           else display "Test-11301111 failed."
+              display "The expected result was 3."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Various USAGE COMP identifiers are used as arguments.
+      *----------------------------------------------------------------
+       test-11301121.
+
+           compute integer-half   =  25. compute integer-double = -7.
+           compute fl-1   = function mod (integer-half integer-double).
+
+           if fl-1   = -3 then add 1 to test-11301121-status
+           else display "Test-11301121 failed."
+              display "The expected result was -3."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * Various USAGE COMP identifiers are used as arguments.
+      *----------------------------------------------------------------
+       test-11301131.
+
+           compute integer-full   =  25. compute integer-double = 7.
+           compute int-id = function mod (integer-full integer-double).
+
+           if int-id = 4 then add 1 to test-11301131-status
+           else display "Test-11301131 failed."
+              display "The expected result was 4."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * COMP-3 and COMP-4 integer identifiers are used as arguments.
+      *----------------------------------------------------------------
+       test-11301401.
+
+           compute comp-3-integer = 15.
+           compute comp-4-integer = -8.
+           compute fl-1   = function mod
+              ( comp-3-integer  comp-4-integer ).
+
+           if fl-1   = -1 then add 1 to test-11301401-status
+           else display "Test-11301401 failed."
+              display "The expected result was -1."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * COMP-3 and COMP-4 integer identifiers are used as arguments.
+      *----------------------------------------------------------------
+       test-11301510.
+
+           compute comp-4-integer =  -8.
+           compute comp-3-integer = -15.
+           compute fl-1 =
+              function mod ( comp-4-integer  comp-3-integer ).
+
+           if fl-1 = -8 then add 1 to test-11301510-status
+           else display "Test-11301510 failed."
+              display "The expected result was -8."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * External Decimal integer identifiers are used as arguments.
+      *----------------------------------------------------------------
+       test-11301951.
+
+           compute ext-dec-1  =  -1.
+           compute ext-dec-2  =  97.
+           compute int-id = function mod
+              ( ext-dec-1 ext-dec-2 ).
+
+           if int-id = 96 then add 1 to test-11301951-status
+           else display "Test-11301951 failed."
+              display "The expected result was 96."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Level 49 elementary data item is specified as the arguments.
+      *----------------------------------------------------------------
+       test-11302300.
+
+           compute level-49-id  =  19.
+           compute int-id = function mod ( 87  level-49-id ).
+
+           if int-id = 11 then add 1 to test-11302300-status
+           else display "Test-11302300 failed."
+              display "The expected result was 11."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Renames identifier is used as an argument.
+      *----------------------------------------------------------------
+       test-11302500.
+
+           compute renames-id  =  9.
+           compute int-id = function mod ( 87  renames-id ).
+
+           if int-id = 6 then add 1 to test-11302500-status
+           else display "Test-11302500 failed."
+              display "The expected result was 6."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Level 77 elementary data item is specified as the arguments.
+      *----------------------------------------------------------------
+       test-11302600.
+
+           compute level-77-id-n  =  14.
+           compute int-id = function mod ( 51 level-77-id-n ).
+
+           if int-id = 9 then add 1 to test-11302600-status
+           else display "Test-11302600 failed."
+              display "The expected result was 9."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Identifiers, that are qualified names, are used as arguments.
+      *----------------------------------------------------------------
+       test-11303000.
+
+           compute qualified-id of group-1 = 39.
+           compute qualified-id of group-2 = -11.
+           compute fl-1   = function mod ( qualified-id of group-1
+              qualified-id of group-2 ).
+
+           if fl-1   = -5 then add 1 to test-11303000-status
+           else display "Test-11303000 failed."
+              display "The expected result was -5."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * A fixed length table element is specified as an argument.
+      * Tests 11304113 and 11304114 are performed here.
+      *----------------------------------------------------------------
+       test-11304113.
+
+           compute fixed-table-id-65535 ( 1 )  =  1001.
+           compute fixed-table-id-65536 ( 1 )  =   101.
+           compute int-id = function mod
+              ( fixed-table-id-65535 ( 1 ) fixed-table-id-65536 ( 1 ) ).
+
+           if int-id = 92 then add 1 to test-11304113-status
+           else display "Test-11304113 failed."
+              display "The expected result was 92."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * A fixed length table element is specified as an argument.
+      * Length - 1 and Length elements are used as arguments here.
+      *----------------------------------------------------------------
+       test-11304115.
+
+           compute fixed-table-id-65535 ( 13107 )  =  -100.
+           compute fixed-table-id-65536 ( 13107 )  =  -100.
+           compute int-id = function mod
+              (-100 -100).
+   ********   (fixed-table-id-65535(13106) fixed-table-id-65536(13107)).
+
+           if int-id = 0 then add 1 to test-11304115-status
+           else display "Test-11304115 failed."
+              display "The expected result was 0."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * A fixed length table element is specified as an argument.
+      * Length - 1 and Length elements are used as arguments here.
+      *----------------------------------------------------------------
+       test-11304116.
+
+           compute fixed-table-id-65535 ( 13107 )  =  +101.
+           compute fixed-table-id-65536 ( 13108 )  =  +100.
+           compute fl-1   = function mod (
+            fixed-table-id-65535 (13107) fixed-table-id-65536 (13108) ).
+
+           if fl-1   = 1 then add 1 to test-11304116-status
+           else display "Test-11304116 failed."
+              display "The expected result was 1."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * A fixed length table element is specified as an argument.
+      * Tests 11304123 and 11304124 are performed here.
+      *----------------------------------------------------------------
+       test-11304123.
+
+           compute sub-script                           =  1.
+           compute fixed-table-id-65535 ( sub-script )  =  91.
+           compute fixed-table-id-65536 ( sub-script )  =  24.
+           compute fl-1   = function mod
+              ( fixed-table-id-65535 ( sub-script )
+                fixed-table-id-65536 ( sub-script ) ).
+
+           if fl-1   = 19 then add 1 to test-11304123-status
+           else display "Test-11304123 failed."
+              display "The expected result was 19."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * A fixed length table element is specified as an argument.
+      * Length - 1 and Length elements are used as arguments here.
+      *----------------------------------------------------------------
+       test-11304125.
+
+           compute sub-script                               =  63998.
+           compute fixed-table-id-65535 ( sub-script )      =  97.
+           compute fixed-table-id-65536 ( sub-script + 2 )  =  07.
+           compute int-id = function mod
+              ( fixed-table-id-65535 ( sub-script )
+                fixed-table-id-65536 ( sub-script + 2 ) ).
+
+           if int-id = 6 then add 1 to test-11304125-status
+           else display "Test-11304125 failed."
+              display "The expected result was 6."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * A fixed length table element is specified as an argument.
+      * Length - 1 and Length elements are used as arguments here.
+      *----------------------------------------------------------------
+       test-11304126.
+
+           compute sub-script                               =  13107.
+           compute fixed-table-id-65535 ( sub-script )      =  97.
+           compute fixed-table-id-65536 ( sub-script + 2 )  =  07.
+           compute int-id = function mod
+              ( fixed-table-id-65535 ( sub-script )
+                fixed-table-id-65536 ( sub-script + 2 ) ).
+
+           if int-id = 6 then add 1 to test-11304126-status
+           else display "Test-11304126 failed."
+              display "The expected result was 6."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * A variable length table element is specified as an argument.
+      * Tests 11304213 and 11304214 are performed here.
+      *----------------------------------------------------------------
+       test-11304213.
+
+           compute variable-table-id9 ( 1 )  =  891.
+           compute variable-table-id9 ( 4 )  =  543.
+
+           compute fl-1   = function mod
+              ( variable-table-id9 ( 1 ) variable-table-id9 ( 4 ) ).
+
+           if fl-1   = 348  then add 1 to test-11304213-status
+           else display "Test-11304213 failed."
+              display "The expected result was 348."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * A variable length table element is specified as an argument.
+      * Length - 1 and Length elements are used as arguments here.
+      *----------------------------------------------------------------
+       test-11304215.
+
+           compute variable-table-id9 ( 7 )  =   93.
+           compute variable-table-id9 ( 8 )  =    6.
+
+           compute fl-1   = function mod
+              ( variable-table-id9 ( 7 ) variable-table-id9 ( 8 ) ).
+
+           if fl-1   = 3 then add 1 to test-11304215-status
+           else display "Test-11304215 failed."
+              display "The expected result was 3."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * A variable length table element is specified as an argument.
+      * Tests 11304223 and 11304224 are performed here.
+      *----------------------------------------------------------------
+       test-11304223.
+
+           compute sub-script                             =  1.
+           compute variable-table-id9 ( sub-script )      =  68.
+           compute variable-table-id9 ( sub-script + 3 )  =  16.
+
+           compute fl-1   = function mod
+              ( variable-table-id9 ( sub-script )
+                variable-table-id9 ( sub-script + 3 ) ).
+
+           if fl-1   = 4 then add 1 to test-11304223-status
+           else display "Test-11304223 failed."
+              display "The expected result was 4."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * A variable length table element is specified as an argument.
+      * Length - 1 and Length elements are used as arguments here.
+      *----------------------------------------------------------------
+       test-11304225.
+
+           compute sub-script                             =  7.
+           compute variable-table-id9 ( sub-script )      =  89.
+           compute variable-table-id9 ( sub-script + 1 )  =  14.
+           compute fl-1   = function mod
+              ( variable-table-id9 ( sub-script )
+                variable-table-id9 ( sub-script + 1 ) ).
+
+           if fl-1   = 5 then add 1 to test-11304225-status
+           else display "Test-11304225 failed."
+              display "The expected result was 5."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * SYNC LEFT & SYNC RIGHT attributed identifiers are the arguments.
+      *----------------------------------------------------------------
+       test-11310000.
+
+           compute sync-left-id                  =  95.
+           compute sync-right-id                 =  17.
+
+           compute fl-1   = function mod
+              ( sync-left-id  sync-right-id ).
+
+           if fl-1   = 10 then add 1 to test-11310000-status
+           else display "Test-11310000 failed."
+              display "The expected result was 10."
+              display "The  actual  result was " fl-1
+           end-if.
+
+      *----------------------------------------------------------------
+      * A variable length table element is specified as an argument.
+      *----------------------------------------------------------------
+       test-11312000.
+
+           compute sign-lead-id                    =  77.
+           compute sign-trail-id                   =  02.
+
+           compute int-id = function mod
+              ( sign-lead-id  sign-trail-id ).
+
+           if int-id = 1 then add 1 to test-11312000-status
+           else display "Test-11312000 failed."
+              display "The expected result was 1."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * A 7 dimensional table's elements are used as arguments.
+      *----------------------------------------------------------------
+       test-11313410.
+
+           compute dim-7-id ( 1 1 1 1 1 1 1 ) = 7.
+           compute dim-7-id ( 2 1 1 1 1 1 1 ) = 4.
+
+           compute int-id = function mod
+              ( dim-7-id ( 1 1 1 1 1 1 1 ) dim-7-id ( 2 1 1 1 1 1 1 ) ).
+
+           if int-id = 3 then add 1 to test-11313410-status
+           else display "Test-11313410 failed."
+              display "The expected result was 3."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Identifiers in File Descriptions are used as arguments.
+      *----------------------------------------------------------------
+       test-11314100.
+
+           compute modfile-record-1 = 49.
+           compute modfile-record-2 = 25.
+
+           compute int-id = function mod
+              (  modfile-record-1  modfile-record-2  ).
+
+           if int-id = 24 then add 1 to test-11314100-status
+           else display "Test-11314100 failed."
+              display "The expected result was 24."
+              display "modfile-record-1 = " modfile-record-1
+              display "modfile-record-2 = " modfile-record-2
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Identifiers in Sort Descriptions are used as arguments.
+      *----------------------------------------------------------------
+       test-11314200.
+
+           compute srtfile-record-1 = 38.
+           compute srtfile-record-2 = 23.
+
+           compute int-id = function mod
+              (  srtfile-record-1  srtfile-record-2  ).
+
+           if int-id = 15 then add 1 to test-11314200-status
+           else display "Test-11314200 failed."
+              display "The expected result was 15."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11410800.
+
+           compute int-id = function mod ( function date-of-integer (1)
+              function day-of-integer (1) ).
+
+           if int-id = 91 then add 1 to test-11410800-status
+           else display "Test-11410800 failed."
+              display "The expected result was 91."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11411000.
+
+           compute int-id = function mod ( function factorial ( 5 )
+              function integer ( 72.36 ) ).
+
+           if int-id = 48 then add 1 to test-11411000-status
+           else display "Test-11411000 failed."
+              display "The expected result was 48."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11411300.
+
+           compute int-id = function mod ( function integer-of-date
+              ( 16010101 ) function integer-of-day ( 1601001 ) ).
+
+           if int-id = 0 then add 1 to test-11411300-status
+           else display "Test-11411300 failed."
+              display "The expected result was 0."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11411400.
+
+           compute int-id = function mod ( function integer-part (89.53)
+              function length ( "111222333444555666" ) ).
+
+           if int-id = 17 then add 1 to test-11411400-status
+           else display "Test-11411400 failed."
+              display "The expected result was 17."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11411920.
+
+           compute level-49-id   =  9.
+           compute level-77-id-n = 29.
+           compute int-id = function mod ( 198765987
+              function max ( 25 11 47 level-49-id level-77-id-n ) ).
+
+           if int-id = 26 then add 1 to test-11411920-status
+           else display "Test-11411920 failed."
+              display "The expected result was 26."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11412320.
+
+           compute int-id = function mod ( 198765987 LEVEL-49-ID).
+      ***     function min ( 25 11 47 level-49-id level-77-id-n ).
+           if int-id = 6 then add 1 to test-11412320-status
+           else display "Test-11412320 failed."
+              display "The expected result was 6."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11412400.
+
+           compute int-id = function mod ( 198765987
+              function mod ( level-77-id-n  level-49-id ) ).
+
+           if int-id = 1 then add 1 to test-11412400-status
+           else display "Test-11412400 failed."
+              display "The expected result was 1."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11412700.
+
+           compute int-id = function mod (198765987 function ord ("9")).
+
+      ***  if int-id = 45 then add 1 to test-11412700-status
+           if int-id = 237 then add 1 to test-11412700-status
+           else display "Test-11412700 failed."
+              display "The expected result was 237."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11412800.
+
+           compute int-id = function mod (
+              function ord-max ( "1" "2" "3" "4" "5" "6" "7" "8" "9" )
+              function ord-max (  8   9   7   6   5   4   3   2   1  )).
+
+           if int-id = 1 then add 1 to test-11412800-status
+           else display "Test-11412800 failed."
+              display "The expected result was 1."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11412900.
+
+           compute int-id = function mod (
+              function ord-min (  8   9   7   6   5   4   3   1   2  )
+              function ord-min ( "3" "2" "1" "4" "5" "6" "7" "8" "9" )).
+
+           if int-id = 2 then add 1 to test-11412900-status
+           else display "Test-11412900 failed."
+              display "The expected result was 2."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11413210.
+
+           compute int-id = function mod (
+              function range (  0 899 )  function range ( 55 74 ) ).
+
+           if int-id = 6 then add 1 to test-11413210-status
+           else display "Test-11413210 failed."
+              display "The expected result was 6."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11413810.
+
+           compute int-id = function mod (
+              function sum ( 5 10 15 20 25 30 35 40 45 50 55 60 65 70 )
+              function sum ( 1 2 3 4 5 6 7 8 9 ) ).
+
+           if int-id = 30 then add 1 to test-11413810-status
+           else display "Test-11413810 failed."
+              display "The expected result was 30."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11426100.
+
+           compute int-id = function mod ( +978 +359 ).
+
+           if int-id = 260 then add 1 to test-11426100-status
+           else display "Test-11426100 failed."
+              display "The expected result was 260."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11427100.
+
+           compute int-id = function mod ( -978 -359 ).
+
+           if int-id = -260 then add 1 to test-11427100-status
+           else display "Test-11427100 failed."
+              display "The expected result was -260."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Intrinsic Functions, in a nested format, are arguments.
+      *----------------------------------------------------------------
+       test-11431000.
+
+           compute level-49-id = 3.
+           compute int-id = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(level-49-id)) ** (function factorial(2))
+              ).
+
+           if int-id = 0 then add 1 to test-11431000-status
+           else display "Test-11431000 failed."
+              display "The expected result was 0."
+              display "The  actual  result was " int-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * RETURN-CODE, SORT-RETURN, SORT-CORE-SIZE, SORT-FILE-SIZE, TALLY
+      * and SORT-MODE-SIZE Special Registers are used as a receivers.
+      *----------------------------------------------------------------
+       test-21000000.
+
+           compute  RETURN-CODE  SORT-RETURN  SORT-CORE-SIZE
+              SORT-FILE-SIZE  TALLY  SORT-MODE-SIZE = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if RETURN-CODE    = 9   and   SORT-RETURN    = 9   and
+              SORT-CORE-SIZE = 9   and   SORT-FILE-SIZE = 9   and
+              TALLY          = 9   and   SORT-MODE-SIZE = 9   then
+              add 1 to test-21000000-status
+           else display "Test-21000000 failed."
+              display "Expected RETURN-CODE value is 9."
+              display "Actual   RETURN-CODE value is = " return-code
+              display "Expected SORT-RETURN value is 9."
+              display "Actual   SORT-RETURN value is = " sort-return
+              display "Expected SORT-CORE-SIZE value is 9."
+              display "Actual SORT-CORE-SIZE value is = " sort-core-size
+              display "Expected SORT-FILE-SIZE value is 9."
+              display "Actual SORT-FILE-SIZE value is = " sort-file-size
+              display "Expected TALLY       value is 9."
+              display "Actual   TALLY       value is = " tally
+              display "Expected SORT-MODE-SIZE value is 9."
+              display "Actual SORT-MODE-SIZE value is = " sort-mode-size
+           end-if.
+
+      *----------------------------------------------------------------
+      * INTEGER-HALF identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010001.
+
+           compute integer-half = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if integer-half    = 9  then add 1 to test-22010001-status
+           else display "Test-22010001 failed."
+              display "Expected INTEGER-HALF   value is 9."
+              display "Actual   INTEGER-HALF   value is " integer-half.
+
+      *----------------------------------------------------------------
+      * INTEGER-FULL identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010002.
+
+           compute integer-full = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if integer-full    = 9  then add 1 to test-22010002-status
+           else display "Test-22010002 failed."
+              display "Expected INTEGER-FULL   value is 9."
+              display "Actual   INTEGER-FULL   value is " integer-full.
+
+      *----------------------------------------------------------------
+      * INTEGER-DOUBLE identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010003.
+
+           compute integer-double  = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if integer-double  = 9  then add 1 to test-22010003-status
+           else display "Test-22010003 failed."
+              display "Expected INTEGER-DOUBLE value is 9."
+              display "Actual INTEGER-DOUBLE value is " integer-double.
+
+      *----------------------------------------------------------------
+      * FIX-POINT-HALF identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010004.
+
+           compute fix-point-half = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if fix-point-half  = 9  then add 1 to test-22010004-status
+           else display "Test-22010004 failed."
+              display "Expected FIX-POINT-HALF value is 9."
+              display "Actual FIX-POINT-HALF value is " fix-point-half.
+
+      *----------------------------------------------------------------
+      * FIX-POINT-FULL identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010005.
+
+           compute fix-point-full = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if fix-point-full  = 9  then add 1 to test-22010005-status
+           else display "Test-22010005 failed."
+              display "Expected FIX-POINT-FULL value is 9."
+              display "Actual FIX-POINT-FULL value is " fix-point-full.
+
+      *----------------------------------------------------------------
+      * FIX-POINT-DBL identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010006.
+
+           compute fix-point-dbl = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if fix-point-dbl  = 9  then add 1 to test-22010006-status
+           else display "Test-22010006 failed."
+              display "Expected FIX-POINT-DBL value is 9."
+              display "Actual FIX-POINT-DBL value is " fix-point-dbl.
+
+      *----------------------------------------------------------------
+      * COMP-1-FLOAT identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010007.
+
+           compute comp-1-float = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if comp-1-float  = 9  then add 1 to test-22010007-status
+           else display "Test-22010007 failed."
+              display "Expected COMP-1-FLOAT value is 9."
+              display "Actual COMP-1-FLOAT value is " comp-1-float.
+
+      *----------------------------------------------------------------
+      * COMP-2-FLOAT identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010008.
+
+           compute comp-2-float = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if comp-2-float  = 9  then add 1 to test-22010008-status
+           else display "Test-22010008 failed."
+              display "Expected COMP-2-FLOAT value is 9."
+              display "Actual COMP-2-FLOAT value is " comp-2-float.
+
+      *----------------------------------------------------------------
+      * COMP-3-INTEGER identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010009.
+
+           compute comp-3-integer = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if comp-3-integer  = 9  then add 1 to test-22010009-status
+           else display "Test-22010009 failed."
+              display "Expected COMP-3-INTEGER value is 9."
+              display "Actual COMP-3-INTEGER value is " comp-3-integer.
+
+      *----------------------------------------------------------------
+      * COMP-3-FIX   identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010010.
+
+           compute comp-3-fix     = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if comp-3-fix      = 9  then add 1 to test-22010010-status
+           else display "Test-22010010 failed."
+              display "Expected COMP-3-FIX     value is 9."
+              display "Actual COMP-3-FIX     value is " comp-3-fix.
+
+      *----------------------------------------------------------------
+      * COMP-4-INTEGER identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010011.
+
+           compute comp-4-integer = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if comp-4-integer  = 9  then add 1 to test-22010011-status
+           else display "Test-22010011 failed."
+              display "Expected COMP-4-INTEGER value is 9."
+              display "Actual COMP-4-INTEGER value is " comp-4-integer.
+
+      *----------------------------------------------------------------
+      * EXT-FLOAT-1 identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010012.
+
+           compute ext-float-1    = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if ext-float-1     = 9  then add 1 to test-22010012-status
+           else display "Test-22010012 failed."
+              display "Expected EXT-FLOAT-1 value is 9."
+              display "Actual EXT-FLOAT-1 value is " ext-float-1.
+
+      *----------------------------------------------------------------
+      * EXT-FLOAT-2 identifier is used as reutrned value receiver.
+      *----------------------------------------------------------------
+       test-22010013.
+
+           compute ext-float-2    = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if ext-float-2     = 9  then add 1 to test-22010013-status
+           else display "Test-22010013 failed."
+              display "Expected EXT-FLOAT-2 value is 9."
+              display "Actual EXT-FLOAT-2 value is " ext-float-2.
+
+      *----------------------------------------------------------------
+      * Precision to 01 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-1.
+
+           compute precision-id-1 = function mod ( 9 5 ).
+
+           if precision-id-1  = 4  then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-1 value is 4."
+              display "Actual precision-id-1 value is " precision-id-1.
+
+      *----------------------------------------------------------------
+      * Precision to 02 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-2.
+
+           compute precision-id-2 = function mod ( 199 55 ).
+
+           if precision-id-2  = 34  then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-2 value is 34."
+              display "Actual precision-id-2 value is " precision-id-2.
+
+      *----------------------------------------------------------------
+      * Precision to 03 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-3.
+
+           compute precision-id-3 = function mod ( 999 555 ).
+
+           if precision-id-3  = 444 then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-3 value is 444."
+              display "Actual precision-id-3 value is " precision-id-3.
+
+      *----------------------------------------------------------------
+      * Precision to 04 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-4.
+
+           compute precision-id-4 = function mod ( 9999 5555 ).
+
+           if precision-id-4  = 4444 then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-4 value is 4444."
+              display "Actual precision-id-4 value is " precision-id-4.
+
+      *----------------------------------------------------------------
+      * Precision to 05 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-5.
+
+           compute precision-id-5 = function mod ( 99999 55555 ).
+
+           if precision-id-5  = 44444 then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-5 value is 55555."
+              display "Actual precision-id-5 value is " precision-id-5.
+
+      *----------------------------------------------------------------
+      * Precision to 06 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-6.
+
+           compute precision-id-6 = function mod ( 999999 555555 ).
+
+           if precision-id-6  = 444444 add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-6 value is 444444."
+              display "Actual precision-id-6 value is " precision-id-6.
+
+      *----------------------------------------------------------------
+      * Precision to 07 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-7.
+
+           compute precision-id-7 = function mod ( 9999999 5555555 ).
+
+           if precision-id-7 = 4444444 add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-7 value is 4444444."
+              display "Actual precision-id-7 value is " precision-id-7.
+
+      *----------------------------------------------------------------
+      * Precision to 08 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-8.
+
+           compute precision-id-8 = function mod ( 99999999 55555555 ).
+
+           if precision-id-8 = 44444444 add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-8 value is 44444444."
+              display "Actual precision-id-8 value is " precision-id-8.
+
+      *----------------------------------------------------------------
+      * Precision to 09 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-9.
+
+           compute precision-id-9 = function mod( 999999999 555555555 ).
+
+           if precision-id-9 = 444444444 add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-9 value is 444444444."
+              display "Actual precision-id-9 value is " precision-id-9.
+
+           compute test-22014100-status = test-22014100-status - 9.
+
+      *----------------------------------------------------------------
+      * Precision to 10 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-10.
+
+           compute precision-id-10 = function mod
+              ( 9999999999 5555555555 ).
+
+           if precision-id-10 = 4444444444 add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-10 value is 4444444444."
+              display "Actual precision-id-10 value = " precision-id-10.
+
+      *----------------------------------------------------------------
+      * Precision to 11 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-11.
+
+           compute precision-id-11 = function mod
+              ( 99999999999 55555555555 ).
+
+           if precision-id-11 = 44444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-11 value is 44444444444."
+              display "Actual precision-id-11 value = " precision-id-11.
+
+      *----------------------------------------------------------------
+      * Precision to 12 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-12.
+
+           compute precision-id-12 = function mod
+              ( 999999999999 555555555555 ).
+
+           if precision-id-12 = 444444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-12 value is 444444444444."
+              display "Actual precision-id-12 value = " precision-id-12.
+
+      *----------------------------------------------------------------
+      * Precision to 13 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-13.
+
+           compute precision-id-13 = function mod
+              ( 9999999999999 5555555555555 ).
+
+           if precision-id-13 = 4444444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-13 value is 4444444444444."
+              display "Actual precision-id-13 value = " precision-id-13.
+
+      *----------------------------------------------------------------
+      * Precision to 14 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-14.
+
+           compute precision-id-14 = function mod
+              ( 99999999999999 55555555555555 ).
+
+           if precision-id-14 = 44444444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-14 value = 44444444444444."
+              display "Actual precision-id-14 value = " precision-id-14.
+
+      *----------------------------------------------------------------
+      * Precision to 15 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-15.
+
+           compute precision-id-15 = function mod
+              ( 999999999999999 555555555555555 ).
+
+           if precision-id-15 = 444444444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-15 = 444444444444444."
+              display "Actual precision-id-15 value = " precision-id-15.
+
+      *----------------------------------------------------------------
+      * Precision to 16 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-16.
+
+           compute precision-id-16 = function mod
+              ( 9999999999999999 5555555555555555 ).
+
+           if precision-id-16 = 4444444444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-16 = 4444444444444444."
+              display "Actual precision-id-16 value = " precision-id-16.
+
+      *----------------------------------------------------------------
+      * Precision to 17 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-17.
+
+           compute precision-id-17 = function mod
+              ( 99999999999999999 55555555555555555 ).
+
+           if precision-id-17 = 44444444444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-17 = 44444444444444444."
+              display "Actual precision-id-17 value = " precision-id-17.
+
+      *----------------------------------------------------------------
+      * Precision to 18 digit, in a receiver, is tested here.
+      *----------------------------------------------------------------
+       test-22014100-18.
+
+           compute precision-id-18 = function mod
+              ( 999999999999999999 555555555555555555 ).
+
+           if precision-id-18 = 444444444444444444
+              then add 1 to test-22014100-status
+           else display "Test-22014100 failed."
+              display "Expected precision-id-18 = 444444444444444444."
+              display "Actual precision-id-18 value = " precision-id-18.
+
+           compute test-22014100-status = test-22014100-status - 8.
+
+      *----------------------------------------------------------------
+      * Numeric Edited identifier is used as a receiver.
+      *----------------------------------------------------------------
+       test-22019400.
+
+           compute numeric-edited-id = function mod ( 9 5 ).
+
+           if numeric-edited-id = "4.0" add 1 to test-22019400-status
+           else display "Test-22019400 failed."
+              display "Expected numeric-edited-id = 4.0."
+              display "Actual numeric-edited-id = " numeric-edited-id.
+
+      *----------------------------------------------------------------
+      * External Decimal identifiers are used as receivers.
+      *----------------------------------------------------------------
+       test-22019500.
+
+           compute ext-dec-1 ext-dec-2 = function mod ( 9 7 ).
+
+           if ext-dec-1 = 2 and ext-dec-2 = 2
+              then add 1 to test-22019500-status
+           else display "Test-22019500 failed."
+              display "Expected ext-dec-1 = 2"
+              display "Actual   ext-dec-1 = " ext-dec-1
+              display "Expected ext-dec-2 = 2"
+              display "Actual   ext-dec-2 = " ext-dec-2.
+
+      *----------------------------------------------------------------
+      * Various different level numbered identifiers are used as
+      * receivers of Intrinsic Function returned values.
+      *----------------------------------------------------------------
+       test-22020000.
+
+           compute level-49-id  = 0.
+           compute level-49-id     redefines-test    level-77-id-n
+              = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+           if level-49-id       = 9   and   redefines-test   = 9   and
+              level-77-id-n     = 9   add 1 to test-22020000-status
+           else display "Test-22020000 failed."
+              display "Expected level-49-id    value is 9."
+              display "Actual   level-49-id    value is " level-49-id
+              display "Expected redefines-test value is 9."
+              display "Actual   redefines-test value is " redefines-test
+              display "Expected level-77-id-n  value is 9."
+              display "Actual   level-77-id-n  value is " level-77-id-n
+           end-if.
+
+      *----------------------------------------------------------------
+      * Renames identifier is used as an argument.
+      *----------------------------------------------------------------
+       test-22025000.
+
+           compute renames-id  =  0.
+           compute renames-id = function mod ( 87  80 ).
+
+           if renames-id = 7 then add 1 to test-22025000-status
+           else display "Test-22025000 failed."
+              display "The expected result was 7."
+              display "The  actual  result was " renames-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * Qualified dataname is used as a receiver.
+      *----------------------------------------------------------------
+       test-22030000.
+
+           compute qualified-id of group-2    = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if qualified-id of group-2 = 9 add 1 to test-22030000-status
+           else display "Test-22030000 failed."
+              display "Expected qualified-id of group-2 value is 9."
+              display "Actual qualified-id of group-2 value is "
+                       qualified-id of group-2
+           end-if.
+
+      *----------------------------------------------------------------
+      * Fixed and Variable Length table elements are used as receivers.
+      *----------------------------------------------------------------
+       test-22040000.
+
+           compute fixed-table-id9 (3) fixed-table-id9 (4)
+              variable-table-id9 (3) variable-table-id9 (4)
+              = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if fixed-table-id9 (3) = 9  and fixed-table-id9 (4) = 9 and
+              variable-table-id9 (3) = 9 and variable-table-id9 (4) = 9
+              then add 1 to test-22040000-status
+           else display "Test-22040000 failed."
+              display "Expected fixed-table-id9 (3) value is 9."
+              display "Actual fixed-table-id9 (3) = " fixed-table-id9(3)
+              display "Expected fixed-table-id9 (4) value is 9."
+              display "Actual fixed-table-id9 (4) = " fixed-table-id9(4)
+              display "Expected variable-table-id9 (3) value is 9."
+              display "Actual variable-table-id9 (3) value is "
+                      variable-table-id9 (3)
+              display "Expected variable-table-id9 (4) value is 9."
+              display "Actual variable-table-id9 (4) value is "
+                      variable-table-id9 (4)
+           end-if.
+
+      *----------------------------------------------------------------
+      * BLANK WHEN ZERO identifier is used as a receiver.
+      *----------------------------------------------------------------
+       test-22090000.
+
+           compute blank-when-zero-id = function mod ( 25 10 ).
+
+           if blank-when-zero-id = 5 then add 1 to test-22090000-status
+           else display "Test-22090000 failed."
+              display "Expected blank-when-zero-id value is 5."
+              display "Actual blank-when-zero-id is " blank-when-zero-id
+           end-if.
+
+      *----------------------------------------------------------------
+      * SYNCHRONIZED LEFT, SYNCHRONIZED RIGHT, SIGN IS LEADING and
+      * SIGN IS TRAILING identifiers are used as receivers.
+      *----------------------------------------------------------------
+       test-22100000.
+
+           compute sync-left-id sync-right-id sign-lead-id sign-trail-id
+              = function mod (
+              (function length(level-49-id)) ** (function factorial(3))
+              (function length(integer-id )) ** (function factorial(2))
+              ).
+
+           if ( sync-left-id = 9 ) and ( sync-right-id = 9 ) and
+              ( sign-lead-id = 9 ) and ( sign-trail-id = 9 ) then
+              add 1 to test-22100000-status
+           else display "Test-22100000 failed."
+              display "Expected sync-left-id value is 9."
+              display "Actual   sync-left-id value is "  sync-left-id
+              display "Expected sync-right-id value is 9."
+              display "Actual   sync-right-id value is " sync-right-id
+              display "Expected sign-lead-id value is 9."
+              display "Actual   sign-lead-id value is "  sign-lead-id
+              display "Expected sign-trail-id value is 9."
+              display "Actual   sign-trail-id value is " sign-trail-id
+           end-if.
+
+       dummy-paragraph section.
+
+      *****************************************************************
+      * DUMMY-PARAGRAPH-1 specification accommodates DECLARATIVES.
+      *****************************************************************
+       dummy-procedure.
+
+           add 1 to integer-id.
+
+       end program FNMOD01.
+

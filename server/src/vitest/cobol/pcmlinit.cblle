@@ -1,0 +1,34 @@
+      *Process APOST pgminfo(pcml module).
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PCMLINIT.
+         AUTHOR. PROGRAMMER NAME.
+         INSTALLATION. TORONTO LABORATORY.
+         DATE-WRITTEN. JANUARY 1, 1995.
+         DATE-COMPILED.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  wsaa-clients.
+         03  client          occurs 100 times.
+           05  surname                 PIC x(30).
+
+       LINKAGE SECTION.
+
+       01  in-surname            PIC X(30).
+       01  num-clients           PIC 9(08) binary value 17.
+
+       01  clients.
+         03  client occurs 1 to 100 times depending on num-clients.
+           05  surname                 PIC x(30).
+
+       PROCEDURE DIVISION USING in-surname,
+                                num-clients,
+                                clients.
+       1000-MAIN SECTION.
+       1000-start.
+           inspect in-surname replacing all X'00' by X'40'.
+           move 'client1' to surname of wsaa-clients(1);
+           move 'client2' to surname of wsaa-clients(2);
+           move 2 to num-clients.
+           move client of wsaa-clients(1) to client of clients(1);
+           move client of wsaa-clients(2) to client of clients(2);
+       STOP RUN.
