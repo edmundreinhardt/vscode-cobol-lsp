@@ -85,7 +85,7 @@ export class VSCodeSourceHandler implements ISourceHandler, ISourceHandlerLite {
     commentCallbacks: ICommentCallback[] = [];
     lineCount: number;
     // eslint-disable-next-line @typescript-eslint/ban-types
-    documentVersionId: BigInt;
+    documentVersionId: bigint;
     isSourceInWorkSpace: boolean;
     shortWorkspaceFilename: string;
     updatedSource: Map<number, string>;
