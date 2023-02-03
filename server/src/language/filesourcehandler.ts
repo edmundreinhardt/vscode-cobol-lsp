@@ -156,7 +156,7 @@ export class FileSourceHandler implements ISourceHandler, ISourceHandlerLite {
         return line;
     }
 
-    getLineTabExpanded(lineNumber: number): string | undefined {
+    async getLineTabExpanded(lineNumber: number): Promise<string | undefined> {
         const unexpandedLine = this.getLine(lineNumber, true);
         if (unexpandedLine === undefined) {
             return undefined;

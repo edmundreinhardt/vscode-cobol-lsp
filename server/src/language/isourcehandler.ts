@@ -22,7 +22,6 @@ export interface ISourceHandlerLite {
     getLineCount(): number;
     getLanguageId():string;
     getFilename(): string;
-    getLineTabExpanded(lineNumber: number):string|undefined;
     getLineTabExpanded(lineNumber: number): Promise<string|undefined>;
     getNotedComments(): commentRange[];
 }

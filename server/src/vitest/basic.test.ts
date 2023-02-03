@@ -1,5 +1,8 @@
 import { assert, expect, test } from 'vitest';
-import { COBOLSourceScanner } from '../language/cobolsourcescanner';
+import { ESourceFormat, IExternalFeatures } from '../externalfeatures';
+import { fileformatStrategy, hoverApi, ICOBOLSettings, IEditorMarginFiles, intellisenseStyle, outlineFlag } from '../iconfiguration';
+import { ICOBOLSourceScanner, COBOLSourceScanner, ICOBOLSourceScannerEvents, COBOLToken } from '../language/cobolsourcescanner';
+import { commentRange, ICommentCallback, ISourceHandler } from '../language/isourcehandler';
 
 // import * as cobol from '../language/cobolsourcescanner';
 // import { ISourceHandler } from '../language/isourcehandler';
@@ -27,8 +30,207 @@ test('JSON', () => {
   assert.deepEqual(JSON.parse(output), input, 'matches original');
 });
 
+class MockSourceHandler implements ISourceHandler {
+	getUriAsString(): string {
+		throw new Error('Method not implemented.');
+	}
+	getLineCount(): number {
+		throw new Error('Method not implemented.');
+	}
+	getCommentCount(): number {
+		throw new Error('Method not implemented.');
+	}
+	resetCommentCount(): void {
+		throw new Error('Method not implemented.');
+	}
+	getLine(lineNumber: number, raw: boolean): string | undefined {
+		throw new Error('Method not implemented.');
+	}
+	getLineTabExpanded(lineNumber: number): Promise<string | undefined> {
+		throw new Error('Method not implemented.');
+	}
+	setUpdatedLine(lineNumber: number, line: string): void {
+		throw new Error('Method not implemented.');
+	}
+	getUpdatedLine(linenumber: number): string | undefined {
+		throw new Error('Method not implemented.');
+	}
+	setDumpAreaA(flag: boolean): void {
+		throw new Error('Method not implemented.');
+	}
+	setDumpAreaBOnwards(flag: boolean): void {
+		throw new Error('Method not implemented.');
+	}
+	getFilename(): string {
+		throw new Error('Method not implemented.');
+	}
+	addCommentCallback(commentCallback: ICommentCallback): void {
+		throw new Error('Method not implemented.');
+	}
+	getDocumentVersionId(): bigint {
+		throw new Error('Method not implemented.');
+	}
+	getIsSourceInWorkSpace(): boolean {
+		throw new Error('Method not implemented.');
+	}
+	getShortWorkspaceFilename(): string {
+		throw new Error('Method not implemented.');
+	}
+	getLanguageId(): string {
+		throw new Error('Method not implemented.');
+	}
+	setSourceFormat(format: ESourceFormat): void {
+		throw new Error('Method not implemented.');
+	}
+	getNotedComments(): commentRange[] {
+		throw new Error('Method not implemented.');
+	}
+}
+
 test('TextDocumentSourceHandler', () => {
 	expect(true).eq(true);
-	ICOBOLSourceScanner = new COBOLSourceScanner();
+	const source = new MockSourceHandler();
+	const scanner: ICOBOLSourceScanner = new COBOLSourceScanner(0, 
+		source, new MockConfigHandler(), undefined, false, 
+		new MockScannerEvents(), new MockExternalFeatures());
 });
 
+// Mocked classes for running scanner
+class MockConfigHandler implements ICOBOLSettings {
+	enable_tabstop!: boolean;
+	pre_scan_line_limit!: number;
+	copybooks_nested!: boolean;
+	outline!: outlineFlag;
+	copybookdirs!: string[];
+	invalid_copybookdirs!: string[];
+	copybookexts!: string[];
+	program_extensions!: string[];
+	tabstops!: number[];
+	linter!: boolean;
+	line_comment!: boolean;
+	fileformat_strategy!: fileformatStrategy;
+	enable_data_provider!: boolean;
+	disable_unc_copybooks_directories!: boolean;
+	intellisense_item_limit!: number;
+	process_metadata_cache_on_start!: boolean;
+	cache_metadata_inactivity_timeout!: number;
+	parse_copybooks_for_references!: boolean;
+	workspacefolders_order!: string[];
+	linter_mark_as_information!: boolean;
+	linter_unused_sections!: boolean;
+	linter_unused_paragraphs!: boolean;
+	linter_house_standards!: boolean;
+	linter_house_standards_rules!: string[];
+	linter_ignore_section_before_entry!: boolean;
+	linter_ignore_missing_copybook!: boolean;
+	scan_comments_for_hints!: boolean;
+	cache_metadata_verbose_messages!: boolean;
+	scan_comment_copybook_token!: string;
+	sourceview!: boolean;
+	sourceview_include_jcl_files!: boolean;
+	sourceview_include_hlasm_files!: boolean;
+	sourceview_include_pli_files!: boolean;
+	sourceview_include_doc_files!: boolean;
+	sourceview_include_script_files!: boolean;
+	sourceview_include_object_files!: boolean;
+	sourceview_include_test_files!: boolean;
+	format_constants_to_uppercase!: boolean;
+	format_on_return!: boolean;
+	intellisense_style!: intellisenseStyle;
+	editor_maxTokenizationLineLength!: number;
+	metadata_symbols!: string[];
+	metadata_entrypoints!: string[];
+	metadata_types!: string[];
+	metadata_files!: string[];
+	metadata_knowncopybooks!: string[];
+	maintain_metadata_cache!: boolean;
+	maintain_metadata_recursive_search!: boolean;
+	enable_semantic_token_provider!: boolean;
+	enable_text_replacement!: boolean;
+	editor_margin_files!: IEditorMarginFiles[];
+	enable_source_scanner!: boolean;
+	valid_cobol_language_ids!: string[];
+	files_exclude!: string[];
+	scan_line_limit!: number;
+	scan_time_limit!: number;
+	in_memory_cache_size!: number;
+	suggest_variables_when_context_is_unknown!: boolean;
+	hover_show_known_api!: hoverApi;
+	enable_comment_tags!: boolean;
+	comment_tag_word!: boolean;
+	snippets!: boolean;
+	enable_columns_tags!: boolean;
+	hover_show_encoded_literals!: boolean;
+	check_file_format_before_file_scan!: boolean;
+	intellisense_no_space_keywords!: string[];
+	custom_intellisense_rules!: string[];
+	margin!: boolean;
+	enable_codelens_variable_references!: boolean;
+	enable_codelens_section_paragraph_references!: boolean;
+	enable_codelens_copy_replacing!: boolean;
+}
+class MockScannerEvents implements ICOBOLSourceScannerEvents {
+	start(qp: ICOBOLSourceScanner): void {
+		throw new Error('Method not implemented.');
+	}
+	processToken(token: COBOLToken): void {
+		throw new Error('Method not implemented.');
+	}
+	finish(): void {
+		throw new Error('Method not implemented.');
+	}
+} 
+class MockExternalFeatures implements IExternalFeatures {
+	logMessage(message: string): void {
+		throw new Error('Method not implemented.');
+	}
+	logException(message: string, ex: Error): void {
+		throw new Error('Method not implemented.');
+	}
+	logTimedMessage(timeTaken: number, message: string, ...parameters: any[]): boolean {
+		throw new Error('Method not implemented.');
+	}
+	performance_now(): number {
+		throw new Error('Method not implemented.');
+	}
+	expandLogicalCopyBookToFilenameOrEmpty(filename: string, inDirectory: string, config: ICOBOLSettings): string {
+		throw new Error('Method not implemented.');
+	}
+	getFullWorkspaceFilename(sdir: string, sdirMs: bigint): string | undefined {
+		throw new Error('Method not implemented.');
+	}
+	setWorkspaceFolders(folders: string[]): void {
+		throw new Error('Method not implemented.');
+	}
+	getWorkspaceFolders(): string[] {
+		throw new Error('Method not implemented.');
+	}
+	isFile(possibleFilename: string): boolean {
+		throw new Error('Method not implemented.');
+	}
+	isDirectory(possibleDirectory: string): boolean {
+		throw new Error('Method not implemented.');
+	}
+	getFileModTimeStamp(filename: string): bigint {
+		throw new Error('Method not implemented.');
+	}
+	getCombinedCopyBookSearchPath(): string[] {
+		throw new Error('Method not implemented.');
+	}
+	setCombinedCopyBookSearchPath(fileSearchDirectory: string[]): void {
+		throw new Error('Method not implemented.');
+	}
+	getSourceTimeout(config: ICOBOLSettings): number {
+		throw new Error('Method not implemented.');
+	}
+	getURLCopyBookSearchPath(): string[] {
+		throw new Error('Method not implemented.');
+	}
+	setURLCopyBookSearchPath(fileSearchDirectory: string[]): void {
+		throw new Error('Method not implemented.');
+	}
+	isFileASync(possibleFilename: string): Promise<boolean> {
+		throw new Error('Method not implemented.');
+	}
+
+}
